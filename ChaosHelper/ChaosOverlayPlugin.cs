@@ -30,7 +30,7 @@ namespace ChaosHelper
         private string areaName;
         private bool isTown;
 
-        private volatile ItemSet currentCounts = null;
+        private volatile ItemSet currentItems = null;
         private string countsMsg;
 
         private volatile ItemSet highlightSet = null;
@@ -45,15 +45,16 @@ namespace ChaosHelper
             numSquares = isQuad ? 24 : 12;
         }
 
-        internal void SetCounts(ItemSet currentCounts)
+        internal void SetCurrentItems(ItemSet currentItems)
         {
-            this.currentCounts = currentCounts;
-            countsMsg = currentCounts.GetCountsMsg();
+            this.currentItems = currentItems;
+            countsMsg = currentItems.GetCountsMsg();
         }
 
-        internal void SetItemSet(ItemSet itemSet)
+        internal void SetItemSetToSell(ItemSet itemSet)
         {
             highlightSet = itemSet;
+            countsMsg = currentItems.GetCountsMsg(); // refresh the counts message from the current item set.
         }
 
         public override void Initialize(IWindow targetWindow)
@@ -281,9 +282,9 @@ namespace ChaosHelper
 
         private void ShowJunkItems()
         {
-            if (!isTown || currentCounts == null) return;
+            if (!isTown || currentItems == null) return;
 
-            var junkItems = currentCounts.GetCategory("Junk");
+            var junkItems = currentItems.GetCategory("Junk");
 
             foreach (var item in junkItems)
             {

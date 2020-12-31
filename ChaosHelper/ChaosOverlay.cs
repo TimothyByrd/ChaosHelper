@@ -49,14 +49,14 @@ namespace ChaosHelper
             _plugin.SetStatus(msg);
         }
 
-        public void SetCounts(ItemSet currentCounts)
+        public void SetCurrentItems(ItemSet currentItems)
         {
-            _plugin.SetCounts(currentCounts);
+            _plugin.SetCurrentItems(currentItems);
         }
 
-        public void SetItemSet(ItemSet itemSet)
+        public void SetitemSetToSell(ItemSet itemSet)
         {
-            _plugin.SetItemSet(itemSet);
+            _plugin.SetItemSetToSell(itemSet);
         }
 
         public void SendKey(ConsoleKey key)

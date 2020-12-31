@@ -22,6 +22,7 @@ namespace ChaosHelper
 
         readonly Dictionary<string, List<ItemPosition>> itemsDict = new Dictionary<string, List<ItemPosition>>();
         readonly Dictionary<string, CountItem> countsDict = new Dictionary<string, CountItem>();
+        readonly Dictionary<string, bool> showDict = new Dictionary<string, bool>();
 
         public ItemSet()
         {
@@ -82,9 +83,44 @@ namespace ChaosHelper
             return result;
         }
 
-        public int UnidedCount(string category)
+        public void CalculateClassesToShow(int maxSets)
         {
-            return countsDict[category].NumUnIded;
+            foreach (var c in ItemClass.Iterator())
+            {
+                if (c.Skip)
+                    continue;
+
+                var wanted = maxSets;
+                var haveSoFar = countsDict[c.Category].NumUnIded;
+                if (c.Category == "OneHandWeapons")
+                {
+                    haveSoFar += countsDict["TwoHandWeapons"].NumUnIded * 2;
+                    wanted *= 2;
+                }
+                showDict[c.Category] = haveSoFar < wanted;
+            }
+        }
+
+        public bool SameClassesToShow(ItemSet other)
+        {
+            var keys = showDict.Keys;
+            var keysOther = other.showDict.Keys;
+
+            if (keys.Count != keysOther.Count || keys.Any(x => !keysOther.Contains(x)))
+                return false;
+
+            foreach (var key in keys)
+            {
+                if (showDict[key] != other.showDict[key])
+                    return false;
+            }
+
+            return true;
+        }
+
+        public bool ShouldShow(string category)
+        {
+            return showDict[category];
         }
 
         public List<ItemPosition> GetCategory(string s)

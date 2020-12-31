@@ -33,15 +33,10 @@ namespace ChaosHelper
         static bool allowIDedSets;
         static bool levelLimitJewelry;
         static bool includeInventoryOnForce;
-        static ChaosOverlay overlay;
         static List<string> townZones;
         static List<int> highlightColors;
         static string filterColor;
         static string filterMarker;
-
-        static bool forceFilterUpdate = false;
-        static bool doCharacterCheck = false;
-        static bool highlightSetsToSell = false;
 
         static HotKeyBinding highlightItemsHotkey;
         static HotKeyBinding showJunkItemsHotkey;
@@ -49,8 +44,14 @@ namespace ChaosHelper
         static HotKeyBinding characterCheckHotkey;
         static HotKeyBinding testModeHotkey;
 
-        static ItemSet oldCounts = null;
-        static ItemSet currentCounts = null;
+        static bool forceFilterUpdate = false;
+        static bool checkCharacter = false;
+        static bool highlightSetsToSell = false;
+
+        static ChaosOverlay overlay;
+
+        static ItemSet itemsPrevious = null;
+        static ItemSet itemsCurrent = null;
 
         static void Main()
         {
@@ -96,7 +97,7 @@ namespace ChaosHelper
                         else if (keyInfo.Key == ConsoleKey.C)
                         {
                             Log.Info("Rechecking character and league");
-                            doCharacterCheck = true;
+                            checkCharacter = true;
                         }
                         else if (keyInfo.Key == ConsoleKey.H)
                         {
@@ -136,10 +137,11 @@ namespace ChaosHelper
             }
 
             // get initial counts
-            currentCounts = new ItemSet();
-            await GetTabContents(tabIndex, currentCounts);
-            currentCounts.RefreshCounts();
-            overlay?.SetCounts(currentCounts);
+            itemsCurrent = new ItemSet();
+            await GetTabContents(tabIndex, itemsCurrent);
+            itemsCurrent.RefreshCounts();
+            itemsCurrent.CalculateClassesToShow(maxSets);
+            overlay?.SetCurrentItems(itemsCurrent);
 
             if (overlayTask != null && !overlayTask.IsCompleted)
             {
@@ -169,7 +171,6 @@ namespace ChaosHelper
                 }
                 finally
                 {
-                    //forceHotkey?.Dispose();
                 }
             }
 
@@ -198,7 +199,7 @@ namespace ChaosHelper
             else if (e.Key == characterCheckHotkey?.Key && e.Modifiers == characterCheckHotkey?.Modifiers)
             {
                 Log.Info("Rechecking character and league");
-                doCharacterCheck = true;
+                checkCharacter = true;
             }
             else if (e.Key == testModeHotkey?.Key && e.Modifiers == testModeHotkey?.Modifiers)
                 overlay?.SendKey(ConsoleKey.T);
@@ -356,18 +357,22 @@ namespace ChaosHelper
 
         static async Task CheckForUpdate()
         {
-            oldCounts = currentCounts;
-            currentCounts = new ItemSet();
-            await GetTabContents(tabIndex, currentCounts);
+            itemsPrevious = itemsCurrent;
+            itemsCurrent = new ItemSet();
+            await GetTabContents(tabIndex, itemsCurrent);
             if (includeInventoryOnForce && forceFilterUpdate)
-                await GetInventoryContents(currentCounts);
-            currentCounts.RefreshCounts();
-            overlay?.SetCounts(currentCounts);
+                await GetInventoryContents(itemsCurrent);
+            itemsCurrent.RefreshCounts();
+            itemsCurrent.CalculateClassesToShow(maxSets);
+            
+            overlay?.SetCurrentItems(itemsCurrent);
             SetOverlayStatusMessage();
 
-            if (forceFilterUpdate || FilterChanging(currentCounts, oldCounts))
+            if (forceFilterUpdate || !itemsCurrent.SameClassesToShow(itemsPrevious))
             {
-                UpdateFilter(currentCounts);
+                var msg = itemsCurrent.GetCountsMsg();
+                Log.Info($"updating filter - {msg}");
+                File.WriteAllLines(filterFileName, NewFilterContents(itemsCurrent));
 
                 var filterUpdateSound = Path.GetFullPath(".\\FilterUpdateSound.wav");
                 if (File.Exists(filterUpdateSound))
@@ -384,41 +389,18 @@ namespace ChaosHelper
         private static void SetOverlayStatusMessage()
         {
             string msg;
-            var numSets = currentCounts.CountPossible(false);
+            var numSets = itemsCurrent.CountPossible(false);
             if (numSets > 0)
                 msg = $"you can make {numSets} un-IDed sets";
             else
             {
-                numSets = allowIDedSets ? currentCounts.CountPossible(true) : 0;
+                numSets = allowIDedSets ? itemsCurrent.CountPossible(true) : 0;
                 if (numSets > 0)
                     msg = $"you can make {numSets} IDed sets";
                 else
                     msg = $"no sets, yet";
             }
             overlay?.SetStatus(msg);
-        }
-
-        private static bool FilterChanging(ItemSet counts, ItemSet oldCounts)
-        {
-            if (oldCounts == null)
-                return true;
-
-            Dictionary<string, bool> show = CalculateClassesToShow(counts);
-            Dictionary<string, bool> showOld = CalculateClassesToShow(oldCounts);
-
-            var keys = show.Keys;
-            var keysOld = showOld.Keys;
-
-            if (keys.Count != keysOld.Count || keys.Any(x => !keysOld.Contains(x)))
-                return true;
-
-            foreach (var key in keys)
-            {
-                if (show[key] != showOld[key])
-                    return true;
-            }
-
-            return false;
         }
 
         // frameType:
@@ -433,7 +415,7 @@ namespace ChaosHelper
         // 8 prophecy
         // 9 relic
 
-        private static async Task GetTabContents(int tabIndex, ItemSet counts)
+        private static async Task GetTabContents(int tabIndex, ItemSet items)
         {
             try
             {
@@ -473,7 +455,7 @@ namespace ChaosHelper
                         }
                     }
 
-                    counts.Add(category, item, tabIndex);
+                    items.Add(category, item, tabIndex);
                 }
             }
             catch (Exception ex)
@@ -482,7 +464,7 @@ namespace ChaosHelper
             }
         }
 
-        private static async Task GetInventoryContents(ItemSet counts)
+        private static async Task GetInventoryContents(ItemSet items)
         {
             if (string.IsNullOrWhiteSpace(character))
             {
@@ -535,7 +517,7 @@ namespace ChaosHelper
                     }
 
                     if (category != "Junk")
-                        counts.Add(category, item, -1);
+                        items.Add(category, item, -1);
                 }
             }
             catch (Exception ex)
@@ -544,36 +526,7 @@ namespace ChaosHelper
             }
         }
 
-        static Dictionary<string, bool> CalculateClassesToShow(ItemSet counts)
-        {
-            var result = new Dictionary<string, bool>();
-
-            foreach (var c in ItemClass.Iterator())
-            {
-                if (c.Skip)
-                    continue;
-
-                var wanted = maxSets;
-                var haveSoFar = counts.UnidedCount(c.Category);
-                if (c.Category == "OneHandWeapons")
-                {
-                    haveSoFar += counts.UnidedCount("TwoHandWeapons") * 2;
-                    wanted *= 2;
-                }
-                result[c.Category] = haveSoFar < wanted;
-            }
-            return result;
-        }
-
-        static void UpdateFilter(ItemSet counts)
-        {
-            var msg = counts.GetCountsMsg();
-            Log.Info($"updating filter - {msg}");
-            var showDictionary = CalculateClassesToShow(counts);
-            File.WriteAllLines(filterFileName, NewFilterContents(showDictionary));
-        }
-
-        static IEnumerable<string> NewFilterContents(Dictionary<string, bool> showDictionary)
+        static IEnumerable<string> NewFilterContents(ItemSet items)
         {
             foreach (var line in File.ReadAllLines(templateFileName))
             {
@@ -617,7 +570,7 @@ namespace ChaosHelper
 
                 bool Show(ItemClass c)
                 {
-                    return !c.Skip && showDictionary.ContainsKey(c.Category) && showDictionary[c.Category];
+                    return !c.Skip && items.ShouldShow(c.Category);
                 }
 
                 foreach (var c in ItemClass.Iterator())
@@ -802,11 +755,11 @@ namespace ChaosHelper
                             line = await sr.ReadLineAsync();
                         }
 
-                        if (doCharacterCheck || sawLoginLine && newArea != null)
+                        if (checkCharacter || sawLoginLine && newArea != null)
                         {
                             await CheckAccount(forceWebCheck: true);
                             await DetermineTabIndex(forceWebCheck: true);
-                            doCharacterCheck = false;
+                            checkCharacter = false;
                             sawLoginLine = false;
                         }
 
@@ -825,8 +778,8 @@ namespace ChaosHelper
 
                         if (highlightSetsToSell)
                         {
-                            var setToSell = currentCounts.GetSetToSell(allowIDedSets);
-                            overlay?.SetItemSet(setToSell);
+                            var setToSell = itemsCurrent.GetSetToSell(allowIDedSets);
+                            overlay?.SetitemSetToSell(setToSell);
                             overlay?.SendKey(ConsoleKey.N);
                             highlightSetsToSell = false;
                             SetOverlayStatusMessage();
