@@ -141,6 +141,10 @@
     <Compile Include="structs.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\LICENCE.md">
+      <Link>LICENCE.md</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="..\PoE-TradeMacro\ChaosHelperCharacterCheck.ahk">
       <Link>AhkMacros\ChaosHelperCharacterCheck.ahk</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
