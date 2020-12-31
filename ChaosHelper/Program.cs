@@ -138,6 +138,7 @@ namespace ChaosHelper
             // get initial counts
             currentCounts = new ItemSet();
             await GetTabContents(tabIndex, currentCounts);
+            currentCounts.RefreshCounts();
             overlay?.SetCounts(currentCounts);
 
             if (overlayTask != null && !overlayTask.IsCompleted)
@@ -360,6 +361,7 @@ namespace ChaosHelper
             await GetTabContents(tabIndex, currentCounts);
             if (includeInventoryOnForce && forceFilterUpdate)
                 await GetInventoryContents(currentCounts);
+            currentCounts.RefreshCounts();
             overlay?.SetCounts(currentCounts);
             SetOverlayStatusMessage();
 
