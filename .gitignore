@@ -1,0 +1,6 @@
+# editor backup file
+*.asv#
+.vs/
+bin/
+obj/
+packages/

@@ -1,0 +1,77 @@
+{
+    // these three things must be set - see README.md.
+    "account" : "",
+    "poesessid" : "",
+    "template": "", // the template file used to create/update the filter - an existing Neversink filter should work
+
+    // add your hideout here
+    // these are zones with a stash and merchant, so we don't accidentally obscure the UI in combat
+    // comment out the whole thing to allow the stash overlay anywhere
+    "townZones": [ 
+        "Vast Plains Hideout",
+        "Lioneye's Watch",
+        "The Forest Encampment",
+        "The Sarn Encampment",
+        "Highgate",
+        "Overseer's Tower",
+        "The Bridge Encampment",
+        "Oriath Docks",
+        "Oriath",
+        "Karui Shores",
+        // "Azurite Mine",
+        // "The Menagerie",
+        // "Tane's Laboratory",
+    ],
+
+    // leave these all blank to auto-determine
+    "league" : "",
+    "character": "",
+    "tabName": "",
+    "tabIndex": -1,
+    "isQuadTab": true,
+
+    "filter": "Chaos Helper", // the name of the .filter file that will be written - see README.md
+    "filterMarker": "",
+    "filterColor": "0x4600e6", // can be a hex number like "0x4600e6" or a loot filter color like "70 0 230"
+
+    "maxSets": 10, // for each item slot (jewelry excluded, and weapons x2) remove from the loot filter after this many
+    "maxIlvl": -1, // set to 74 to not show regal recipe items in the loot filter, -1 or 100 for everything
+    "levelLimitJewelry": false, // does "maxIlvl" apply to rings, amulets and belts?
+    "allowIDedSets": false, // see README.md
+
+    // These set global hotkeys
+    // for modifiers, use '^' for Ctrl, '+' for Shift and '!' for Alt
+    // for a list of key names/numbers, see https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys
+    // they are global hotkeys, so be careful not to bork your other programs
+    "highlightItemsHotkey": "!H", // hotkey to highlight sets of items to sell
+    "showJunkItemsHotkey": "!J", // hotkey to toggle highlight of non chaos items in your stash tab
+    "forceUpdateHotkey": "!F", // hotkey to force the filter to be updated - generally not needed
+    //"characterCheckHotkey": "!C", // hotkey to recheck your character and league
+    //"testModeHotkey": "!T", // hotkey to toggle a test pattern to verify the stash window size
+
+    "includeInventoryOnForce": false, // see README.md
+
+    "clientTxt": "", // may need to set this for the steam client?
+    "processName": "PathOfExile_x64", // may need to change this for the steam client?
+    
+    // this is to figure out the place on the screen for the stash tab to highlight items
+    // use [ 0, 0, 0, 0 ] to auto determine
+    // if you need to set a custom value, take a screenshot of your stash tab,
+    // then open the screen shot in a program like irfan view,
+    // make a select rectangle over the grid part of the tab, and determine the X,Y,Height,Width of the selection
+    // you can test the values by typing 't' in the ChaosHelper console
+    "stashPageXYWH": [ 0, 0, 0, 0 ], // for auto-determination
+    //"stashPageXYWH": [ 23, 189, 938, 938 ], // for 2560x1600 16:10
+    //"stashPageXYWH": [ 16, 127, 634, 634 ], // for 1920x1080 16:9
+    //"stashPageXYWH": [ 12, 90, 450, 450 ], // for 1366x768 16:9
+    //"stashPageXYWH": [ 12, 90, 450, 450 ], // for 1024x768 4:3
+    
+    // stash highlight colours for armour/weapons, helmets/gloves/boots, belts, and rings/amulets
+    // must be hex numbers 0xRRGGBB
+    "highlightColors": [
+        "0xffffff", // armour/weapons
+        "0xffff00", // helmets/gloves/boots
+        "0x00ff00", // belts
+        "0x0000ff", // rings/amulets
+    ],
+}
