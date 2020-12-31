@@ -34,7 +34,7 @@
     "filterMarker": "",
     "filterColor": "0x4600e6", // can be a hex number like "0x4600e6" or a loot filter color like "70 0 230"
 
-    "maxSets": 10, // for each item slot (jewelry excluded, and weapons x2) remove from the loot filter after this many
+    "maxSets": 10, // number of chaos sets to try for (jewelry excluded)
     "maxIlvl": -1, // set to 74 to not show regal recipe items in the loot filter, -1 or 100 for everything
     "levelLimitJewelry": false, // does "maxIlvl" apply to rings, amulets and belts?
     "allowIDedSets": false, // see README.md
