@@ -245,7 +245,7 @@ namespace ChaosHelper
             if (!await CheckAccount())
                 return false;
 
-            maxSets = configuration.GetInt("maxSets", 16);
+            maxSets = configuration.GetInt("maxSets", 12);
             maxIlvl = configuration.GetInt("maxIlvl", -1);
             allowIDedSets = configuration.GetBoolean("allowIDedSets", false);
             levelLimitJewelry = configuration.GetBoolean("levelLimitJewelry", false);
@@ -810,7 +810,7 @@ namespace ChaosHelper
 
                         if (newArea != null)
                         {
-                            bool isTown = townZones == null || townZones.Count == 0 
+                            bool isTown = townZones == null || townZones.Count == 0
                                 || townZones.Any(x => string.Equals(x, newArea, StringComparison.OrdinalIgnoreCase));
                             Log.Info($"new area - {newArea} - town: {isTown}");
                             overlay?.SetArea(newArea, isTown);
