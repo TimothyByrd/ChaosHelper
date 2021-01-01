@@ -34,20 +34,49 @@ namespace ChaosHelper
             Identified = identified;
             TabIndex = tabIndex;
         }
+
+        public static int Compare(ItemPosition ip1, ItemPosition ip2)
+        {
+            if (ip1.X < ip2.X)
+                return 1;
+            if (ip1.X > ip2.X)
+                return -1;
+            if (ip1.Y < ip2.Y)
+                return 1;
+            if (ip1.Y > ip2.Y)
+                return -1;
+            return 0;
+        }
+    }
+
+    public enum Cat
+    {
+        BodyArmours,
+        Helmets,
+        Gloves,
+        Boots,
+        OneHandWeapons,
+        TwoHandWeapons,
+        Belts,
+        Amulets,
+        Rings,
+        Junk,
     }
 
     public struct ItemClass
     {
-        public string Category;
         public string Abbrev;
-        public string FilterClass;
         public bool Skip;
+        public Cat Category;
+        public string CategoryStr;
+        public string FilterClass;
 
-        public ItemClass(string abbrev, bool skip, string category, string filterClass)
+        public ItemClass(string abbrev, bool skip, Cat category, string categoryStr, string filterClass)
         {
-            Category = category;
             Abbrev = abbrev;
             Skip = skip;
+            Category = category;
+            CategoryStr = categoryStr;
             FilterClass = filterClass;
         }
 
@@ -61,16 +90,16 @@ namespace ChaosHelper
 
         static readonly List<ItemClass> itemClasses = new List<ItemClass>
         {
-            new ItemClass("a",  false, "BodyArmours", "Body Armours"),
-            new ItemClass("h",  false, "Helmets", "Helmets"),
-            new ItemClass("g",  false, "Gloves", "Gloves"),
-            new ItemClass("b",  false, "Boots", "Boots"),
-            new ItemClass("w1", false, "OneHandWeapons", "Wands\" \"Daggers\" \"Sceptres\" \"One Hand Swords\" \"One Hand Maces"),
-            new ItemClass("w2", true,  "TwoHandWeapons", "Bows"),
-            new ItemClass("be", true,  "Belts", "Belts"),
-            new ItemClass("am", true,  "Amulets", "Amulets"),
-            new ItemClass("ri", true,  "Rings", "Rings"),
-            new ItemClass("j",  true,  "Junk", null),
+            new ItemClass("a",  false, Cat.BodyArmours, "BodyArmours", "Body Armours"),
+            new ItemClass("h",  false, Cat.Helmets, "Helmets", "Helmets"),
+            new ItemClass("g",  false, Cat.Gloves, "Gloves", "Gloves"),
+            new ItemClass("b",  false, Cat.Boots, "Boots", "Boots"),
+            new ItemClass("w1", false, Cat.OneHandWeapons, "OneHandWeapons", "Wands\" \"Daggers\" \"Sceptres\" \"One Hand Swords\" \"One Hand Maces"),
+            new ItemClass("w2", true,  Cat.TwoHandWeapons, "TwoHandWeapons", "Bows"),
+            new ItemClass("be", true,  Cat.Belts, "Belts", "Belts"),
+            new ItemClass("am", true,  Cat.Amulets, "Amulets", "Amulets"),
+            new ItemClass("ri", true,  Cat.Rings, "Rings", "Rings"),
+            new ItemClass("j",  true,  Cat.Junk, "Junk", null),
         };
     }
 

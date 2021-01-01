@@ -49,8 +49,7 @@ namespace Overlay.NET.Directx {
         /// <summary>
         ///     The transparent
         /// </summary>
-        private static readonly RawColor4 Transparent = new RawColor4(_gdiTransparent.R, _gdiTransparent.G, _gdiTransparent.B,
-            _gdiTransparent.A);
+        private static readonly RawColor4 Transparent = ToRawColor4(_gdiTransparent);
 
         //direct x vars
         /// <summary>
@@ -197,8 +196,9 @@ namespace Overlay.NET.Directx {
         ///     int Brush identifier
         /// </returns>
         public int CreateBrush(int color) {
-            _brushContainer.Add(new SolidColorBrush(_device,
-                new RawColor4((color >> 16) & 255L, (color >> 8) & 255L, (byte) color & 255L, (color >> 24) & 255L)));
+            if (color >> 24 == 0)
+                color -= 16777216;
+            _brushContainer.Add(new SolidColorBrush(_device, ToRawColor4(Color.FromArgb(color))));
             return _brushContainer.Count - 1;
         }
 
@@ -214,8 +214,13 @@ namespace Overlay.NET.Directx {
                 color = Color.FromArgb(255, color);
             }
 
-            _brushContainer.Add(new SolidColorBrush(_device, new RawColor4(color.R, color.G, color.B, color.A / 255.0f)));
+            _brushContainer.Add(new SolidColorBrush(_device, ToRawColor4(color)));
             return _brushContainer.Count - 1;
+        }
+
+        private static RawColor4 ToRawColor4(Color color)
+        {
+            return new RawColor4(color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f);
         }
 
         /// <summary>

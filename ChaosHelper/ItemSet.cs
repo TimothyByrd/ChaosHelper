@@ -1,13 +1,16 @@
+#define USE_OPTIMIZE_METHOD
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 
+using Overlay.NET.Common;
+
 namespace ChaosHelper
 {
     public class ItemSet
     {
-        public class CountItem
+        public class ItemCounts
         {
             public int NumIded60 { get; set; }
             public int NumUnIded60 { get; set; }
@@ -20,16 +23,16 @@ namespace ChaosHelper
             public int Total { get { return NumIded + NumUnIded; } }
         }
 
-        readonly Dictionary<string, List<ItemPosition>> itemsDict = new Dictionary<string, List<ItemPosition>>();
-        readonly Dictionary<string, CountItem> countsDict = new Dictionary<string, CountItem>();
-        readonly Dictionary<string, bool> showDict = new Dictionary<string, bool>();
+        readonly Dictionary<Cat, List<ItemPosition>> itemsDict = new Dictionary<Cat, List<ItemPosition>>();
+        readonly Dictionary<Cat, ItemCounts> countsDict = new Dictionary<Cat, ItemCounts>();
+        readonly Dictionary<Cat, bool> showDict = new Dictionary<Cat, bool>();
 
         public ItemSet()
         {
             foreach (var c in ItemClass.Iterator())
             {
                 itemsDict[c.Category] = new List<ItemPosition>();
-                countsDict[c.Category] = new CountItem();
+                countsDict[c.Category] = new ItemCounts();
             }
         }
 
@@ -38,6 +41,14 @@ namespace ChaosHelper
             foreach (var c in ItemClass.Iterator())
             {
                 countsDict[c.Category] = Counts(c.Category);
+            }
+        }
+
+        public void Sort()
+        {
+            foreach (var c in ItemClass.Iterator())
+            {
+                itemsDict[c.Category].Sort(ItemPosition.Compare);
             }
         }
 
@@ -59,9 +70,9 @@ namespace ChaosHelper
             return msg;
         }
 
-        public CountItem Counts(string category)
+        public ItemCounts Counts(Cat category)
         {
-            var result = new CountItem();
+            var result = new ItemCounts();
             foreach (var i in itemsDict[category])
             {
                 if (i.iLvl < 75)
@@ -92,9 +103,9 @@ namespace ChaosHelper
 
                 var wanted = maxSets;
                 var haveSoFar = countsDict[c.Category].NumUnIded;
-                if (c.Category == "OneHandWeapons")
+                if (c.Category == Cat.OneHandWeapons)
                 {
-                    haveSoFar += countsDict["TwoHandWeapons"].NumUnIded * 2;
+                    haveSoFar += countsDict[Cat.TwoHandWeapons].NumUnIded * 2;
                     wanted *= 2;
                 }
                 showDict[c.Category] = haveSoFar < wanted;
@@ -118,17 +129,17 @@ namespace ChaosHelper
             return true;
         }
 
-        public bool ShouldShow(string category)
+        public bool ShouldShow(Cat category)
         {
             return showDict[category];
         }
 
-        public List<ItemPosition> GetCategory(string s)
+        public List<ItemPosition> GetCategory(Cat category)
         {
-            return itemsDict[s];
+            return itemsDict[category];
         }
 
-        public void Add(string category, JsonElement e, int tabIndex)
+        public void Add(Cat category, JsonElement e, int tabIndex)
         {
             itemsDict[category].Add(new ItemPosition(
                 e.GetProperty("x").GetInt32(),
@@ -141,20 +152,28 @@ namespace ChaosHelper
                 ));
         }
 
-        public ItemSet GetSetToSell(bool allowIdentified)
+        public ItemSet GetSetToSell(bool allowIdentified, bool optimizeChaos)
         {
             CleanOutInventoryItems();
 
             // Determine how many unided sets we can make.
             var unidedPossible = CountPossible(false);
             if (unidedPossible > 0)
+#if USE_OPTIMIZE_METHOD
+                return MakeSetOptimize(Math.Min(2, unidedPossible), false, optimizeChaos);
+#else
                 return MakeSet(Math.Min(2, unidedPossible), false);
+#endif
 
             if (allowIdentified)
             {
                 var idedPossible = CountPossible(true);
                 if (idedPossible > 0)
+#if USE_OPTIMIZE_METHOD
+                    return MakeSetOptimize(Math.Min(2, idedPossible), true, optimizeChaos);
+#else
                     return MakeSet(Math.Min(2, idedPossible), true);
+#endif
             }
             return null;
         }
@@ -185,19 +204,19 @@ namespace ChaosHelper
             var possible = int.MaxValue;
             foreach (var c in ItemClass.Iterator())
             {
-                if (c.Category == "Junk" || c.Category == "TwoHandWeapons")
+                if (c.Category == Cat.Junk || c.Category == Cat.TwoHandWeapons)
                     continue;
 
                 var count = itemsDict[c.Category].Count(x => !x.Identified || ided);
-                if (c.Category == "Rings")
+                if (c.Category == Cat.Rings)
                 {
                     count = itemsDict[c.Category].Count(x => x.Identified == ided) / 2;
                 }
-                else if (c.Category == "OneHandWeapons")
+                else if (c.Category == Cat.OneHandWeapons)
                 {
                     count /= 2;
-                    var c2Short = itemsDict["TwoHandWeapons"].Count(x => !x.Identified || ided && x.H == 3);
-                    var c2Tall = itemsDict["TwoHandWeapons"].Count(x => !x.Identified || ided && x.H == 4);
+                    var c2Short = itemsDict[Cat.TwoHandWeapons].Count(x => !x.Identified || ided && x.H == 3);
+                    var c2Tall = itemsDict[Cat.TwoHandWeapons].Count(x => !x.Identified || ided && x.H == 4);
                     if (c2Tall > 0) // can only fit in 1 2x4 weapon
                         ++c2Short;
                     count += c2Short;
@@ -210,6 +229,7 @@ namespace ChaosHelper
             return possible;
         }
 
+#if !USE_OPTIMIZE_METHOD
         /// <summary>
         /// Make a set of items to sell (may be two sets of items, since that will fit into a character's inventory)
         /// </summary>
@@ -223,42 +243,40 @@ namespace ChaosHelper
             var result = new ItemSet();
             foreach (var c in ItemClass.Iterator())
             {
-                if (c.Category == "Junk" || c.Category == "TwoHandWeapons")
+                if (c.Category == Cat.Junk || c.Category == Cat.TwoHandWeapons)
                     continue;
 
-                if (c.Category == "Rings")
+                if (c.Category == Cat.Rings)
                 {
                     result.itemsDict[c.Category] = itemsDict[c.Category]
                         .Where(x => x.Identified == ided).Take(numSets * 2).ToList();
                 }
-                else if (c.Category == "OneHandWeapons")
+                else if (c.Category == Cat.OneHandWeapons)
                 {
-                    var need1hd = numSets * 2;
                     // first use up the 2hd weapons
                     var w2List = new List<ItemPosition>();
 
                     // can have one tall one
-                    w2List.AddRange(itemsDict["TwoHandWeapons"]
+                    w2List.AddRange(itemsDict[Cat.TwoHandWeapons]
                         .Where(x => x.Identified == ided && x.H == 4).Take(1));
                     if (w2List.Count == 0 && ided)
                     {
-                        w2List.AddRange(itemsDict["TwoHandWeapons"]
+                        w2List.AddRange(itemsDict[Cat.TwoHandWeapons]
                             .Where(x => !x.Identified && x.H == 4).Take(1));
                     }
                     if (w2List.Count < numSets)
                     {
                         var want = numSets - w2List.Count;
-                        w2List.AddRange(itemsDict["TwoHandWeapons"]
+                        w2List.AddRange(itemsDict[Cat.TwoHandWeapons]
                             .Where(x => x.Identified == ided && x.H == 3).Take(want));
                     }
                     if (w2List.Count < numSets)
                     {
                         var want = numSets - w2List.Count;
-                        w2List.AddRange(itemsDict["TwoHandWeapons"]
+                        w2List.AddRange(itemsDict[Cat.TwoHandWeapons]
                             .Where(x => !x.Identified && x.H == 3).Take(want));
                     }
-                    result.itemsDict["TwoHandWeapons"] = w2List;
-                    itemsDict["TwoHandWeapons"] = itemsDict["TwoHandWeapons"].Except(result.itemsDict["TwoHandWeapons"]).ToList();
+                    result.itemsDict[Cat.TwoHandWeapons] = w2List;
 
                     // add in 1hd weapons
                     if (w2List.Count < numSets)
@@ -290,24 +308,394 @@ namespace ChaosHelper
                     result.itemsDict[c.Category] = list;
                 }
 
-                // remove the selected items
-                itemsDict[c.Category] = itemsDict[c.Category].Except(result.itemsDict[c.Category]).ToList();
             }
 
+            // remove the selected items
+            RemoveItems(result);
             RefreshCounts();
             return result;
         }
+#endif
 
-        ///// Make a set of items to sell (may be two sets of items, since that will fit into a character's inventory)
-        ///// Optimizes for when ilvl 75+ items start coming in.
-        ///// </summary>
-        ///// <param name="numSets">the number of sets to make (1 or 2) - trust the caller to give a doable number</param>
-        ///// <param name="ided">It true, do IDed sets - both rings IDed and prefer IDed for everythng else.</param>
-        ///// <param name="canDoRegalRecipe">Is an all 75+ recipe acceptable.</param>
-        ///// <returns></returns>
-        //private ItemSet MakeSet74(int numSets, bool ided, bool canDoRegalRecipe)
-        //{
-        //    return null;
-        //}
+        private void RemoveItems(ItemSet itemsToRemove)
+        {
+            foreach (var c in ItemClass.Iterator())
+            {
+                itemsDict[c.Category] = itemsDict[c.Category].Except(itemsToRemove.itemsDict[c.Category]).ToList();
+            }
+        }
+
+#if USE_OPTIMIZE_METHOD
+        /// Make a set of items to sell (may be two sets of items, since that will fit into a character's inventory)
+        /// Optimizes for when ilvl 75+ items start coming in.
+        /// </summary>
+        /// <param name="numSets">the number of sets to make (1 or 2) - trust the caller to give a doable number</param>
+        /// <param name="ided">It true, do IDed sets - both rings IDed and prefer IDed for everythng else.</param>
+        /// <returns></returns>
+        private ItemSet MakeSetOptimize(int numSets, bool ided, bool optimizeChaos)
+        {
+            var result = new ItemSet();
+            
+            var optimizerList = new List<ChaosSlotOptimizer>
+            {
+                new ChaosSlotOptimizerWeapons(this, 1),
+                new ChaosSlotOptimizer(this, Cat.BodyArmours, 2),
+                new ChaosSlotOptimizer(this, Cat.Gloves, 3),
+                new ChaosSlotOptimizer(this, Cat.Boots, 4),
+                new ChaosSlotOptimizer(this, Cat.Helmets, 5),
+                new ChaosSlotOptimizer(this, Cat.Belts, 6),
+                new ChaosSlotOptimizer(this, Cat.Amulets, 7),
+                new ChaosSlotOptimizerRings(this, 8),
+            };
+
+            foreach (var o in optimizerList)
+                o.Calculate();
+
+            var know60Cat = false;
+            var mustBe60 = Cat.Junk;
+
+            if (optimizerList.Any(x => x.CanMake75 == 0))
+            {
+                // if any can't make 1 75, then
+                // GetItems(mustbe60: false) for all
+                know60Cat = true;
+            }
+
+            if (!know60Cat)
+            {
+                //else if any can make n 60, then
+                //     select the highest priority slot (biggest item) that can make n 60
+                //     GetItems(mustbe60: true) for it, GetItems(mustbe60: false) for rest
+                var bestFor60 = optimizerList.FirstOrDefault(x => x.CanMake60 >= numSets);
+                if (bestFor60 != null)
+                {
+                    mustBe60 = bestFor60.Category;
+                    know60Cat = true;
+                }
+            }
+
+            if (!know60Cat && ided)
+            {
+                //else if any can make n 60, then
+                //     select the highest priority slot (biggest item) that can make n 60
+                //     GetItems(mustbe60: true) for it, GetItems(mustbe60: false) for rest
+                var bestFor60Ided = optimizerList.FirstOrDefault(x => x.CanMake60Ided >= numSets);
+                if (bestFor60Ided != null)
+                {
+                    mustBe60 = bestFor60Ided.Category;
+                    know60Cat = true;
+                }
+            }
+
+            if (!know60Cat && optimizeChaos && numSets > 1)
+            {
+                //else if (optimize and any can make 1 60)
+                //     select the highest priority slot (biggest item) that can make 1 60
+                //     GetItems(mustbe60: true) for it, GetItems(mustbe60: false) for rest
+                var bestFor60 = optimizerList.FirstOrDefault(x => x.CanMake60 >= 1);
+                if (bestFor60 != null)
+                {
+                    mustBe60 = bestFor60.Category;
+                    know60Cat = true;
+                    numSets = 1;
+                }
+            }
+
+            if (!know60Cat && optimizeChaos && numSets > 1 && ided)
+            {
+                //else if (optimize and any can make 1 60)
+                //     select the highest priority slot (biggest item) that can make 1 60
+                //     GetItems(mustbe60: true) for it, GetItems(mustbe60: false) for rest
+                var bestFor60 = optimizerList.FirstOrDefault(x => x.CanMake60Ided >= 1);
+                if (bestFor60 != null)
+                {
+                    mustBe60 = bestFor60.Category;
+                    know60Cat = true;
+                    numSets = 1;
+                }
+            }
+
+            //else
+            //     GetItems(mustbe60: false) for all
+
+            foreach (var o in optimizerList)
+                o.GetItems(result, numSets, o.Category == mustBe60, ided);
+
+            // remove the selected items
+            RemoveItems(result);
+            RefreshCounts();
+            return result;
+        }
+#endif
     }
+
+#if USE_OPTIMIZE_METHOD
+    public class ChaosSlotOptimizer
+    {
+        public Cat Category { get; protected set; }
+        public int Priority { get; protected set; }
+        public int CanMake { get; protected set; }
+        public int CanMake60 { get; protected set; }
+        public int CanMake75 { get; protected set; }
+        public int CanMakeIded { get; protected set; }
+        public int CanMake60Ided { get; protected set; }
+        public int CanMake75Ided { get; protected set; }
+
+        protected readonly ItemSet source;
+
+        public ChaosSlotOptimizer(ItemSet source, Cat category, int priority)
+        {
+            this.source = source;
+            Category = category;
+            Priority = priority;
+        }
+
+        protected void CalculateInternal(Cat category)
+        {
+            foreach (var item in source.GetCategory(category))
+            {
+                ++CanMakeIded;
+                if (item.iLvl >= 75)
+                    ++CanMake75Ided;
+                else
+                    ++CanMake60Ided;
+                if (!item.Identified)
+                {
+                    ++CanMake;
+                    if (item.iLvl >= 75)
+                        ++CanMake75;
+                    else
+                        ++CanMake60;
+                }
+            }
+        }
+
+        public virtual void Calculate()
+        {
+            CalculateInternal(Category);
+        }
+
+        public virtual void GetItems(ItemSet destination, int numSets, bool mustBe60, bool ided)
+        {
+            var sourceList = source.GetCategory(Category);
+            var list = new List<ItemPosition>();
+
+            // take ilvl 75+ items first, if possible.
+            if (!mustBe60)
+            {
+                list.AddRange(sourceList.Where(x => x.Identified == ided && x.iLvl >= 75).Take(numSets));
+            }
+            if (!mustBe60 && list.Count < numSets && ided && CanMake75 > 0)
+            {
+                var want = numSets - list.Count;
+                list.AddRange(sourceList.Where(x => !x.Identified && x.iLvl >= 75).Take(want));
+            }
+
+            if (list.Count < numSets)
+            {
+                var want = numSets - list.Count;
+                list.AddRange(sourceList.Where(x => x.Identified == ided && x.iLvl < 75).Take(want));
+            }
+            if (list.Count < numSets && ided && CanMake60 > 0)
+            {
+                var want = numSets - list.Count;
+                list.AddRange(sourceList.Where(x => !x.Identified && x.iLvl < 75).Take(want));
+            }
+
+            if (list.Count < numSets)
+            {
+                Log.Error($"Wanted {numSets} for {Category}, but only got {list.Count}, mustBe60:{mustBe60}, ided:{ided}");
+            }
+            destination.GetCategory(Category).AddRange(list);
+        }
+    }
+
+    public class ChaosSlotOptimizerRings : ChaosSlotOptimizer
+    {
+        public ChaosSlotOptimizerRings(ItemSet source, int priority)
+            : base(source, Cat.Rings, priority)
+        {
+        }
+
+        public override void Calculate()
+        {
+            CalculateInternal(Category);
+
+            // for rings, IDed cannot mix in un-IDed.
+            CanMakeIded -= CanMake;
+            CanMake60Ided -= CanMake60;
+            CanMake75Ided -= CanMake75;
+
+            // because we need two per set.
+            CanMake /= 2;
+            CanMake60 /= 2;
+            CanMake75 /= 2;
+            CanMakeIded /= 2;
+            CanMake60Ided /= 2;
+            CanMake75Ided /= 2;
+        }
+
+        public override void GetItems(ItemSet destination, int numSets, bool mustBe60, bool ided)
+        {
+            // because we need two per set.
+            numSets *= 2;
+
+            var sourceList = source.GetCategory(Category);
+            var list = new List<ItemPosition>();
+
+            // take ilvl 75+ items first, if possible.
+            // rings can't mix IDed and un-IDed.
+            if (!mustBe60)
+            {
+                list.AddRange(sourceList.Where(x => x.Identified == ided && x.iLvl >= 75).Take(numSets));
+            }
+            if (list.Count < numSets)
+            {
+                var want = numSets - list.Count;
+                list.AddRange(sourceList.Where(x => x.Identified == ided && x.iLvl < 75).Take(want));
+            }
+            if (list.Count < numSets)
+            {
+                Log.Error($"Wanted {numSets / 2} for {Category}, but only got {list.Count / 2}, mustBe60:{mustBe60}, ided:{ided}");
+            }
+            destination.GetCategory(Category).AddRange(list);
+        }
+    }
+
+    public class ChaosSlotOptimizerWeapons : ChaosSlotOptimizer
+    {
+        private int w2H3_60;
+        private int w2H3_75;
+        private int w2H3_60Id;
+        private int w2H3_75Id;
+        private int w2H4_60;
+        private int w2H4_75;
+        private int w2H4_60Id;
+        private int w2H4_75Id;
+        private int w1_60;
+        private int w1_75;
+        private int w1_60Id;
+        private int w1_75Id;
+
+        public ChaosSlotOptimizerWeapons(ItemSet source, int priority)
+            : base(source, Cat.OneHandWeapons, priority)
+        {
+        }
+
+        public override void Calculate()
+        {
+            CalculateInternal(Cat.OneHandWeapons);
+            w1_60 = CanMake60;
+            w1_75 = CanMake75;
+            w1_60Id = CanMake60Ided - CanMake60;
+            w1_75Id = CanMake75Ided - CanMake75;
+
+            // because we need two per set.
+            CanMake /= 2;
+            CanMake60 /= 2;
+            CanMake75 /= 2;
+            CanMakeIded /= 2;
+            CanMake60Ided /= 2;
+            CanMake75Ided /= 2;
+
+            foreach (var item in source.GetCategory(Cat.TwoHandWeapons))
+            {
+                if (item.H == 3 && item.iLvl < 75 && !item.Identified) ++w2H3_60;
+                if (item.H == 3 && item.iLvl >= 75 && !item.Identified) ++w2H3_75;
+                if (item.H == 3 && item.iLvl < 75 && item.Identified) ++w2H3_60Id;
+                if (item.H == 3 && item.iLvl >= 75 && item.Identified) ++w2H3_75Id;
+                if (item.H == 4 && item.iLvl < 75 && !item.Identified) ++w2H4_60;
+                if (item.H == 4 && item.iLvl >= 75 && !item.Identified) ++w2H4_75;
+                if (item.H == 4 && item.iLvl < 75 && item.Identified) ++w2H4_60Id;
+                if (item.H == 4 && item.iLvl >= 75 && item.Identified) ++w2H4_75Id;
+            }
+
+            CanMake += (w2H3_60 + w2H3_75);
+            CanMake60 += w2H3_60;
+            CanMake75 += w2H3_75;
+            CanMakeIded += (w2H3_60 + w2H3_75 + w2H3_60Id + w2H3_75Id);
+            CanMake60Ided += (w2H3_60 + w2H3_60Id);
+            CanMake75Ided += (w2H3_75 + w2H3_75Id);
+
+            // only one 2x4 can count
+            if (w2H4_60 + w2H4_75 > 0) ++CanMake;
+            if (w2H4_60 > 0) ++CanMake60;
+            if (w2H4_75 > 0) ++CanMake75;
+            if (w2H4_60 + w2H4_75 + w2H4_60Id + w2H4_75Id > 0) ++CanMakeIded;
+            if (w2H4_60 + w2H4_60Id > 0) ++CanMake60Ided;
+            if (w2H4_75 + w2H4_75Id > 0) ++CanMake75Ided;
+        }
+
+        public override void GetItems(ItemSet destination, int numSets, bool mustBe60, bool ided)
+        {
+            var w2Source = source.GetCategory(Cat.TwoHandWeapons);
+            var w2List = new List<ItemPosition>();
+
+            var w1Source = source.GetCategory(Cat.OneHandWeapons);
+            var w1List = new List<ItemPosition>();
+
+            int StillNeed() { return (numSets * 2) - (w2List.Count * 2 + w1List.Count); }
+
+            // 2x4 weapons trump everything because they take up so much stash space
+            //
+            if (!mustBe60)
+                w2List.AddRange(w2Source.Where(x => x.Identified == ided && x.iLvl >= 75 && x.H == 4).Take(1));
+            if (!mustBe60 && w2List.Count == 0 && ided && w2H4_75 > 0)
+                w2List.AddRange(w2Source.Where(x => !x.Identified && x.iLvl >= 75 && x.H == 4).Take(1));
+            if (w2List.Count == 0)
+                w2List.AddRange(w2Source.Where(x => x.Identified == ided && x.iLvl < 75 && x.H == 4).Take(1));
+            if (w2List.Count == 0 && ided && w2H4_60 > 0)
+                w2List.AddRange(w2Source.Where(x => !x.Identified && x.iLvl < 75 && x.H == 4).Take(1));
+
+            // next take ilvl 75+ 2x3 items
+            if (!mustBe60 && w2List.Count < numSets)
+            {
+                w2List.AddRange(w2Source.Where(x => x.Identified == ided && x.iLvl >= 75 && x.H == 3).Take(numSets - w2List.Count));
+                if (numSets > w2List.Count && ided)
+                    w2List.AddRange(w2Source.Where(x => !x.Identified && x.iLvl >= 75 && x.H == 3).Take(numSets - w2List.Count));
+            }
+
+            // at this point we still need 0, 1 or 2 sets and it's time to look at 1x3 1hd weapons
+
+            // look ahead to see how many 75 1x3s we want
+            // can only have an odd number if there is a 60 that can match
+            //
+            var w1_60_possible = w1_60 + (ided ? w1_60Id : 0);
+            var w1_75_possible = w1_75 + (ided ? w1_75Id : 0);
+            if (w1_75_possible % 2 == 1 && w1_60_possible == 0)
+                --w1_75_possible;
+
+            if (!mustBe60 && w1_75_possible > 0 && StillNeed() > 0)
+                w1List.AddRange(w1Source.Where(x => x.Identified == ided && x.iLvl >= 75).Take(StillNeed()));
+            if (!mustBe60 && w1_75_possible > 0 && ided && StillNeed() > 0)
+                w1List.AddRange(w1Source.Where(x => !x.Identified && x.iLvl >= 75).Take(StillNeed()));
+
+            // check for 60 2x3s
+            var wantW260 = StillNeed() / 2;
+            if (wantW260 > 0)
+            {
+                w2List.AddRange(w2Source.Where(x => x.Identified == ided && x.iLvl < 75 && x.H == 3).Take(wantW260));
+                wantW260 = StillNeed() / 2;
+                if (wantW260 > 0 && ided)
+                    w2List.AddRange(w2Source.Where(x => !x.Identified && x.iLvl < 75 && x.H == 3).Take(wantW260));
+            }
+
+            // last bit is 60 1x3s
+            var wantW160 = StillNeed();
+            if (wantW160 > 0)
+                w1List.AddRange(w1Source.Where(x => x.Identified == ided && x.iLvl < 75).Take(wantW160));
+            wantW160 = StillNeed();
+            if (wantW160 > 0 && ided)
+                w1List.AddRange(w1Source.Where(x => !x.Identified && x.iLvl < 75).Take(wantW160));
+
+            if (StillNeed() > 0)
+            {
+                Log.Error($"Wanted {numSets} for weapons, but only got {w1List.Count} 1hd and {w2List.Count} 2hd, mustBe60:{mustBe60}, ided:{ided}");
+            }
+
+            destination.GetCategory(Cat.TwoHandWeapons).AddRange(w2List);
+            destination.GetCategory(Cat.OneHandWeapons).AddRange(w1List);
+        }
+    }
+#endif
 }

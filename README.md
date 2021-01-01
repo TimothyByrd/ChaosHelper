@@ -144,10 +144,17 @@ The default of -1 means to show ilvl 60 and above.
 `levelLimitJewelry` (false) sets whether `maxIlvl` will apply to rings, amulets and belts. 
 
 `allowIDedSets` (false) sets whether the tool will support making sets including IDed items.
-I do this because I ID two-stone rings while levelling.
+- Defaults to false because it causes extra vendor trips.
+- I do this because I ID two-stone rings while levelling.
 - Also has the filter show IDed rare rings, like breech rings.
 - In an IDed set, both rings must be IDed, and other slots will prefer IDed items.
 - The tool will not mix an IDed set and an un-IDed set in one sale.
+
+`singleSetsForChaos` (false) sets whether the tool will highlight a single set at a time
+when starting to get ilvl 75+ items to maximize chaos over regals. For example, if the stash
+contains one ilvl 74 glove and one ilvl 74 helmet and everything else is ilvl 75+,
+it will hihglight them in two different sales.
+It defaults to false, because the extra vendor trips waste time.
 
 `highlightItemsHotkey`, `showJunkItemsHotkey`, `forceUpdateHotkey`, `characterCheckHotkey` and `testModeHotkey` can be set to enable global hotkeys to execute ChaosHelper commands.
 If not defined, the hotkeys are not enabled.

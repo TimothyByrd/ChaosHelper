@@ -8,19 +8,19 @@
     // these are zones with a stash and merchant, so we don't accidentally obscure the UI in combat
     // comment out the whole thing to allow the stash overlay anywhere
     "townZones": [ 
-        "Vast Plains Hideout",
-        "Lioneye's Watch",
-        "The Forest Encampment",
-        "The Sarn Encampment",
-        "Highgate",
-        "Overseer's Tower",
-        "The Bridge Encampment",
-        "Oriath Docks",
-        "Oriath",
-        "Karui Shores",
-        // "Azurite Mine",
-        // "The Menagerie",
-        // "Tane's Laboratory",
+//        "Vast Plains Hideout",
+//        "Lioneye's Watch",
+//        "The Forest Encampment",
+//        "The Sarn Encampment",
+//        "Highgate",
+//        "Overseer's Tower",
+//        "The Bridge Encampment",
+//        "Oriath Docks",
+//        "Oriath",
+//        "Karui Shores",
+//        // "Azurite Mine",
+//        // "The Menagerie",
+//        // "Tane's Laboratory",
     ],
 
     // leave these all blank to auto-determine
@@ -32,12 +32,13 @@
 
     "filter": "Chaos Helper", // the name of the .filter file that will be written - see README.md
     "filterMarker": "",
-    "filterColor": "0x4600e6", // can be a hex number like "0x4600e6" or a loot filter color like "70 0 230"
+    "filterColor": "0x6a4dff", // can be a hex number like "0x6a4dff" or a loot filter color like "106 77 255"
 
-    "maxSets": 10, // number of chaos sets to try for (jewelry excluded)
+    "maxSets": 12, // number of chaos sets to try for (jewelry excluded)
     "maxIlvl": -1, // set to 74 to not show regal recipe items in the loot filter, -1 or 100 for everything
     "levelLimitJewelry": false, // does "maxIlvl" apply to rings, amulets and belts?
     "allowIDedSets": false, // see README.md
+    "singleSetsForChaos": false, 
 
     // These set global hotkeys
     // for modifiers, use '^' for Ctrl, '+' for Shift and '!' for Alt
@@ -72,6 +73,6 @@
         "0xffffff", // armour/weapons
         "0xffff00", // helmets/gloves/boots
         "0x00ff00", // belts
-        "0x0000ff", // rings/amulets
+        "0x6060ff", // rings/amulets
     ],
 }

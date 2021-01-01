@@ -31,6 +31,7 @@ namespace ChaosHelper
         static int tabIndex;
         static bool isQuadTab = true;
         static bool allowIDedSets;
+        static bool singleSetsForChaos;
         static bool levelLimitJewelry;
         static bool includeInventoryOnForce;
         static List<string> townZones;
@@ -52,6 +53,8 @@ namespace ChaosHelper
 
         static ItemSet itemsPrevious = null;
         static ItemSet itemsCurrent = null;
+
+        const int ilvl60 = 60;
 
         static void Main()
         {
@@ -250,6 +253,7 @@ namespace ChaosHelper
             maxSets = configuration.GetInt("maxSets", 12);
             maxIlvl = configuration.GetInt("maxIlvl", -1);
             allowIDedSets = configuration.GetBoolean("allowIDedSets", false);
+            singleSetsForChaos = configuration.GetBoolean("singleSetsForChaos", false);
             levelLimitJewelry = configuration.GetBoolean("levelLimitJewelry", false);
             includeInventoryOnForce = configuration.GetBoolean("includeInventoryOnForce", false);
             townZones = configuration.GetStringList("townZones");
@@ -263,7 +267,7 @@ namespace ChaosHelper
             highlightColors = configuration.GetIntList("highlightColors");
             if (highlightColors.Count == 0)
             {
-                highlightColors = new List<int> { 0xffffff, 0xffff00, 0x00ff00, 0x0000ff };
+                highlightColors = new List<int> { 0xffffff, 0xffff00, 0x00ff00, 0x6060ff };
             }
             else if (highlightColors.Count != 4)
             {
@@ -271,7 +275,7 @@ namespace ChaosHelper
                 return false;
             }
 
-            const string defaultFilterColor = "80 0 220";
+            const string defaultFilterColor = "106 77 255";
             filterColor = configuration["filterColor"];
             if (string.IsNullOrWhiteSpace(filterColor))
                 filterColor = defaultFilterColor;
@@ -382,6 +386,7 @@ namespace ChaosHelper
                         player.Play();
                     }
                 }
+                overlay?.SendKey(ConsoleKey.Spacebar);
                 forceFilterUpdate = false;
             }
         }
@@ -434,21 +439,21 @@ namespace ChaosHelper
                     var identified = item.GetProperty("identified").GetBoolean();
                     var ilvl = item.GetProperty("ilvl").GetInt32();
 
-                    var category = "Junk";
+                    var category = Cat.Junk;
 
-                    if (frameType == 2 && ilvl >= 60 && (allowIDedSets || !identified)) // only look at rares of ilvl 60+
+                    if (frameType == 2 && ilvl >= ilvl60 && (allowIDedSets || !identified)) // only look at rares of ilvl 60+
                     {
                         var iconUrl = item.GetProperty("icon").GetString();
                         foreach (var c in ItemClass.Iterator())
                         {
-                            if (iconUrl.Contains(c.Category))
+                            if (iconUrl.Contains(c.CategoryStr))
                             {
                                 category = c.Category;
-                                if (c.Category == "OneHandWeapons")
+                                if (c.Category == Cat.OneHandWeapons)
                                 {
                                     if (item.GetProperty("w").GetInt32() > 1
                                         || item.GetProperty("h").GetInt32() > 3)
-                                        category = "Junk";
+                                        category = Cat.Junk;
                                 }
                                 break;
                             }
@@ -457,6 +462,8 @@ namespace ChaosHelper
 
                     items.Add(category, item, tabIndex);
                 }
+                
+                items.Sort();
             }
             catch (Exception ex)
             {
@@ -495,28 +502,28 @@ namespace ChaosHelper
                     var identified = item.GetProperty("identified").GetBoolean();
                     var ilvl = item.GetProperty("ilvl").GetInt32();
 
-                    if (identified || frameType != 2 || ilvl < 60)
+                    if (identified || frameType != 2 || ilvl < ilvl60)
                         continue; // only look at un-IDed rares of ilvl 60+
 
-                    var category = "Junk";
+                    var category = Cat.Junk;
 
                     var iconUrl = item.GetProperty("icon").GetString();
                     foreach (var c in ItemClass.Iterator())
                     {
-                        if (iconUrl.Contains(c.Category))
+                        if (iconUrl.Contains(c.CategoryStr))
                         {
                             category = c.Category;
-                            if (c.Category == "OneHandWeapons")
+                            if (c.Category == Cat.OneHandWeapons)
                             {
                                 if (item.GetProperty("w").GetInt32() > 1
                                     || item.GetProperty("h").GetInt32() > 3)
-                                    category = "Junk";
+                                    category = Cat.Junk;
                             }
                             break;
                         }
                     }
 
-                    if (category != "Junk")
+                    if (category != Cat.Junk)
                         items.Add(category, item, -1);
                 }
             }
@@ -548,7 +555,7 @@ namespace ChaosHelper
                 yield return "SetFontSize 45";
                 if (!allowIDedSets)
                     yield return "Identified False";
-                yield return "ItemLevel >= 60";
+                yield return $"ItemLevel >= {ilvl60}";
                 if (maxIlvl > 60 && maxIlvl < 100 && levelLimitJewelry)
                     yield return $"ItemLevel <= {maxIlvl}";
                 yield return "Rarity Rare";
@@ -561,7 +568,7 @@ namespace ChaosHelper
                 yield return $"SetTextColor {filterColor}";
                 yield return "SetFontSize 45";
                 yield return "Identified False";
-                yield return "ItemLevel >= 60";
+                yield return $"ItemLevel >= {ilvl60}";
                 if (maxIlvl > 60 && maxIlvl < 100 && levelLimitJewelry)
                     yield return $"ItemLevel <= {maxIlvl}";
                 yield return "Rarity Rare";
@@ -585,10 +592,10 @@ namespace ChaosHelper
                     yield return $"SetTextColor {filterColor}";
                     yield return "SetFontSize 38";
                     yield return "Identified False";
-                    yield return "ItemLevel >= 60";
+                    yield return $"ItemLevel >= {ilvl60}";
                     if (maxIlvl > 60 && maxIlvl < 100)
                         yield return $"ItemLevel <= {maxIlvl}";
-                    if (c.Category == "OneHandWeapons")
+                    if (c.Category == Cat.OneHandWeapons)
                     {
                         yield return "Height = 3";
                         yield return "Width = 1";
@@ -596,7 +603,7 @@ namespace ChaosHelper
                     yield return "";
 
                     // Add in bows
-                    if (c.Category == "OneHandWeapons")
+                    if (c.Category == Cat.OneHandWeapons)
                     {
                         yield return "# Bows for chaos";
                         yield return "Show";
@@ -606,7 +613,7 @@ namespace ChaosHelper
                         yield return $"SetTextColor {filterColor}";
                         yield return "SetFontSize 38";
                         yield return "Identified False";
-                        yield return "ItemLevel >= 60";
+                        yield return $"ItemLevel >= {ilvl60}";
                         if (maxIlvl > 60 && maxIlvl < 100)
                             yield return $"ItemLevel <= {maxIlvl}";
                         yield return "Height = 3";
@@ -778,7 +785,7 @@ namespace ChaosHelper
 
                         if (highlightSetsToSell)
                         {
-                            var setToSell = itemsCurrent.GetSetToSell(allowIDedSets);
+                            var setToSell = itemsCurrent.GetSetToSell(allowIDedSets, singleSetsForChaos);
                             overlay?.SetitemSetToSell(setToSell);
                             overlay?.SendKey(ConsoleKey.N);
                             highlightSetsToSell = false;

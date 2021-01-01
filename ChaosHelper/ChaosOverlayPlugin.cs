@@ -21,14 +21,15 @@ namespace ChaosHelper
         private int whiteBrush;
         private string statusMessage;
         private System.Drawing.RectangleF stashRect;
-        private Dictionary<string, int> highlightDict;
+        private Dictionary<Cat, int> highlightBrushDict;
+        private Dictionary<Cat, int> solidBrushDict;
         private readonly int numSquares;
         private bool showStashTest = false;
         private bool showJunkItems = false;
         private double squareWidth;
         private double squareHeight;
         private string areaName;
-        private bool isTown;
+        private bool isTown = true; // assume we start in a town
 
         private volatile ItemSet currentItems = null;
         private string countsMsg;
@@ -65,9 +66,9 @@ namespace ChaosHelper
             OverlayWindow = new DirectXOverlayWindow(targetWindow.Handle, false);
             //_watch = Stopwatch.StartNew();
 
-            _redBrush = OverlayWindow.Graphics.CreateBrush(0x7FFF0000);
+            _redBrush = OverlayWindow.Graphics.CreateBrush(0xFF0000);
             _redOpacityBrush = OverlayWindow.Graphics.CreateBrush(Color.FromArgb(80, 255, 0, 0));
-            whiteBrush = OverlayWindow.Graphics.CreateBrush(0x7FFFFFFF);
+            whiteBrush = OverlayWindow.Graphics.CreateBrush(0xFFFFFF);
 
             _font = OverlayWindow.Graphics.CreateFont("Arial", 20);
 
@@ -91,23 +92,42 @@ namespace ChaosHelper
 
         public void SetHighlightColors(List<int> highlightColors)
         {
-            var brush0 = OverlayWindow.Graphics.CreateBrush(Color.FromArgb(80, Color.FromArgb(highlightColors[0])));
-            var brush1 = OverlayWindow.Graphics.CreateBrush(Color.FromArgb(80, Color.FromArgb(highlightColors[1])));
-            var brush2 = OverlayWindow.Graphics.CreateBrush(Color.FromArgb(80, Color.FromArgb(highlightColors[2])));
-            var brush3 = OverlayWindow.Graphics.CreateBrush(Color.FromArgb(80, Color.FromArgb(highlightColors[3])));
+            var brush0h = OverlayWindow.Graphics.CreateBrush(Color.FromArgb(80, Color.FromArgb(highlightColors[0])));
+            var brush1h = OverlayWindow.Graphics.CreateBrush(Color.FromArgb(80, Color.FromArgb(highlightColors[1])));
+            var brush2h = OverlayWindow.Graphics.CreateBrush(Color.FromArgb(80, Color.FromArgb(highlightColors[2])));
+            var brush3h = OverlayWindow.Graphics.CreateBrush(Color.FromArgb(80, Color.FromArgb(highlightColors[3])));
 
-            highlightDict = new Dictionary<string, int>
+            highlightBrushDict = new Dictionary<Cat, int>
             {
-                { "BodyArmours", brush0 },
-                { "Helmets", brush1 },
-                { "Gloves", brush1 },
-                { "Boots", brush1 },
-                { "OneHandWeapons", brush0 },
-                { "TwoHandWeapons", brush0 },
-                { "Belts", brush2 },
-                { "Amulets", brush3 },
-                { "Rings", brush3 },
+                { Cat.BodyArmours, brush0h },
+                { Cat.Helmets, brush1h },
+                { Cat.Gloves, brush1h },
+                { Cat.Boots, brush1h },
+                { Cat.OneHandWeapons, brush0h },
+                { Cat.TwoHandWeapons, brush0h },
+                { Cat.Belts, brush2h },
+                { Cat.Amulets, brush3h },
+                { Cat.Rings, brush3h },
             };
+
+            var brush0s = OverlayWindow.Graphics.CreateBrush(highlightColors[0]);
+            var brush1s = OverlayWindow.Graphics.CreateBrush(highlightColors[1]);
+            var brush2s = OverlayWindow.Graphics.CreateBrush(highlightColors[2]);
+            var brush3s = OverlayWindow.Graphics.CreateBrush(highlightColors[3]);
+
+            solidBrushDict = new Dictionary<Cat, int>
+            {
+                { Cat.BodyArmours, brush0s },
+                { Cat.Helmets, brush1s },
+                { Cat.Gloves, brush1s },
+                { Cat.Boots, brush1s },
+                { Cat.OneHandWeapons, brush0s },
+                { Cat.TwoHandWeapons, brush0s },
+                { Cat.Belts, brush2s },
+                { Cat.Amulets, brush3s },
+                { Cat.Rings, brush3s },
+            };
+
         }
 
 
@@ -117,6 +137,7 @@ namespace ChaosHelper
             this.isTown = isTown;
             showStashTest = false;
             showJunkItems = false;
+            showHightlightSet = false;
         }
 
         public void SetStatus(string msg)
@@ -157,9 +178,7 @@ namespace ChaosHelper
         private void OnTick(object sender, EventArgs e)
         {
             if (!OverlayWindow.IsVisible)
-            {
                 return;
-            }
 
             OverlayWindow.Update();
             InternalRender();
@@ -219,17 +238,18 @@ namespace ChaosHelper
             var y = (int)(stashRect.Bottom + squareHeight * numSquares / 16);
             var width = (int)squareWidth;
             var height = (int)squareHeight;
-            RectAndArrow(width, y, width, height, highlightDict["BodyArmours"]);
-            RectAndArrow(width * 3, y, width, height, highlightDict["Helmets"]);
-            RectAndArrow(width * 5, y, width, height, highlightDict["Belts"]);
-            RectAndArrow(width * 7, y, width, height, highlightDict["Rings"], false);
+            RectAndArrow(width, y, width, height, highlightBrushDict[Cat.BodyArmours], solidBrushDict[Cat.BodyArmours]);
+            RectAndArrow(width * 3, y, width, height, highlightBrushDict[Cat.Helmets], solidBrushDict[Cat.Helmets]);
+            RectAndArrow(width * 5, y, width, height, highlightBrushDict[Cat.Belts], solidBrushDict[Cat.Belts]);
+            RectAndArrow(width * 7, y, width, height, highlightBrushDict[Cat.Rings], solidBrushDict[Cat.Rings], false);
 
             HighlightItems(highlightSet);
         }
 
-        private void RectAndArrow(int x, int y, int width, int height, int brush, bool drawArrow = true)
+        private void RectAndArrow(int x, int y, int width, int height, int brushF, int brushS, bool drawArrow = true)
         {
-            OverlayWindow.Graphics.FillRectangle(x, y, width, height, brush);
+            OverlayWindow.Graphics.FillRectangle(x, y, width, height, brushF);
+            OverlayWindow.Graphics.DrawRectangle(x, y, width, height, 3, brushS);
             if (drawArrow)
             {
                 var arrowX1 = (int) (x + width * 1.1);
@@ -275,7 +295,7 @@ namespace ChaosHelper
                     drawThis = !drawThis;
                     if (!drawThis) continue;
 
-                    ItemHighlightRectangle(col, row, width, height, brush);
+                    ItemHighlightRectangle(col, row, width, height, brush, brush);
                 }
             }
         }
@@ -284,42 +304,40 @@ namespace ChaosHelper
         {
             if (!isTown || currentItems == null) return;
 
-            var junkItems = currentItems.GetCategory("Junk");
+            var junkItems = currentItems.GetCategory(Cat.Junk);
 
             foreach (var item in junkItems)
-            {
-                ItemHighlightRectangle(item, _redOpacityBrush);
-            }
+                ItemHighlightRectangle(item, _redOpacityBrush, _redBrush);
         }
 
         private void HighlightItems(ItemSet itemSet)
         {
             foreach (var c in ItemClass.Iterator())
             {
-                if (!highlightDict.ContainsKey(c.Category))
+                if (!highlightBrushDict.ContainsKey(c.Category))
                     continue;
-                var brush = highlightDict[c.Category];
+                var brushH = highlightBrushDict[c.Category];
+                var brushS = solidBrushDict[c.Category];
                 var items = itemSet.GetCategory(c.Category);
                 foreach (var item in items)
-                {
-                    ItemHighlightRectangle(item, brush);
-                }
-
+                    ItemHighlightRectangle(item, brushH, brushS);
             }
         }
 
-        private void ItemHighlightRectangle(ItemPosition item, int brush)
+        private void ItemHighlightRectangle(ItemPosition item, int brushH, int brushS)
         {
-            ItemHighlightRectangle(item.X, item.Y, item.W, item.H, brush);
+            ItemHighlightRectangle(item.X, item.Y, item.W, item.H, brushH, brushS);
         }
 
-        private void ItemHighlightRectangle(int col, int row, int width, int height, int brush)
+        private void ItemHighlightRectangle(int col, int row, int width, int height, int brushH, int brushS)
         {
             var x = (int)(stashRect.X + squareWidth * col);
             var x2 = (int)(stashRect.X + squareWidth * (col + width));
             var y = (int)(stashRect.Y + squareHeight * row);
             var y2 = (int)(stashRect.Y + squareHeight * (row + height));
-            OverlayWindow.Graphics.FillRectangle(x, y, x2 - x, y2 - y, brush);
+            var stroke = 3;
+            OverlayWindow.Graphics.FillRectangle(x, y, x2 - x, y2 - y, brushH);
+            OverlayWindow.Graphics.DrawRectangle(x, y, x2 - x, y2 - y, stroke, brushS);
         }
 
         public override void Dispose()
