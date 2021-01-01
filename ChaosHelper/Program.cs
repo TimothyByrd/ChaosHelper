@@ -26,6 +26,7 @@ namespace ChaosHelper
         static string templateFileName;
         static string filterFileName;
         static string clientFileName;
+        static string filterUpdateSound;
         static int maxSets;
         static int maxIlvl;
         static int tabIndex;
@@ -210,7 +211,8 @@ namespace ChaosHelper
 
         static async Task<bool> ConfigureSettings()
         {
-            var configFile = Path.GetFullPath("./settings.jsonc");
+            string exePath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            var configFile = Path.Combine(exePath, "./settings.jsonc");
             if (!File.Exists(configFile))
             {
                 Log.Error($"ERROR: config file 'settings.jsonc' not found");
@@ -226,6 +228,8 @@ namespace ChaosHelper
                 Log.Error($"ERROR cannot read settings.jsonc: {ex.Message}");
                 return false;
             }
+
+            filterUpdateSound = Path.Combine(exePath, "./FilterUpdateSound.wav");
 
             account = configuration["account"];
             if (string.IsNullOrWhiteSpace(account))
@@ -378,7 +382,6 @@ namespace ChaosHelper
                 Log.Info($"updating filter - {msg}");
                 File.WriteAllLines(filterFileName, NewFilterContents(itemsCurrent));
 
-                var filterUpdateSound = Path.GetFullPath(".\\FilterUpdateSound.wav");
                 if (File.Exists(filterUpdateSound))
                 {
                     using (var player = new System.Media.SoundPlayer(filterUpdateSound))

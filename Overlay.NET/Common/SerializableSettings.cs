@@ -131,10 +131,7 @@ namespace Overlay.NET.Common {
         /// <summary>
         ///     Loads the settings from the specified location.
         /// </summary>
-        /// <param name="location">
-        ///     The location of the file./param>
-        ///     <exception cref="System.ArgumentNullException"></exception>
-        /// </param>
+        /// <param name="location">The location of the file.</param>
         public void Load(string location = "") {
             if (string.IsNullOrEmpty(location)) {
                 location = Path;
