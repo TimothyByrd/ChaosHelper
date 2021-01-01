@@ -201,7 +201,7 @@ namespace ChaosHelper
 
         public override void Enable()
         {
-            _tickEngine.Interval = _updateRate.Milliseconds();
+            _tickEngine.Interval = TimeSpan.FromMilliseconds(_updateRate);
             _tickEngine.IsTicking = true;
             base.Enable();
         }

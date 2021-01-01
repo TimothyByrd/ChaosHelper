@@ -73,18 +73,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Common\FileLogger.cs" />
-    <Compile Include="Common\ISerializer.cs" />
-    <Compile Include="Common\ISettings.cs" />
     <Compile Include="Common\Log.cs" />
     <Compile Include="Common\Native.cs" />
     <Compile Include="Common\PluginBase.cs" />
     <Compile Include="Common\PluginLoader.cs" />
     <Compile Include="Common\RelativeFile.cs" />
-    <Compile Include="Common\SerializableSettings.cs" />
     <Compile Include="Common\TickEngine.cs" />
-    <Compile Include="Common\TimeSpanExtensions.cs" />
     <Compile Include="Common\WaitTimer.cs" />
-    <Compile Include="Common\XmlSerializerEx.cs" />
     <Compile Include="Directx\Direct2DRenderer.cs" />
     <Compile Include="Directx\DirectExternalXOverlayPlugin.cs" />
     <Compile Include="Directx\DirectXOverlayWindow.cs" />
