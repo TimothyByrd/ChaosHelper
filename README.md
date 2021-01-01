@@ -90,12 +90,18 @@ Since the tool will write to a different file, your existing filter will stay sa
 
 The filter it generates is specified by the `filter` entry and defaults to `Chaos Helper.filter`. 
 
+You can set the place in the filter where the chaos recipe code will go by configuring the `filterMarker` entry.
+For example, if you have your own custom loot filter and want to use it, you could set `filterMarker` to "%%" and then add a line to your filter in the appropriate place reading "#%%".
+Your filter will still work as before, and the tool will be able to use it as a template.
+
 By default, the tool looks for a line containing the text "section displays 20% quality rares" in the template file.
 For Neversink filters, this seems to put the chaos recipe section in a good place.
 
-You can customize this behviour by configuring the `filterMarker` entry.
-For example, if you have your own custom loot filter and want to use it, you could set `filterMarker` to "%%" and then add a line to your filter in the appropriate place reading "#%%".
-Your filter will still work as before, and the tool will be able to use it as a template.
+**NOTE:** Make sure the text specified in `filterMarker` only occurs once in the filter template, at the place you want the chaos recipe code to go.
+For example, when using a Neversink filter it would be tempting to use something like "[[3100]] OVERRIDE AREA 2" as the `filterMarker'.
+However that text occurs *twice* in the filter - once in the place we want the code and once in the table of contents at the top of the file.
+So using that text would cause the chaos recipe code to be inserted in the filter in both places.
+This would probably not be what you want, for example, it would override the normal hightlight for rare 6-socket armor.
 
 ## Security
 

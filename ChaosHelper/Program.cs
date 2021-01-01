@@ -538,12 +538,15 @@ namespace ChaosHelper
 
         static IEnumerable<string> NewFilterContents(ItemSet items)
         {
+            var numMarkerlinesFound = 0;
             foreach (var line in File.ReadAllLines(templateFileName))
             {
                 yield return line;
 
                 if (!line.StartsWith("#") || !line.Contains(filterMarker, StringComparison.OrdinalIgnoreCase))
                     continue;
+
+                ++numMarkerlinesFound;
 
                 yield return "";
                 yield return "# Begin ChaosHelper generated section";
@@ -626,6 +629,17 @@ namespace ChaosHelper
 
                 yield return "# End ChaosHelper generated section";
                 yield return "";
+            }
+
+            if (numMarkerlinesFound == 0)
+            {
+                Log.Warn("WARNING: marker not found in filter template - chaos recipe items will not be highlighted");
+                Log.Warn($"filter template marker is '{filterMarker}'");
+            }
+            else if (numMarkerlinesFound > 1)
+            {
+                Log.Warn($"WARNING: marker found {numMarkerlinesFound} times in filter template - this may be a problem - see README.md");
+                Log.Warn($"filter template marker is '{filterMarker}'");
             }
         }
 
