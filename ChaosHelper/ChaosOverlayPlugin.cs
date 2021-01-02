@@ -21,6 +21,7 @@ namespace ChaosHelper
         private int whiteBrush;
         private string statusMessage;
         private System.Drawing.RectangleF stashRect;
+        private readonly bool autoDetermineStashRect;
         private Dictionary<Cat, int> highlightBrushDict;
         private Dictionary<Cat, int> solidBrushDict;
         private readonly int numSquares;
@@ -42,6 +43,7 @@ namespace ChaosHelper
             fps = Math.Max(1, Math.Min(60, fps));
             _updateRate = 1000 / fps;
             this.stashRect = stashRect;
+            autoDetermineStashRect = stashRect.IsEmpty;
             //this.isQuad = isQuad;
             numSquares = isQuad ? 24 : 12;
         }
@@ -72,7 +74,7 @@ namespace ChaosHelper
 
             _font = OverlayWindow.Graphics.CreateFont("Arial", 20);
 
-            if (stashRect.IsEmpty)
+            if (autoDetermineStashRect)
             {
                 var x = 22.0f / 1440.0f * TargetWindow.Height;
                 var y = 170.0f / 1440.0f * TargetWindow.Height;

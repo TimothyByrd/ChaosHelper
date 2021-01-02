@@ -52,8 +52,8 @@
 
     "includeInventoryOnForce": false, // see README.md
 
-    "clientTxt": "", // may need to set this for the steam client?
-    "processName": "PathOfExile_x64", // may need to change this for the steam client?
+    "clientTxt": "", // see README.md - need to set if both steam and regular clients are installed
+    "processName": "", // see README.md
     
     // this is to figure out the place on the screen for the stash tab to highlight items
     // use [ 0, 0, 0, 0 ] to auto determine

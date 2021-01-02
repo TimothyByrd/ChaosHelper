@@ -128,17 +128,14 @@ namespace ChaosHelper
             });
 
             Task overlayTask = null;
-            var processName = configuration["processName"];
-            if (!string.IsNullOrWhiteSpace(processName))
+            var requiredProcessName = configuration["processName"];
+            overlayTask = Task.Run(() =>
             {
-                overlayTask = Task.Run(() =>
-                {
-                    overlay = new ChaosOverlay();
-                    var stashPageXYWH = configuration.GetRectangle("stashPageXYWH");
-                    overlay.RunOverLay(processName, stashPageXYWH, isQuadTab, highlightColors, token);
-                    overlay = null;
-                });
-            }
+                overlay = new ChaosOverlay();
+                var stashPageXYWH = configuration.GetRectangle("stashPageXYWH");
+                overlay.RunOverLay(requiredProcessName, stashPageXYWH, isQuadTab, highlightColors, token);
+                overlay = null;
+            });
 
             // get initial counts
             itemsCurrent = new ItemSet();

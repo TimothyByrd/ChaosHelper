@@ -138,8 +138,7 @@ namespace Overlay.NET.Directx {
                 throw new Exception("The handle of the parent window isn't valid");
             }
 
-            Native.Rect bounds;
-            Native.GetWindowRect(parent, out bounds);
+            Native.GetWindowRect(parent, out Native.Rect bounds);
 
             IsDisposing = false;
             IsVisible = true;
@@ -219,8 +218,7 @@ namespace Overlay.NET.Directx {
             if (!ParentWindowExists)
                 return;
 
-            Native.Rect bounds;
-            Native.GetWindowRect(ParentWindow, out bounds);
+            Native.GetWindowRect(ParentWindow, out Native.Rect bounds);
 
             if (X != bounds.Left || Y != bounds.Top || Width != bounds.Right - bounds.Left ||
                 Height != bounds.Bottom - bounds.Top) {

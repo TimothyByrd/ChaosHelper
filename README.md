@@ -9,11 +9,11 @@ It has two main functions:
 - It can highlight sets of items in your stash to make selling for chaos more efficient.
 
 ## TLDR to use it
-- Configure your account name, poesessid and source filter (and hideout) in settings.jsonc.
-- Start PoE
-- Start the tool
+- Configure your account name, poesessid and source filter in settings.jsonc.
+- Run both PoE (Windowed) and the tool
+- The very first time, type an 'f' in the tool window - you should hear a response.
 - Play, reload the loot filter when it tells you.
-- Use the hotkey to highlight sets of items to sell for chaos.
+- Use the highlight items hotkey to highlight sets of items to sell for chaos.
 
 ## How to use it
 
@@ -21,13 +21,12 @@ It has two main functions:
 - Do configuration in settings.jsonc:
     - You must set your account name, poesessid and the name of the source filter.
     - The source filter can be anything you want. By default is should work well using a NeverSink filter.
-    - You almost certainly want to add your hideout to the `townZones` list.
-    - Other configuration is to taste, see the section below.
+    - Other configuration is to taste, see "Configuration details" below.
 - Start Path of Exile in windowed full-screen or windowed mode.
-- Start the ChaosHelper tool (PoE must be running first).
-- Back in Path of Exile:
+- Start the ChaosHelper tool
+- In Path of Exile:
     - Change zones once for the tool to know where you are.
-    - If this is your first time or if you are switching leagues, force an initial generation of the loot filter.
+    - If this is your first time or if you have switched leagues, force an initial generation of the loot filter by typing an 'f' in the tool window.
     - Go to `Options->UI` and select "Chaos Helper" as your loot filter.
 - As you play, reload your filter via `Options->UI` when it tells you to.
 - When you are ready to sell a batch of recipes:
@@ -35,7 +34,7 @@ It has two main functions:
     - Use the highlight colors to guide you in Ctrl-clicking items from your stash to your inventory, so the bigger items move first.
     - Use the highlight items hotkey again to highlight the next set.
     - When nothing highlights, you are done for now.
-- If you restart Path of Exile, you must restart the ChaosHelper, too.
+- If you tend to dump everything you find into your quad tab, use the show junk items hotkey to highlight non-recipe items.
 
 ## Automatic stuff
 
@@ -51,6 +50,7 @@ The tool can do the following automatically:
     - If so, update the filter and play a sound to let you know to reload it.
     - Also, it a highlight is being displayed, changing zones will cancel it.
 - Notice you if have switched characters, and recheck the league and stash tab.
+- Detect a restart of the PoE process.
 
 ## Commands and hotkeys
 
@@ -59,7 +59,7 @@ There are five commands you can send to the tool:
 1. Highlight items (H): (town only) To highlight sets of items to sell (it tries for two sets).
 2. Show junk items (J): (town only) To toggle showing items in your stash tab that are not for the recipe, so you can clear them out.
 3. Force update (F): To force a re-read of the stash tab and a write of the filter file.
-4. Character check (C): Recheck your chararacter and league. (This should happen automatically.)
+4. Character check (C): Recheck your character and league. (This should happen automatically.)
 5. Test pattern (T): (town only) Toggle displaying a test pattern to verify the stash window size is correct. Once good, you can disable any hotkey for it, unless you change monitors.
 
 The commands can be invoked:
@@ -114,16 +114,17 @@ because the GGG web developers are not consistent and used one POST with form da
 
 ## Configuration details
 
-There are three and a half things you must configure in settings.jsonc to use the tool:
+There are three things you must configure in settings.jsonc to use the tool:
 1. `account`: your Path of Exile account name.
 2. `poesessid`: the session Id for your currrent login to www.pathofexile.com.
 3. `template`: the template file used to create/update the filter
 - An existing Neversink filter should work with the defaults.
 - See "About the template and filter" for more info.
-4. `townZones`: the commands noted as "town only" - highlight items, show junk items and test pattern - will only work when the tool thinks you are in a town zone.
-- You need to edit this for the highlight items command to work while you are in your hideout.
-- I don't know all the hideouts - "Syndicate Hideout" probably isn't one, so the tool does not auto-determine this.
-- If you are sure you won't press one of the highlight hotkeys while in combat, then you can comment out `townZones` and the tool will think every zone is a town.
+
+`townZones` defines the areas that are considered to be "towns".
+The commands noted as "town only" - highlight items, show junk items and test pattern - will only work when the tool thinks you are in a town zone.
+If no town zones are defined, then the tool will treat every area as a town zone.
+If you want protection from accidentally pressing one of the hightlight hotkeys while in combat, then uncomment the list of zones, and add you hideout to the list.
     
 I suggest leaving `league`, `character`, `tabName`, `tabIndex` and `isQuadTab` at the defaults.
 This will cause to the tool to auto-determine the values, which is good when there are multiple leagues available.
@@ -141,13 +142,16 @@ It can be specified as a hex number like "0x4600e6" or a filter file color like 
 `maxSets` (12) is the number of chaos recipe sets the tool will aim to collect in your stash tab.
 It uses this number to determine when to stop showing item classes in the loot filter.
 A quad tab can hold about 16 complete sets (and a regular tab about 4).
-Since you want to be able to ctrl-click to quickly dump items into the tab setting this to 10 or 12 seems reasonable.
+Since you want to be able to ctrl-click to quickly dump items into the tab (and the tab can get messy over time - this is "fragmentation") setting this to 10 or 12 seems reasonable.
 
 `maxIlvl` (-1) is the maximum ilvl of items to highlight in the loot filter.
 It can be set to 74 to not show regal recipe items.
-The default of -1 means to show ilvl 60 and above.
+The default of -1 means to give the recipe highlight to all applicable items of ilvl 60 and above.
+Note that setting `maxIlvl` will not prevent the filter from showing any rares that it would have shown before.
+Only the highlighting may change from the chaos recipe highlight to what was already in the filter.
  
-`levelLimitJewelry` (false) sets whether `maxIlvl` will apply to rings, amulets and belts. 
+`levelLimitJewelry` (false) sets whether `maxIlvl` will apply to rings, amulets and belts in the loot filter.
+Note that this will not cause rare rings, belts and amulets to be hidden unless the source filter would have hidden them.
 
 `allowIDedSets` (false) sets whether the tool will support making sets including IDed items.
 - Defaults to false because it causes extra vendor trips.
@@ -169,9 +173,20 @@ See "Commands and hotkeys" for more info.
 `includeInventoryOnForce` (false) will cause items in the character's inventory to be included when a force update command is executed.
 It is useful for when a Keepers of the Trove pack gives you all the gloves you need.
 
-`clientTxt` and `processName` define where to find the PoE client.txt and the process name for the running game. They may need to set to something different if using the steam client.
-Especially, if both the steam and stand alone clients are installed.
-(And then there is the Epic client?)
+`clientTxt` defines where to find the PoE client.txt log file, which the tool uses to track zone changes.
+The tool tries to auto-determine this, but if Path of Exile was installed to a custom folder,
+or if both the stand alone client and the Steam client are installed, this value may need to be set.
+(The tool will look for the client.txt for the stand alone client, first.)
+The Epic client is not yet supported, and `clientTxt` must be configured for it.
+
+`processName` defines the process name for the running game.
+The tool tries to auto-determine this, looking for "PathOfExile_x64" for the stand alone client and "PathOfExile_x64Steam" for the Steam client.
+The Epic client is not yet supported, and `processName` must be configured for it.
+
+The tool simply finds the first matching process.
+To run two copies of Path of Exile while using the tool,
+run one PoE using the stand alone client and one PoE using the Steam client,
+and configure `processName` (and `clientTxt`) for the copy you want the tool to go with.
 
 `stashPageXYWH` ([ 0, 0, 0, 0 ]) specifies the rectangle in the PoE client window where the stash tab grid is.
 It usually auto-determines correctly, but may need to be specified for certain monitors.
@@ -187,10 +202,9 @@ There must be four colors in the array and they must be hex number strings of th
 ## Troubleshooting
 
 1. You must configure your account name, poesessid and source filter in settings.jsonc.
-2. If you restart Path of Exile, you must restart the tool, so it can find the PoE window.
 3. If you are just starting out, type an 'f' in the ChaosHelper window to force an initial generation of the loot filter, and then change zones in-game.
 4. Don't do a text selection in the ChaosHelper console window. If you do, the tool will be stopped until the selection is removed.
-5. Check for error messages in the tool window. If the window closed, there should be log files in the `logs` folder.
+5. Check for error messages in the tool window. If the tool window has closed, there should be log files in the `logs` folder.
 6. If you are playing in an non-English PoE, will need to build the tool yourself and translate some strings - particularly the "You have entered" it looks for in client.txt. (But tell me what it took, and I may make this easier in the future.)
 
 ## Building the tool
@@ -199,8 +213,7 @@ Building the tool is pretty easy once you clone the git repo:
 - It builds in Visual Studio 2019 Community Edition
 - The code is all C#.
 - You should be able to open ChaosHelper.sln and then build/run the tool
-    - Still need to configure setting.jsonc.
-    - Still requires that PoE is running to run.
+    - Still need to configure setting.jsonc, though.
 
 ## Links
 

@@ -1,6 +1,12 @@
 # editor backup file
 *.asv#
+
+# binary files
 .vs/
 bin/
 obj/
 packages/
+
+#other
+ChaosHelper/settings.mine
+ChaosHelper/settings.default
