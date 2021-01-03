@@ -22,8 +22,8 @@ It has two main functions:
 [Links](#h10)<br>
 [Donation](#h11)<br>
 
-<a name="h01" />
 ## TLDR to use it
+<a name="h01" />
 
 - Configure your account name, poesessid and source filter in settings.jsonc.
 - Run both PoE (Windowed) and the tool
@@ -31,8 +31,8 @@ It has two main functions:
 - Play, reload the loot filter when it tells you.
 - Use the highlight items hotkey to highlight sets of items to sell for chaos.
 
-<a name="h02" />
 ## How to use it
+<a name="h02" />
 
 - Put the folder of binaries somewhere.
 - Do configuration in settings.jsonc:
@@ -53,8 +53,8 @@ It has two main functions:
     - When nothing highlights, you are done for now.
 - If you tend to dump everything you find into your quad tab, use the show junk items hotkey to highlight non-recipe items.
 
-<a name="h03" />
 ## Automatic stuff
+<a name="h03" />
 
 The Chaos Helper tool can do the following automatically:
 
@@ -79,8 +79,8 @@ When the user clicks on "an item", they are really clicking on that window, whic
 This method makes it easy for anyone with access to the Python source code for poe_qol (and it's been put up on github) to convert it
 to "fully automatic" - having the first click in a highlight window do a loop to cause clicks for all the highlighted items to go to PoE.
 
-<a name="h04" />
 ## Commands and hotkeys
+<a name="h04" />
 
 There are five commands you can send to the tool:
 
@@ -105,8 +105,8 @@ The commands can be invoked:
 - Since PoE-TradeMacro binds some keys, the scripts come set up to be invoked using `Crtl-H`, `Ctrl-J`, `Ctrl-U`, `Ctrl-S` and `Ctrl-P`, respectively.
 - In this case, comment out the hotkeys in setting.jsonc.
 
-<a name="h05" />
 ## About the template and filter
+<a name="h05" />
 
 When it wants to update the loot filter, the tool reads the template file,
 looking for a line with a specific pattern. It writes the new filter file,
@@ -132,8 +132,8 @@ However that text occurs *twice* in the filter - once in the place we want the c
 So using that text would cause the chaos recipe code to be inserted in the filter in both places.
 This would probably not be what you want, for example, it would override the normal hightlight for rare 6-socket armor.
 
-<a name="h06" />
 ## Security
+<a name="h06" />
 
 I trust myself, but you shouldn't. I suggest building the tool yourself (see below).
 Or for security, limit what the tool can do via your firewall.
@@ -142,8 +142,8 @@ They are all HTTP GETs, so they aren't changing anything on the server.
 Except perversely there is an HTTP POST to www.pathofexile.com/character-window/get-items,
 because the GGG web developers are not consistent and used one POST with form data instead of a GET with query parameters.
 
-<a name="h07" />
 ## Configuration details
+<a name="h07" />
 
 There are three things you must configure in settings.jsonc to use the tool:
 1. `account`: your Path of Exile account name.
@@ -238,8 +238,8 @@ You can test the values by typing 't' in the ChaosHelper console to execute the 
 to specify stash highlight colours for armour/weapons, helmets/gloves/boots, belts, and rings/amulets, respectively.
 There must be four colors in the array and they must be hex number strings of the forms "0xRRGGBB".
 
-<a name="h08" />
 ## Troubleshooting
+<a name="h08" />
 
 1. You must configure your account name, poesessid and source filter in settings.jsonc.
 3. If you are just starting out, type an 'f' in the ChaosHelper window to force an initial generation of the loot filter, and then change zones in-game.
@@ -247,8 +247,8 @@ There must be four colors in the array and they must be hex number strings of th
 5. Check for error messages in the tool window. If the tool window has closed, there should be log files in the `logs` folder.
 6. If you are playing in an non-English PoE, will need to build the tool yourself and translate some strings - particularly the "You have entered" it looks for in client.txt. (But tell me what it took, and I may make this easier in the future.)
 
-<a name="h09" />
 ## Building the tool
+<a name="h09" />
 
 Building the tool is pretty easy once you clone the git repo:
 - It builds in Visual Studio 2019 Community Edition
@@ -256,15 +256,15 @@ Building the tool is pretty easy once you clone the git repo:
 - You should be able to open ChaosHelper.sln and then build/run the tool
     - Still need to configure setting.jsonc, though.
 
-<a name="h10" />
 ## Links
+<a name="h10" />
 
 - Originally inspired by [poe_qolV2](https://github.com/notablackbear/poe_qolV2), which uses Python.
 - The overlay code comes from [Overlay.NET](https://github.com/lolp1/Overlay.NET). I copied in this code because there are posts in the project that the published Nuget package is not up to date with source code.
 - The hotkey code is originally from [StackOverflow](https://stackoverflow.com/questions/3654787/global-hotkey-in-console-application/3654821).
 
-<a name="h11" />
 ## Donation
+<a name="h11" />
 
 If this project helped you, you can help me :) 
 
