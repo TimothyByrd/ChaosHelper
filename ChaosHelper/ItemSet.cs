@@ -94,12 +94,18 @@ namespace ChaosHelper
             return result;
         }
 
-        public void CalculateClassesToShow(int maxSets)
+        public void CalculateClassesToShow(int maxSets, string ignoreMaxSets)
         {
             foreach (var c in ItemClass.Iterator())
             {
                 if (c.Skip)
                     continue;
+
+                if (ignoreMaxSets.IndexOf(c.CategoryStr, StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    showDict[c.Category] = true;
+                    continue;
+                }
 
                 var wanted = maxSets;
                 var haveSoFar = countsDict[c.Category].NumUnIded;

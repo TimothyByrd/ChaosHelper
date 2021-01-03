@@ -2,19 +2,36 @@
 
 This tool speeds up the completion of chaos recipes in Path of Exile.
 
-It was inspired by a similar tool promoted by Path Of Matth.
+It was inspired by a similar tool promoted by Path Of Matth,
+except this tool does not manipulate the PoE game client in any way.
 
 It has two main functions:
 - It can automatically write an updated loot filter file as you accumulate chaos recipe items. You still need to refresh your filter in PoE, but it tells you when to.
 - It can highlight sets of items in your stash to make selling for chaos more efficient.
 
+#### Table of contents
+[TLDR to use it](#h01)<br>
+[How to use it](#h02)<br>
+[Automatic stuff](#h03)<br>
+[Commands and hotkeys](#h04)<br>
+[About the template and filter](#h05)<br>
+[Security](#h06)<br>
+[Configuration details](#h07)<br>
+[Troubleshooting](#h08)<br>
+[Building the tool](#h09)<br>
+[Links](#h10)<br>
+[Donation](#h11)<br>
+
+<a name="h01" />
 ## TLDR to use it
+
 - Configure your account name, poesessid and source filter in settings.jsonc.
 - Run both PoE (Windowed) and the tool
 - The very first time, type an 'f' in the tool window - you should hear a response.
 - Play, reload the loot filter when it tells you.
 - Use the highlight items hotkey to highlight sets of items to sell for chaos.
 
+<a name="h02" />
 ## How to use it
 
 - Put the folder of binaries somewhere.
@@ -36,9 +53,10 @@ It has two main functions:
     - When nothing highlights, you are done for now.
 - If you tend to dump everything you find into your quad tab, use the show junk items hotkey to highlight non-recipe items.
 
+<a name="h03" />
 ## Automatic stuff
 
-The tool can do the following automatically:
+The Chaos Helper tool can do the following automatically:
 
 - Given your account and poesessid:
     - Determine your current character and league.
@@ -52,6 +70,16 @@ The tool can do the following automatically:
 - Notice you if have switched characters, and recheck the league and stash tab.
 - Detect a restart of the PoE process.
 
+What the Chaos Helper tool does not / cannot do is manipulate the PoE game client.
+It sends neither keystrokes nor mouse clicks to the game client.
+The defined hotkeys are to send input *to the tool*, not to PoE.
+
+As a contrast, the poe_qol tool, when highlighting a set to sell, creates a window above the PoE client for each highlighted item.
+When the user clicks on "an item", they are really clicking on that window, which then hides itself and *sends a mouse click in the same screen position to PoE*.
+This method makes it easy for anyone with access to the Python source code for poe_qol (and it's been put up on github) to convert it
+to "fully automatic" - having the first click in a highlight window do a loop to cause clicks for all the highlighted items to go to PoE.
+
+<a name="h04" />
 ## Commands and hotkeys
 
 There are five commands you can send to the tool:
@@ -59,7 +87,7 @@ There are five commands you can send to the tool:
 1. Highlight items (H): (town only) To highlight sets of items to sell (it tries for two sets).
 2. Show junk items (J): (town only) To toggle showing items in your stash tab that are not for the recipe, so you can clear them out.
 3. Force update (F): To force a re-read of the stash tab and a write of the filter file.
-4. Character check (C): Recheck your character and league. (This should happen automatically.)
+4. Character check (C): Recheck your character and league. (This should happen automatically when you switch chararacters.)
 5. Test pattern (T): (town only) Toggle displaying a test pattern to verify the stash window size is correct. Once good, you can disable any hotkey for it, unless you change monitors.
 
 The commands can be invoked:
@@ -77,6 +105,7 @@ The commands can be invoked:
 - Since PoE-TradeMacro binds some keys, the scripts come set up to be invoked using `Crtl-H`, `Ctrl-J`, `Ctrl-U`, `Ctrl-S` and `Ctrl-P`, respectively.
 - In this case, comment out the hotkeys in setting.jsonc.
 
+<a name="h05" />
 ## About the template and filter
 
 When it wants to update the loot filter, the tool reads the template file,
@@ -103,6 +132,7 @@ However that text occurs *twice* in the filter - once in the place we want the c
 So using that text would cause the chaos recipe code to be inserted in the filter in both places.
 This would probably not be what you want, for example, it would override the normal hightlight for rare 6-socket armor.
 
+<a name="h06" />
 ## Security
 
 I trust myself, but you shouldn't. I suggest building the tool yourself (see below).
@@ -112,6 +142,7 @@ They are all HTTP GETs, so they aren't changing anything on the server.
 Except perversely there is an HTTP POST to www.pathofexile.com/character-window/get-items,
 because the GGG web developers are not consistent and used one POST with form data instead of a GET with query parameters.
 
+<a name="h07" />
 ## Configuration details
 
 There are three things you must configure in settings.jsonc to use the tool:
@@ -150,9 +181,6 @@ The default of -1 means to give the recipe highlight to all applicable items of 
 Note that setting `maxIlvl` will not prevent the filter from showing any rares that it would have shown before.
 Only the highlighting may change from the chaos recipe highlight to what was already in the filter.
  
-`levelLimitJewelry` (false) sets whether `maxIlvl` will apply to rings, amulets and belts in the loot filter.
-Note that this will not cause rare rings, belts and amulets to be hidden unless the source filter would have hidden them.
-
 `allowIDedSets` (false) sets whether the tool will support making sets including IDed items.
 - Defaults to false because it causes extra vendor trips.
 - I do this because I ID two-stone rings while levelling.
@@ -166,12 +194,23 @@ contains one ilvl 74 glove and one ilvl 74 helmet and everything else is ilvl 75
 it will hihglight them in two different sales.
 It defaults to false, because the extra vendor trips waste time.
 
+`ignoreMaxSets` causes the specified item classes to ignore the `maxSets` setting.
+For example, setting `ignoreMaxSets` to "Rings,Amulets,Belts" when `maxSets` is 12,
+will cause the filter to keep highlighting rings, amulets and belts even when there are 12 or more of them in the stash tab.
+Possible item classes are BodyArmours, Helmets, Gloves, Boots, OneHandWeapons, Belts, Amulets, and Rings
+
+`ignoreMaxIlvl` causes the specified item classes to ignore the `maxIlvl` setting, if it is set.
+For example, setting `ignoreMaxIlvl` to "Rings,Amulets,Belts" when `maxIlvl` is 74
+will cause the filter to keep highlighting rings, amulets and belts at higher ilvls.
+Possible item classes are BodyArmours, Helmets, Gloves, Boots, OneHandWeapons, Belts, Amulets, and Rings
+
 `highlightItemsHotkey`, `showJunkItemsHotkey`, `forceUpdateHotkey`, `characterCheckHotkey` and `testModeHotkey` can be set to enable global hotkeys to execute ChaosHelper commands.
 If not defined, the hotkeys are not enabled.
 See "Commands and hotkeys" for more info.
 	
 `includeInventoryOnForce` (false) will cause items in the character's inventory to be included when a force update command is executed.
-It is useful for when a Keepers of the Trove pack gives you all the gloves you need.
+It ought to be useful for when a Keepers of the Trove pack gives you all the gloves you need,
+but it depends on your inventory on the website having been updated, and there's a bit of a lag for that.
 
 `clientTxt` defines where to find the PoE client.txt log file, which the tool uses to track zone changes.
 The tool tries to auto-determine this, but if Path of Exile was installed to a custom folder,
@@ -199,6 +238,7 @@ You can test the values by typing 't' in the ChaosHelper console to execute the 
 to specify stash highlight colours for armour/weapons, helmets/gloves/boots, belts, and rings/amulets, respectively.
 There must be four colors in the array and they must be hex number strings of the forms "0xRRGGBB".
 
+<a name="h08" />
 ## Troubleshooting
 
 1. You must configure your account name, poesessid and source filter in settings.jsonc.
@@ -207,6 +247,7 @@ There must be four colors in the array and they must be hex number strings of th
 5. Check for error messages in the tool window. If the tool window has closed, there should be log files in the `logs` folder.
 6. If you are playing in an non-English PoE, will need to build the tool yourself and translate some strings - particularly the "You have entered" it looks for in client.txt. (But tell me what it took, and I may make this easier in the future.)
 
+<a name="h09" />
 ## Building the tool
 
 Building the tool is pretty easy once you clone the git repo:
@@ -215,12 +256,14 @@ Building the tool is pretty easy once you clone the git repo:
 - You should be able to open ChaosHelper.sln and then build/run the tool
     - Still need to configure setting.jsonc, though.
 
+<a name="h10" />
 ## Links
 
 - Originally inspired by [poe_qolV2](https://github.com/notablackbear/poe_qolV2), which uses Python.
 - The overlay code comes from [Overlay.NET](https://github.com/lolp1/Overlay.NET). I copied in this code because there are posts in the project that the published Nuget package is not up to date with source code.
 - The hotkey code is originally from [StackOverflow](https://stackoverflow.com/questions/3654787/global-hotkey-in-console-application/3654821).
 
+<a name="h11" />
 ## Donation
 
 If this project helped you, you can help me :) 

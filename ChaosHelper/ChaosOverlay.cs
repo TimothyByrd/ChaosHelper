@@ -18,6 +18,8 @@ namespace ChaosHelper
         private volatile bool _processExited = false;
         private bool _haveLoggedWaitingForProcessMessage = false;
 
+        public static bool ShouldHookMouseEvents { get; set; } = false;
+
         public void RunOverLay(string requiredProcessName, System.Drawing.Rectangle stashRect, bool isQuad, List<int> highlightColors, CancellationToken cancellationToken)
         {
             _requiredProcessName = requiredProcessName;
@@ -46,7 +48,7 @@ namespace ChaosHelper
                     int fps = 30;
 
                     _processExited = false;
-                    _plugin = new ChaosOverlayPlugin(fps, stashRect, isQuad);
+                    _plugin = new ChaosOverlayPlugin(fps, stashRect, isQuad, ShouldHookMouseEvents);
                     _processSharp = new ProcessSharp(process, MemoryType.Remote);
                     _processSharp.ProcessExited += ProcessExitedDelegate;
 

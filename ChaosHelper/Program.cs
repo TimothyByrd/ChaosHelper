@@ -33,7 +33,8 @@ namespace ChaosHelper
         static bool isQuadTab = true;
         static bool allowIDedSets;
         static bool singleSetsForChaos;
-        static bool levelLimitJewelry;
+        static string ignoreMaxSets;
+        static string ignoreMaxIlvl;
         static bool includeInventoryOnForce;
         static List<string> townZones;
         static List<int> highlightColors;
@@ -141,7 +142,7 @@ namespace ChaosHelper
             itemsCurrent = new ItemSet();
             await GetTabContents(tabIndex, itemsCurrent);
             itemsCurrent.RefreshCounts();
-            itemsCurrent.CalculateClassesToShow(maxSets);
+            itemsCurrent.CalculateClassesToShow(maxSets, ignoreMaxSets);
             overlay?.SetCurrentItems(itemsCurrent);
 
             if (overlayTask != null && !overlayTask.IsCompleted)
@@ -253,9 +254,10 @@ namespace ChaosHelper
 
             maxSets = configuration.GetInt("maxSets", 12);
             maxIlvl = configuration.GetInt("maxIlvl", -1);
-            allowIDedSets = configuration.GetBoolean("allowIDedSets", false);
+            allowIDedSets = configuration.GetBoolean("allowIDedSets", true);
             singleSetsForChaos = configuration.GetBoolean("singleSetsForChaos", false);
-            levelLimitJewelry = configuration.GetBoolean("levelLimitJewelry", false);
+            ignoreMaxSets = configuration["ignoreMaxSets"];
+            ignoreMaxIlvl = configuration["ignoreMaxIlvl"];
             includeInventoryOnForce = configuration.GetBoolean("includeInventoryOnForce", false);
             townZones = configuration.GetStringList("townZones");
 
@@ -264,6 +266,7 @@ namespace ChaosHelper
             forceUpdateHotkey = configuration.GetHotKey("forceUpdateHotkey");
             characterCheckHotkey = configuration.GetHotKey("characterCheckHotkey");
             testModeHotkey = configuration.GetHotKey("testModeHotkey");
+            ChaosOverlay.ShouldHookMouseEvents = false; // configuration.GetBoolean("hookMouseEvents", false);
 
             highlightColors = configuration.GetIntList("highlightColors");
             if (highlightColors.Count == 0)
@@ -368,7 +371,7 @@ namespace ChaosHelper
             if (includeInventoryOnForce && forceFilterUpdate)
                 await GetInventoryContents(itemsCurrent);
             itemsCurrent.RefreshCounts();
-            itemsCurrent.CalculateClassesToShow(maxSets);
+            itemsCurrent.CalculateClassesToShow(maxSets, ignoreMaxSets);
             
             overlay?.SetCurrentItems(itemsCurrent);
             SetOverlayStatusMessage();
@@ -547,45 +550,15 @@ namespace ChaosHelper
 
                 yield return "";
                 yield return "# Begin ChaosHelper generated section";
-
-                // always show jewelry
-                //
                 yield return "";
-                yield return "# Jewelry for chaos";
-                yield return "Show";
-                yield return $"SetBorderColor {filterColor}";
-                yield return $"SetTextColor {filterColor}";
-                yield return "SetFontSize 45";
-                if (!allowIDedSets)
-                    yield return "Identified False";
-                yield return $"ItemLevel >= {ilvl60}";
-                if (maxIlvl > 60 && maxIlvl < 100 && levelLimitJewelry)
-                    yield return $"ItemLevel <= {maxIlvl}";
-                yield return "Rarity Rare";
-                yield return "Class \"Rings\" \"Amulets\"";
-                yield return "";
-
-                yield return "# Belts for chaos";
-                yield return "Show";
-                yield return $"SetBorderColor {filterColor}";
-                yield return $"SetTextColor {filterColor}";
-                yield return "SetFontSize 45";
-                yield return "Identified False";
-                yield return $"ItemLevel >= {ilvl60}";
-                if (maxIlvl > 60 && maxIlvl < 100 && levelLimitJewelry)
-                    yield return $"ItemLevel <= {maxIlvl}";
-                yield return "Rarity Rare";
-                yield return "Class \"Belts\"";
-                yield return "";
-
-                bool Show(ItemClass c)
-                {
-                    return !c.Skip && items.ShouldShow(c.Category);
-                }
 
                 foreach (var c in ItemClass.Iterator())
                 {
-                    if (!Show(c)) continue;
+                    if (c.Skip || !items.ShouldShow(c.Category))
+                        continue;
+
+                    var canBeIded = allowIDedSets && (c.Category == Cat.Rings || c.Category == Cat.Amulets);
+                    var limitIlvl = maxIlvl > 60 && maxIlvl < 100 && ignoreMaxIlvl.IndexOf(c.CategoryStr, StringComparison.OrdinalIgnoreCase) < 0;
 
                     yield return $"# {c.Category} for chaos";
                     yield return "Show";
@@ -593,10 +566,11 @@ namespace ChaosHelper
                     yield return "Rarity Rare";
                     yield return $"SetBorderColor {filterColor}";
                     yield return $"SetTextColor {filterColor}";
-                    yield return "SetFontSize 38";
-                    yield return "Identified False";
+                    yield return $"SetFontSize {c.FontSize}";
+                    if (!canBeIded)
+                        yield return "Identified False";
                     yield return $"ItemLevel >= {ilvl60}";
-                    if (maxIlvl > 60 && maxIlvl < 100)
+                    if (limitIlvl)
                         yield return $"ItemLevel <= {maxIlvl}";
                     if (c.Category == Cat.OneHandWeapons)
                     {
@@ -614,10 +588,11 @@ namespace ChaosHelper
                         yield return "Rarity Rare";
                         yield return $"SetBorderColor {filterColor}";
                         yield return $"SetTextColor {filterColor}";
-                        yield return "SetFontSize 38";
-                        yield return "Identified False";
+                        yield return $"SetFontSize {c.FontSize}";
+                        if (!canBeIded)
+                            yield return "Identified False";
                         yield return $"ItemLevel >= {ilvl60}";
-                        if (maxIlvl > 60 && maxIlvl < 100)
+                        if (limitIlvl)
                             yield return $"ItemLevel <= {maxIlvl}";
                         yield return "Height = 3";
                         yield return "";

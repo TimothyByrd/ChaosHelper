@@ -1,4 +1,5 @@
-﻿using System;
+﻿//#define USEMOUSEKEYHOOKS
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 
@@ -16,7 +17,7 @@ namespace ChaosHelper
         private int _redBrush;
         private int _redOpacityBrush;
         //private Stopwatch _watch;
-        private readonly int _updateRate;
+        private readonly TimeSpan _updateRate;
 
         private int whiteBrush;
         private string statusMessage;
@@ -25,8 +26,6 @@ namespace ChaosHelper
         private Dictionary<Cat, int> highlightBrushDict;
         private Dictionary<Cat, int> solidBrushDict;
         private readonly int numSquares;
-        private bool showStashTest = false;
-        private bool showJunkItems = false;
         private double squareWidth;
         private double squareHeight;
         private string areaName;
@@ -38,14 +37,30 @@ namespace ChaosHelper
         private volatile ItemSet highlightSet = null;
         private bool showHightlightSet = false;
 
-        public ChaosOverlayPlugin(int fps, System.Drawing.Rectangle stashRect, bool isQuad)
+        private readonly bool shouldHookMouseEvents = false;
+        private bool haveHookedMouse = false;
+#if USEMOUSEKEYHOOKS
+        Gma.System.MouseKeyHook.IKeyboardMouseEvents _mouseHook = null;
+#else
+        private Process.NET.Windows.Mouse.MouseHook _mouseHook = null;
+#endif
+        private bool showStashTest = false;
+        private bool showJunkItems = false;
+
+        public ChaosOverlayPlugin(int fps, System.Drawing.Rectangle stashRect, bool isQuad, bool shouldHookMouseEvents)
         {
             fps = Math.Max(1, Math.Min(60, fps));
-            _updateRate = 1000 / fps;
+            _updateRate = TimeSpan.FromMilliseconds(1000 / fps);
             this.stashRect = stashRect;
             autoDetermineStashRect = stashRect.IsEmpty;
             //this.isQuad = isQuad;
             numSquares = isQuad ? 24 : 12;
+            this.shouldHookMouseEvents = shouldHookMouseEvents;
+        }
+
+        ~ChaosOverlayPlugin()
+        {
+            _mouseHook?.Dispose();
         }
 
         internal void SetCurrentItems(ItemSet currentItems)
@@ -132,7 +147,6 @@ namespace ChaosHelper
 
         }
 
-
         public void SetArea(string areaName, bool isTown)
         {
             this.areaName = areaName;
@@ -163,10 +177,13 @@ namespace ChaosHelper
                     Log.Info($"showStashTest is now {showStashTest}");
                     break;
                 case ConsoleKey.J:
+                {
+                    var numJunk = currentItems.GetCategory(Cat.Junk).Count;
                     showStashTest = false;
-                    showJunkItems = !showJunkItems;
+                    showJunkItems = !showJunkItems && numJunk > 0;
                     showHightlightSet = false;
-                    Log.Info($"showJunkItems is now {showJunkItems}");
+                    Log.Info($"showJunkItems is now {showJunkItems} ({numJunk} junk items)");
+                }
                     break;
                 case ConsoleKey.N:
                     showStashTest = false;
@@ -199,11 +216,12 @@ namespace ChaosHelper
             {
                 OverlayWindow.Show();
             }
+            CheckMouseHooks(targetWindowIsActivated);
         }
 
         public override void Enable()
         {
-            _tickEngine.Interval = TimeSpan.FromMilliseconds(_updateRate);
+            _tickEngine.Interval = _updateRate;
             _tickEngine.IsTicking = true;
             base.Enable();
         }
@@ -232,6 +250,63 @@ namespace ChaosHelper
 
             OverlayWindow.Graphics.EndScene();
         }
+
+#if USEMOUSEKEYHOOKS
+        private void CheckMouseHooks(bool targetWindowActivated)
+        {
+            var wantMouseHook = targetWindowActivated && shouldHookMouseEvents && (showHightlightSet || showJunkItems);
+
+            if (wantMouseHook && !haveHookedMouse)
+            {
+                if (_mouseHook == null)
+                    _mouseHook = Gma.System.MouseKeyHook.Hook.GlobalEvents();
+
+                _mouseHook.MouseDown += MouseLeftButtonDown;
+                haveHookedMouse = true;
+                Console.WriteLine("hooked mouse");
+            }
+            else if (!wantMouseHook && haveHookedMouse)
+            {
+                _mouseHook.MouseDown -= MouseLeftButtonDown;
+                haveHookedMouse = false;
+                Console.WriteLine("unhooked mouse");
+            }
+        }
+
+        private void MouseLeftButtonDown(object sender, System.Windows.Forms.MouseEventArgs e)
+        {
+            Console.WriteLine($"The mouse was at the position: ({e.X}, {e.Y}), location: ({e?.Location.X}, {e?.Location.Y}) when left clicked.");
+        }
+#else
+        private void CheckMouseHooks(bool targetWindowActivated)
+        {
+            var wantMouseHook = targetWindowActivated && shouldHookMouseEvents && (showHightlightSet || showJunkItems);
+
+            if (wantMouseHook && !haveHookedMouse)
+            {
+                if (_mouseHook == null)
+                {
+                    _mouseHook = new Process.NET.Windows.Mouse.MouseHook("Chaos");
+                    _mouseHook.LeftButtonDown += MouseLeftButtonDown;
+                }
+
+                _mouseHook.Enable();
+                haveHookedMouse = true;
+                Console.WriteLine("hooked mouse");
+            }
+            else if (!wantMouseHook && haveHookedMouse)
+            {
+                _mouseHook.Disable();
+                haveHookedMouse = false;
+                Console.WriteLine("unhooked mouse");
+            }
+        }
+
+        private void MouseLeftButtonDown(object sender, Process.NET.Windows.Mouse.MouseHookEventArgs e)
+        {
+            Console.WriteLine($"The mouse was at the position: {e.Position} when left clicked.");
+        }
+#endif
 
         private void ShowItemSet()
         {

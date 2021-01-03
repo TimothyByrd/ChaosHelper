@@ -36,9 +36,13 @@
 
     "maxSets": 12, // number of chaos sets to try for (jewelry excluded)
     "maxIlvl": -1, // set to 74 to not show regal recipe items in the loot filter, -1 or 100 for everything
-    "levelLimitJewelry": false, // does "maxIlvl" apply to rings, amulets and belts?
-    "allowIDedSets": false, // see README.md
-    "singleSetsForChaos": false, 
+    "allowIDedSets": true, // see README.md
+    "singleSetsForChaos": true, 
+
+    // Items classes that can ignore the maxSets and maxIlvl settings.
+    // Possible classes are BodyArmours, Helmets, Gloves, Boots, OneHandWeapons, Belts, Amulets, and Rings
+    "ignoreMaxSets": "Rings,Amulets,Belts",
+    "ignoreMaxIlvl": "Rings,Amulets,Belts",
 
     // These set global hotkeys
     // for modifiers, use '^' for Ctrl, '+' for Shift and '!' for Alt

@@ -67,14 +67,16 @@ namespace ChaosHelper
     {
         public string Abbrev;
         public bool Skip;
+        public int FontSize;
         public Cat Category;
         public string CategoryStr;
         public string FilterClass;
 
-        public ItemClass(string abbrev, bool skip, Cat category, string categoryStr, string filterClass)
+        public ItemClass(string abbrev, bool skip, int fontSize, Cat category, string categoryStr, string filterClass)
         {
             Abbrev = abbrev;
             Skip = skip;
+            FontSize = fontSize;
             Category = category;
             CategoryStr = categoryStr;
             FilterClass = filterClass;
@@ -90,16 +92,16 @@ namespace ChaosHelper
 
         static readonly List<ItemClass> itemClasses = new List<ItemClass>
         {
-            new ItemClass("a",  false, Cat.BodyArmours, "BodyArmours", "Body Armours"),
-            new ItemClass("h",  false, Cat.Helmets, "Helmets", "Helmets"),
-            new ItemClass("g",  false, Cat.Gloves, "Gloves", "Gloves"),
-            new ItemClass("b",  false, Cat.Boots, "Boots", "Boots"),
-            new ItemClass("w1", false, Cat.OneHandWeapons, "OneHandWeapons", "Wands\" \"Daggers\" \"Sceptres\" \"One Hand Swords\" \"One Hand Maces"),
-            new ItemClass("w2", true,  Cat.TwoHandWeapons, "TwoHandWeapons", "Bows"),
-            new ItemClass("be", true,  Cat.Belts, "Belts", "Belts"),
-            new ItemClass("am", true,  Cat.Amulets, "Amulets", "Amulets"),
-            new ItemClass("ri", true,  Cat.Rings, "Rings", "Rings"),
-            new ItemClass("j",  true,  Cat.Junk, "Junk", null),
+            new ItemClass("a",  false, 38, Cat.BodyArmours, "BodyArmours", "Body Armours"),
+            new ItemClass("h",  false, 38, Cat.Helmets, "Helmets", "Helmets"),
+            new ItemClass("g",  false, 38, Cat.Gloves, "Gloves", "Gloves"),
+            new ItemClass("b",  false, 38, Cat.Boots, "Boots", "Boots"),
+            new ItemClass("w1", false, 38, Cat.OneHandWeapons, "OneHandWeapons", "Wands\" \"Daggers\" \"Sceptres\" \"One Hand Swords\" \"One Hand Maces"),
+            new ItemClass("w2", true,  38, Cat.TwoHandWeapons, "TwoHandWeapons", "Bows"),
+            new ItemClass("be", false, 45, Cat.Belts, "Belts", "Belts"),
+            new ItemClass("am", false, 45, Cat.Amulets, "Amulets", "Amulets"),
+            new ItemClass("ri", false, 45, Cat.Rings, "Rings", "Rings"),
+            new ItemClass("j",  true,  38, Cat.Junk, "Junk", null),
         };
     }
 

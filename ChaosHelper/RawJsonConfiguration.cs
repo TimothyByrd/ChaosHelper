@@ -29,7 +29,7 @@ namespace ChaosHelper
         {
             if (rawConfig.TryGetProperty(s, out var value))
                 return value.ToString();
-            return null;
+            return String.Empty;
         }
 
         public int GetInt(string s, int defaultValue = 0)
