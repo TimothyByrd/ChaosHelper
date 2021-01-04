@@ -9,6 +9,8 @@ It has two main functions:
 - It can automatically write an updated loot filter file as you accumulate chaos recipe items. You still need to refresh your filter in PoE, but it tells you when to.
 - It can highlight sets of items in your stash to make selling for chaos more efficient.
 
+Compared to poe_qol, this tool has no UI. So if that matters, use poe_qol.
+
 #### Table of contents
 [TLDR to use it](#h01)<br>
 [How to use it](#h02)<br>
@@ -58,7 +60,7 @@ It has two main functions:
 
 The Chaos Helper tool can do the following automatically:
 
-- Given your account and poesessid:
+- Given your account and poesessid, it can:
     - Determine your current character and league.
     - Figure out which stash tab to use look at.
 - Notice you have changed zones by tailing PoE's client.txt file.
@@ -69,6 +71,10 @@ The Chaos Helper tool can do the following automatically:
     - Also, it a highlight is being displayed, changing zones will cancel it.
 - Notice you if have switched characters, and recheck the league and stash tab.
 - Detect a restart of the PoE process.
+- When highlighting items for the recipe, it can:
+    - Deal with 2hd weapons as well as 1x3 1hd weapons. The loot filter code will include 2x3 bows when weapons are highlighted, and it will make recipes with one 2x4 weapon since that will fit in the character inventory.
+    - Do IDed sets as well as un-IDed sets. An IDed set must have both rings IDed, and it prefers IDed items for the other slots.
+    - Optimise recipes to give chaos orbs instead of regal orbs. It does this by making sure that the items for at least one slot are ilvl 60-74 and then preferring ilvl 75+ for the other slots. You can take advantage of this by saving lots of ilvl 60-74 belts and amulets.
 
 What the Chaos Helper tool does not / cannot do is manipulate the PoE game client.
 It sends neither keystrokes nor mouse clicks to the game client.
@@ -226,6 +232,29 @@ The tool simply finds the first matching process.
 To run two copies of Path of Exile while using the tool,
 run one PoE using the stand alone client and one PoE using the Steam client,
 and configure `processName` (and `clientTxt`) for the copy you want the tool to go with.
+
+`removeOnlyTabPattern` ("Remove-only") sets the text used to determine if stash tabs are remove-only so the tool can ignore those tabs.
+Translate this if you use the web site in a language other than English.
+
+`areaEnteredPattern` ("] : You have entered ") is the text marker used when tailing client.txt to determine when a character change areas.
+Translate this if you use the PoE client in a language other than English.
+
+`soundFileVolume` (50) sets the volume of the sound alert for when the filter is updated. It can be an integer from 0 to 100.
+
+`scrollBuffer` (0) sets a minimum number of wisdom/portal scrolls to have in the currency tab.
+The default value of 0 disables this.
+For example, if this value is set to 100 and there are 90 scrolls of wisdom and 110 portal scrolls in the currency tab,
+then when the loot filter is next written, it will include a Show block for wisdom scrolls, but not portal scrolls.
+Turning this on will also turn on showing orbs of transmutation and augmentation, as well as currency shards.
+The loot filter will not be automatically re-written just to add/remove the scroll blocks - use a force update in that case.
+Since the code specifically looks for the text "Scroll of Wisdom" and "Portal Scroll", it will only work when using the PoE website in English.
+
+`scrapBuffer` (0)" sets a minimum number of scraps/whetstones to have in the currency tab.
+The default value of 0 disables this.
+For example, if this value is set to 100 and there are 90 armourer's scraps and 110 blacksmith's whetstones in the currency tab,
+then when the loot filter is next written, it will include a Show block for armourer's scraps, but not blacksmith's whetstones.
+The loot filter will not be automatically re-written just to add/remove the scrap blocks - use a force update in that case.
+Since the code specifically looks for the text "Armourer's Scrap" and "Blacksmith's Whetstone", it will only work when using the PoE website in English.
 
 `stashPageXYWH` ([ 0, 0, 0, 0 ]) specifies the rectangle in the PoE client window where the stash tab grid is.
 It usually auto-determines correctly, but may need to be specified for certain monitors.

@@ -20,7 +20,9 @@ namespace ChaosHelper
         private readonly TimeSpan _updateRate;
 
         private int whiteBrush;
+        private int goldBrush;
         private string statusMessage;
+        private bool atMaxSets = false;
         private System.Drawing.RectangleF stashRect;
         private readonly bool autoDetermineStashRect;
         private Dictionary<Cat, int> highlightBrushDict;
@@ -86,6 +88,7 @@ namespace ChaosHelper
             _redBrush = OverlayWindow.Graphics.CreateBrush(0xFF0000);
             _redOpacityBrush = OverlayWindow.Graphics.CreateBrush(Color.FromArgb(80, 255, 0, 0));
             whiteBrush = OverlayWindow.Graphics.CreateBrush(0xFFFFFF);
+            goldBrush = OverlayWindow.Graphics.CreateBrush(0xFFFF00);
 
             _font = OverlayWindow.Graphics.CreateFont("Arial", 20);
 
@@ -156,9 +159,10 @@ namespace ChaosHelper
             showHightlightSet = false;
         }
 
-        public void SetStatus(string msg)
+        public void SetStatus(string msg, bool atMaxSets)
         {
             statusMessage = msg;
+            this.atMaxSets = atMaxSets;
         }
 
         public void SendKey(ConsoleKey key)
@@ -347,7 +351,7 @@ namespace ChaosHelper
                 OverlayWindow.Graphics.DrawText(countsMsg, _font, whiteBrush, 50, h - 30);
 
             if (!string.IsNullOrWhiteSpace(statusMessage))
-                OverlayWindow.Graphics.DrawText(statusMessage, _font, whiteBrush, 50, h - 60);
+                OverlayWindow.Graphics.DrawText(statusMessage, _font, atMaxSets ? goldBrush : whiteBrush, 50, h - 60);
             else
                 OverlayWindow.Graphics.DrawText("Change zones to initialize", _font, _redBrush, 50, h - 60);
 

@@ -118,5 +118,20 @@ namespace ChaosHelper
         {
             return thisString.IndexOf(value, comparisonType) >= 0;
         }
+
+        /// <summary>
+        /// Gets the specified JSON property value as an integer, or returns a default value.
+        /// </summary>
+        /// <param name="element">The element holding the property.</param>
+        /// <param name="valueName">The name of the property to find.</param>
+        /// <param name="defaultValue">A default value to return is the property does not exist or is not a number.</param>
+        public static int GetIntOrDefault(this System.Text.Json.JsonElement element, string valueName, int defaultValue)
+        {
+            if (element.TryGetProperty(valueName, out var value) && value.ValueKind == System.Text.Json.JsonValueKind.Number)
+            {
+                return value.GetInt32();
+            }
+            return defaultValue;
+        }
     }
 }

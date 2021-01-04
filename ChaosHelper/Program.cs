@@ -27,9 +27,10 @@ namespace ChaosHelper
         static string filterFileName;
         static string clientFileName;
         static string filterUpdateSound;
+        static float filterUpdateVolume = 0.5f;
         static int maxSets;
         static int maxIlvl;
-        static int tabIndex;
+        static int tabIndex = -1;
         static bool isQuadTab = true;
         static bool allowIDedSets;
         static bool singleSetsForChaos;
@@ -40,6 +41,15 @@ namespace ChaosHelper
         static List<int> highlightColors;
         static string filterColor;
         static string filterMarker;
+        static string removeOnlyTabPattern;
+        static string areaEnteredPattern;
+        static int currencyTabIndex = -1;
+        static int scrollBuffer;
+        static int scrapBuffer;
+        static int numWisdomScrolls = 0;
+        static int numPortalScrolls = 0;
+        static int numArmourers = 0;
+        static int numBlacksmith = 0;
 
         static HotKeyBinding highlightItemsHotkey;
         static HotKeyBinding showJunkItemsHotkey;
@@ -141,6 +151,7 @@ namespace ChaosHelper
             // get initial counts
             itemsCurrent = new ItemSet();
             await GetTabContents(tabIndex, itemsCurrent);
+            await GetCurrencyTabContents();
             itemsCurrent.RefreshCounts();
             itemsCurrent.CalculateClassesToShow(maxSets, ignoreMaxSets);
             overlay?.SetCurrentItems(itemsCurrent);
@@ -228,6 +239,8 @@ namespace ChaosHelper
             }
 
             filterUpdateSound = Path.Combine(exePath, "./FilterUpdateSound.wav");
+            var filterUpdateVolumeInt = Math.Max(0, Math.Min(100, configuration.GetInt("soundFileVolume", 50)));
+            filterUpdateVolume = filterUpdateVolumeInt / 100.0f;
 
             account = configuration["account"];
             if (string.IsNullOrWhiteSpace(account))
@@ -260,6 +273,16 @@ namespace ChaosHelper
             ignoreMaxIlvl = configuration["ignoreMaxIlvl"];
             includeInventoryOnForce = configuration.GetBoolean("includeInventoryOnForce", false);
             townZones = configuration.GetStringList("townZones");
+
+            removeOnlyTabPattern = configuration["removeOnlyTabPattern"];
+            if (string.IsNullOrWhiteSpace(removeOnlyTabPattern))
+                removeOnlyTabPattern = "remove-only";
+            areaEnteredPattern = configuration["areaEnteredPattern "];
+            if (string.IsNullOrWhiteSpace(areaEnteredPattern))
+                areaEnteredPattern = "] : You have entered ";
+
+            scrollBuffer = Math.Max(0, Math.Min(5000, configuration.GetInt("scrollBuffer", 0)));
+            scrapBuffer = Math.Max(0, Math.Min(5000, configuration.GetInt("scrapBuffer", 0)));
 
             highlightItemsHotkey = configuration.GetHotKey("highlightItemsHotkey");
             showJunkItemsHotkey = configuration.GetHotKey("showJunkItemsHotkey");
@@ -368,6 +391,7 @@ namespace ChaosHelper
             itemsPrevious = itemsCurrent;
             itemsCurrent = new ItemSet();
             await GetTabContents(tabIndex, itemsCurrent);
+            await GetCurrencyTabContents();
             if (includeInventoryOnForce && forceFilterUpdate)
                 await GetInventoryContents(itemsCurrent);
             itemsCurrent.RefreshCounts();
@@ -382,12 +406,9 @@ namespace ChaosHelper
                 Log.Info($"updating filter - {msg}");
                 File.WriteAllLines(filterFileName, NewFilterContents(itemsCurrent));
 
-                if (File.Exists(filterUpdateSound))
+                if (filterUpdateVolume > 0.0f && File.Exists(filterUpdateSound))
                 {
-                    using (var player = new System.Media.SoundPlayer(filterUpdateSound))
-                    {
-                        player.Play();
-                    }
+                    SharpDxSoundPlayer.PlaySoundFile(filterUpdateSound, filterUpdateVolume);
                 }
                 overlay?.SendKey(ConsoleKey.Spacebar);
                 forceFilterUpdate = false;
@@ -408,7 +429,7 @@ namespace ChaosHelper
                 else
                     msg = $"no sets, yet";
             }
-            overlay?.SetStatus(msg);
+            overlay?.SetStatus(msg, numSets >= maxSets);
         }
 
         // frameType:
@@ -438,9 +459,9 @@ namespace ChaosHelper
                 var json = await httpClient.GetFromJsonAsync<JsonElement>(stashTabUrl);
                 foreach (var item in json.GetProperty("items").EnumerateArray())
                 {
-                    var frameType = item.GetProperty("frameType").GetInt32();
+                    var frameType = item.GetIntOrDefault("frameType", 0);
                     var identified = item.GetProperty("identified").GetBoolean();
-                    var ilvl = item.GetProperty("ilvl").GetInt32();
+                    var ilvl = item.GetIntOrDefault("ilvl", 0);
 
                     var category = Cat.Junk;
 
@@ -454,8 +475,8 @@ namespace ChaosHelper
                                 category = c.Category;
                                 if (c.Category == Cat.OneHandWeapons)
                                 {
-                                    if (item.GetProperty("w").GetInt32() > 1
-                                        || item.GetProperty("h").GetInt32() > 3)
+                                    if (item.GetIntOrDefault("w", 999) > 1
+                                        || item.GetIntOrDefault("h", 999) > 3)
                                         category = Cat.Junk;
                                 }
                                 break;
@@ -471,6 +492,42 @@ namespace ChaosHelper
             catch (Exception ex)
             {
                 Log.Error($"HTTP error getting tab contents: {ex.Message}");
+            }
+        }
+
+        private static async Task GetCurrencyTabContents()
+        {
+            try
+            {
+                numWisdomScrolls = 0;
+                numPortalScrolls = 0;
+                numArmourers = 0;
+                numBlacksmith = 0;
+
+                if (currencyTabIndex < 0)
+                    return;
+
+                var stashTabUrl = "https://www.pathofexile.com/character-window/get-stash-items"
+                    + $"?league={league}&tabIndex={currencyTabIndex}&accountName={account}";
+                var json = await httpClient.GetFromJsonAsync<JsonElement>(stashTabUrl);
+                                foreach (var item in json.GetProperty("items").EnumerateArray())
+                {
+                    var stackSize = item.GetIntOrDefault("stackSize", 0);
+                    var typeLine = item.GetProperty("typeLine").GetString();
+
+                    if (typeLine.Equals("Scroll of Wisdom", StringComparison.OrdinalIgnoreCase))
+                        numWisdomScrolls = stackSize;
+                    else if (typeLine.Equals("Portal Scroll", StringComparison.OrdinalIgnoreCase))
+                        numPortalScrolls = stackSize;
+                    else if (typeLine.Equals("Armourer's Scrap", StringComparison.OrdinalIgnoreCase))
+                        numArmourers = stackSize;
+                    else if (typeLine.Equals("Blacksmith's Whetstone", StringComparison.OrdinalIgnoreCase))
+                        numBlacksmith = stackSize;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"HTTP error getting currency tab contents: {ex.Message}");
             }
         }
 
@@ -501,9 +558,9 @@ namespace ChaosHelper
                     if (inventoryId != "MainInventory")
                         continue; // skip equipped items
 
-                    var frameType = item.GetProperty("frameType").GetInt32();
+                    var frameType = item.GetIntOrDefault("frameType", 0);
                     var identified = item.GetProperty("identified").GetBoolean();
-                    var ilvl = item.GetProperty("ilvl").GetInt32();
+                    var ilvl = item.GetIntOrDefault("ilvl", 0);
 
                     if (identified || frameType != 2 || ilvl < ilvl60)
                         continue; // only look at un-IDed rares of ilvl 60+
@@ -518,8 +575,8 @@ namespace ChaosHelper
                             category = c.Category;
                             if (c.Category == Cat.OneHandWeapons)
                             {
-                                if (item.GetProperty("w").GetInt32() > 1
-                                    || item.GetProperty("h").GetInt32() > 3)
+                                if (item.GetIntOrDefault("w", 999) > 1
+                                    || item.GetIntOrDefault("h", 999) > 3)
                                     category = Cat.Junk;
                             }
                             break;
@@ -599,6 +656,81 @@ namespace ChaosHelper
                     }
                 }
 
+                if (scrollBuffer > 0 && currencyTabIndex >= 0 && numWisdomScrolls < scrollBuffer)
+                {
+                    yield return $"# Because we want at least {scrollBuffer} Wisdom Scrolls in reserve";
+                    yield return "Show";
+                    yield return "Class Currency";
+                    yield return "BaseType == \"Scroll of Wisdom\"";
+                    yield return "SetFontSize 36";
+                    yield return "SetTextColor 170 158 130 220";
+                    yield return "SetBorderColor 100 50 30 255";
+                    yield return "SetBackgroundColor 0 0 0 255";
+                    yield return "";
+                }
+
+                if (scrollBuffer > 0 && currencyTabIndex >= 0 && numPortalScrolls < scrollBuffer)
+                {
+                    yield return $"# Because we want at least {scrollBuffer} Portal Scrolls in reserve";
+                    yield return "Show";
+                    yield return "Class Currency";
+                    yield return "BaseType \"Portal Scroll\"";
+                    yield return "SetFontSize 36";
+                    yield return "SetTextColor 170 158 130 220";
+                    yield return "SetBorderColor 30 50 100 255";
+                    yield return "SetBackgroundColor 0 0 0 255";
+                    yield return "";
+                }
+
+                if (scrapBuffer > 0 && currencyTabIndex >= 0 && numArmourers < scrapBuffer)
+                {
+                    yield return $"# Because we want at least {scrapBuffer} Armourer's Scraps in reserve";
+                    yield return "Show";
+                    yield return "Class Currency";
+                    yield return "BaseType \"Armourer's Scrap\"";
+                    yield return "SetFontSize 40";
+                    yield return "SetTextColor 170 158 130 220";
+                    yield return "SetBorderColor 75 75 75 255";
+                    yield return "SetBackgroundColor 0 0 0 255";
+                    yield return "";
+                }
+
+                if (scrapBuffer > 0 && currencyTabIndex >= 0 && numBlacksmith < scrapBuffer)
+                {
+                    yield return $"# Because we want at least {scrapBuffer} Blacksmith's Whetstones in reserve";
+                    yield return "Show";
+                    yield return "Class Currency";
+                    yield return "BaseType \"Blacksmith's Whetstone\"";
+                    yield return "SetFontSize 45";
+                    yield return "SetTextColor 170 158 130 220";
+                    yield return "SetBorderColor 190 178 135 180";
+                    yield return "SetBackgroundColor 0 0 0 255";
+                    yield return "";
+                }
+
+                // Also show currency shards
+                //
+                if (scrollBuffer > 0 && currencyTabIndex >= 0)
+                {
+                    yield return "Show";
+                    yield return "Class Currency";
+                    yield return "BaseType \"Alchemy Shard\" \"Binding Shard\" \"Engineer's Shard\" \"Orb of Augmentation\" \"Orb of Transmutation\" \"Regal Shard\"";
+                    yield return "SetFontSize 45";
+                    yield return "SetTextColor 170 158 130";
+                    yield return "SetBorderColor 190 178 135 180";
+                    yield return "SetBackgroundColor 0 0 0 255";
+                    yield return "";
+
+                    yield return "Show";
+                    yield return "Class Currency";
+                    yield return "BaseType \"Alteration Shard\" \"Transmutation Shard\"";
+                    yield return "SetFontSize 40";
+                    yield return "SetTextColor 170 158 130 220";
+                    yield return "SetBorderColor 170 158 130 220";
+                    yield return "SetBackgroundColor 0 0 0 255";
+                    yield return "";
+                }
+
                 yield return "# End ChaosHelper generated section";
                 yield return "";
             }
@@ -631,6 +763,7 @@ namespace ChaosHelper
             }
 
             tabIndex = -1;
+            currencyTabIndex = -1;
 
             var tabNameFromConfig = configuration["tabName"];
             var checkTabNames = !string.IsNullOrWhiteSpace(tabNameFromConfig);
@@ -641,26 +774,46 @@ namespace ChaosHelper
                     + $"?league={league}&tabs=1&accountName={account}";
                 var json = await httpClient.GetFromJsonAsync<JsonElement>(stashTabListUrl);
 
+                var lookForCurrencyTab = scrollBuffer > 0 || scrapBuffer > 0;
+
                 foreach (var tab in json.GetProperty("tabs").EnumerateArray())
                 {
                     var name = tab.GetProperty("n").GetString();
+                    var isRemoveOnly = name.Contains(removeOnlyTabPattern, StringComparison.OrdinalIgnoreCase);
                     var tabType = tab.GetProperty("type").GetString();
-                    var i = tab.GetProperty("i").GetInt32();
+                    var i = tab.GetIntOrDefault("i", -1);
                     bool found = false;
-                    if (checkTabNames)
+
+                    if (tabIndex == -1)
                     {
-                        found = string.Equals(name, tabNameFromConfig, StringComparison.OrdinalIgnoreCase);
+                        if (checkTabNames)
+                        {
+                            found = string.Equals(name, tabNameFromConfig, StringComparison.OrdinalIgnoreCase);
+                        }
+                        else if (!isRemoveOnly)
+                        {
+                            found = string.Equals(tabType, "QuadStash", StringComparison.OrdinalIgnoreCase);
+                        }
+                        if (found)
+                        {
+                            tabIndex = i;
+                            Log.Info($"found tab '{name}', index = {tabIndex}, type = {tabType}");
+                            isQuadTab = string.Equals(tabType, "QuadStash", StringComparison.OrdinalIgnoreCase);
+                            if (!lookForCurrencyTab || currencyTabIndex >= 0)
+                                break;
+                        }
                     }
-                    else if (!name.Contains("remove-only", StringComparison.OrdinalIgnoreCase))
+
+                    if (lookForCurrencyTab && currencyTabIndex == -1 && !isRemoveOnly)
                     {
-                        found = string.Equals(tabType, "QuadStash", StringComparison.OrdinalIgnoreCase);
-                    }
-                    if (found)
-                    {
-                        Log.Info($"found tab '{name}', index = {i}, type = {tabType}");
-                        tabIndex = i;
-                        isQuadTab = string.Equals(tabType, "QuadStash", StringComparison.OrdinalIgnoreCase);
-                        break;
+                        found = string.Equals(tabType, "CurrencyStash", StringComparison.OrdinalIgnoreCase);
+                        if (found)
+                        {
+                            currencyTabIndex = i;
+                            Log.Info($"found currency tab '{name}', index = {currencyTabIndex}");
+                            if (tabIndex >= 0)
+                                break;
+                        }
                     }
                 }
             }
@@ -734,7 +887,6 @@ namespace ChaosHelper
 
                 try
                 {
-                    const string areaPattern = "] : You have entered ";
                     const string loginPattern = "login.pathofexile.com";
                     var sawLoginLine = false;
                     while (!token.IsCancellationRequested)
@@ -743,9 +895,9 @@ namespace ChaosHelper
                         string line = await sr.ReadLineAsync();
                         while (line != null)
                         {
-                            var i = line.IndexOf(areaPattern);
+                            var i = line.IndexOf(areaEnteredPattern);
                             if (i > 0)
-                                newArea = line.Substring(i + areaPattern.Length).TrimEnd('.');
+                                newArea = line.Substring(i + areaEnteredPattern.Length).Trim().TrimEnd('.');
                             else if (line.IndexOf(loginPattern) > 0)
                                 sawLoginLine = true;
                             line = await sr.ReadLineAsync();

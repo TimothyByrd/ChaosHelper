@@ -34,7 +34,7 @@
     "filterMarker": "",
     "filterColor": "0x6a4dff", // can be a hex number like "0x6a4dff" or a loot filter color like "106 77 255"
 
-    "maxSets": 12, // number of chaos sets to try for (jewelry excluded)
+    "maxSets": 10, // number of chaos sets to try for (jewelry excluded)
     "maxIlvl": -1, // set to 74 to not show regal recipe items in the loot filter, -1 or 100 for everything
     "allowIDedSets": true, // see README.md
     "singleSetsForChaos": true, 
@@ -59,6 +59,14 @@
     "clientTxt": "", // see README.md - need to set if both steam and regular clients are installed
     "processName": "", // see README.md
     
+    "removeOnlyTabPattern": "Remove-only", // translate this if you use the web site in a language other than English
+    "areaEnteredPattern": "] : You have entered ", // translate this if you use the PoE client in a language other than English
+
+    "soundFileVolume": 30, // the volume of the sound alert for when the filter is updated - 0 to 100
+
+    "scrollBuffer": 0, // see README.md
+    "scrapBuffer": 0,
+
     // this is to figure out the place on the screen for the stash tab to highlight items
     // use [ 0, 0, 0, 0 ] to auto determine
     // if you need to set a custom value, take a screenshot of your stash tab,
