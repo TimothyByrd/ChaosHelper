@@ -88,7 +88,7 @@ namespace ChaosHelper
             _redBrush = OverlayWindow.Graphics.CreateBrush(0xFF0000);
             _redOpacityBrush = OverlayWindow.Graphics.CreateBrush(Color.FromArgb(80, 255, 0, 0));
             whiteBrush = OverlayWindow.Graphics.CreateBrush(0xFFFFFF);
-            goldBrush = OverlayWindow.Graphics.CreateBrush(0xFFFF00);
+            goldBrush = OverlayWindow.Graphics.CreateBrush(0xFFB300);
 
             _font = OverlayWindow.Graphics.CreateFont("Arial", 20);
 

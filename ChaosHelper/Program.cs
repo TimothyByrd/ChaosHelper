@@ -41,15 +41,8 @@ namespace ChaosHelper
         static List<int> highlightColors;
         static string filterColor;
         static string filterMarker;
-        static string removeOnlyTabPattern;
         static string areaEnteredPattern;
         static int currencyTabIndex = -1;
-        static int scrollBuffer;
-        static int scrapBuffer;
-        static int numWisdomScrolls = 0;
-        static int numPortalScrolls = 0;
-        static int numArmourers = 0;
-        static int numBlacksmith = 0;
 
         static HotKeyBinding highlightItemsHotkey;
         static HotKeyBinding showJunkItemsHotkey;
@@ -89,9 +82,9 @@ namespace ChaosHelper
             CancellationTokenSource source = new CancellationTokenSource();
             CancellationToken token = source.Token;
 
-            var keyboardTask = Task.Run(() =>
+            var keyboardTask = Task.Run(async () =>
             {
-                Task.Delay(2000);
+                await Task.Delay(2000);
                 Log.Info("Press 'Escape' to exit, '?' for help");
                 while (!token.IsCancellationRequested)
                 {
@@ -119,6 +112,10 @@ namespace ChaosHelper
                             Log.Info("Highlighting sets to sell");
                             highlightSetsToSell = true;
                         }
+                        else if (keyInfo.Key == ConsoleKey.Z)
+                        {
+                            await GetCurrencyTabContents(true);
+                        }
                         else if (keyInfo.KeyChar == '?')
                         {
                             Log.Info("\t'?' for this help");
@@ -127,6 +124,7 @@ namespace ChaosHelper
                             Log.Info("\t'f' to force a filter update");
                             Log.Info("\t'c' to switch characters");
                             Log.Info("\t't' to toggle stash test mode (to make sure the rectangle is good)");
+                            Log.Info("\t'z' to list contents of stash tab");
                             //Log.Info("\t'h' to highlight in tab");
                         }
                         else
@@ -134,7 +132,7 @@ namespace ChaosHelper
                         Log.Info("Press 'Escape' to exit, '?' for help");
                     }
                     else
-                        Task.Delay(100);
+                        await Task.Delay(100);
                 }
             });
 
@@ -239,7 +237,7 @@ namespace ChaosHelper
             }
 
             filterUpdateSound = Path.Combine(exePath, "./FilterUpdateSound.wav");
-            var filterUpdateVolumeInt = Math.Max(0, Math.Min(100, configuration.GetInt("soundFileVolume", 50)));
+            var filterUpdateVolumeInt = configuration.GetInt("soundFileVolume", 50).Clamp(0, 100);
             filterUpdateVolume = filterUpdateVolumeInt / 100.0f;
 
             account = configuration["account"];
@@ -274,15 +272,12 @@ namespace ChaosHelper
             includeInventoryOnForce = configuration.GetBoolean("includeInventoryOnForce", false);
             townZones = configuration.GetStringList("townZones");
 
-            removeOnlyTabPattern = configuration["removeOnlyTabPattern"];
-            if (string.IsNullOrWhiteSpace(removeOnlyTabPattern))
-                removeOnlyTabPattern = "remove-only";
             areaEnteredPattern = configuration["areaEnteredPattern "];
             if (string.IsNullOrWhiteSpace(areaEnteredPattern))
                 areaEnteredPattern = "] : You have entered ";
 
-            scrollBuffer = Math.Max(0, Math.Min(5000, configuration.GetInt("scrollBuffer", 0)));
-            scrapBuffer = Math.Max(0, Math.Min(5000, configuration.GetInt("scrapBuffer", 0)));
+            var currencyArray = configuration.GetArray("currency");
+            Currency.AddArray(currencyArray);
 
             highlightItemsHotkey = configuration.GetHotKey("highlightItemsHotkey");
             showJunkItemsHotkey = configuration.GetHotKey("showJunkItemsHotkey");
@@ -303,22 +298,7 @@ namespace ChaosHelper
             }
 
             const string defaultFilterColor = "106 77 255";
-            filterColor = configuration["filterColor"];
-            if (string.IsNullOrWhiteSpace(filterColor))
-                filterColor = defaultFilterColor;
-            else if (filterColor.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
-            {
-                if (int.TryParse(filterColor.Substring(2), System.Globalization.NumberStyles.HexNumber, null, out var parsedInt))
-                {
-                    var color = System.Drawing.Color.FromArgb(parsedInt);
-                    filterColor = $"{color.R} {color.G} {color.B}";
-                }
-                else
-                {
-                    Log.Warn($"filterColor '{filterColor}' not valid - using default");
-                    filterColor = defaultFilterColor;
-                }
-            }
+            filterColor = configuration["filterColor"].CheckColorString(defaultFilterColor);
             Log.Info($"filterColor is '{filterColor}'");
 
             filterMarker = configuration["filterMarker"];
@@ -396,7 +376,7 @@ namespace ChaosHelper
                 await GetInventoryContents(itemsCurrent);
             itemsCurrent.RefreshCounts();
             itemsCurrent.CalculateClassesToShow(maxSets, ignoreMaxSets);
-            
+
             overlay?.SetCurrentItems(itemsCurrent);
             SetOverlayStatusMessage();
 
@@ -486,7 +466,7 @@ namespace ChaosHelper
 
                     items.Add(category, item, tabIndex);
                 }
-                
+
                 items.Sort();
             }
             catch (Exception ex)
@@ -495,34 +475,48 @@ namespace ChaosHelper
             }
         }
 
-        private static async Task GetCurrencyTabContents()
+        private static async Task GetCurrencyTabContents(bool listCurrencyToConsole = false)
         {
             try
             {
-                numWisdomScrolls = 0;
-                numPortalScrolls = 0;
-                numArmourers = 0;
-                numBlacksmith = 0;
+                Currency.ResetCounts();
 
-                if (currencyTabIndex < 0)
+                if (currencyTabIndex < 0 || !Currency.DesiredList.Any())
                     return;
+
+                var currencyDict = Currency.GetWebDictionary();
 
                 var stashTabUrl = System.Uri.EscapeUriString("https://www.pathofexile.com/character-window/get-stash-items"
                     + $"?league={league}&tabIndex={currencyTabIndex}&accountName={account}");
                 var json = await httpClient.GetFromJsonAsync<JsonElement>(stashTabUrl);
-                                foreach (var item in json.GetProperty("items").EnumerateArray())
+                foreach (var item in json.GetProperty("items").EnumerateArray())
                 {
                     var stackSize = item.GetIntOrDefault("stackSize", 0);
+                    if (stackSize == 0)
+                        continue;
+
                     var typeLine = item.GetProperty("typeLine").GetString();
 
-                    if (typeLine.Equals("Scroll of Wisdom", StringComparison.OrdinalIgnoreCase))
-                        numWisdomScrolls = stackSize;
-                    else if (typeLine.Equals("Portal Scroll", StringComparison.OrdinalIgnoreCase))
-                        numPortalScrolls = stackSize;
-                    else if (typeLine.Equals("Armourer's Scrap", StringComparison.OrdinalIgnoreCase))
-                        numArmourers = stackSize;
-                    else if (typeLine.Equals("Blacksmith's Whetstone", StringComparison.OrdinalIgnoreCase))
-                        numBlacksmith = stackSize;
+                    if (listCurrencyToConsole)
+                    {
+                        var iconUrl = item.GetProperty("icon").GetString();
+                        var pngIndex = iconUrl.IndexOf(".png", StringComparison.OrdinalIgnoreCase);
+                        if (pngIndex > 0)
+                        {
+                            var slashIndex = iconUrl.LastIndexOf("/", pngIndex);
+                            var icon = iconUrl.Substring(slashIndex + 1, pngIndex - slashIndex - 1);
+                            Console.WriteLine($"{typeLine}, {icon}, {stackSize}");
+                        }
+                    }
+
+                    if (currencyDict.TryGetValue(typeLine, out var value))
+                    {
+                        value.CurrentCount = stackSize;
+                        currencyDict.Remove(typeLine);
+                    }
+
+                    if (!listCurrencyToConsole && currencyDict.Count == 0)
+                        break;
                 }
             }
             catch (Exception ex)
@@ -656,79 +650,23 @@ namespace ChaosHelper
                     }
                 }
 
-                if (scrollBuffer > 0 && currencyTabIndex >= 0 && numWisdomScrolls < scrollBuffer)
+                if (currencyTabIndex >= 0)
                 {
-                    yield return $"# Because we want at least {scrollBuffer} Wisdom Scrolls in reserve";
-                    yield return "Show";
-                    yield return "Class Currency";
-                    yield return "BaseType == \"Scroll of Wisdom\"";
-                    yield return "SetFontSize 36";
-                    yield return "SetTextColor 170 158 130 220";
-                    yield return "SetBorderColor 100 50 30 255";
-                    yield return "SetBackgroundColor 0 0 0 255";
-                    yield return "";
-                }
-
-                if (scrollBuffer > 0 && currencyTabIndex >= 0 && numPortalScrolls < scrollBuffer)
-                {
-                    yield return $"# Because we want at least {scrollBuffer} Portal Scrolls in reserve";
-                    yield return "Show";
-                    yield return "Class Currency";
-                    yield return "BaseType \"Portal Scroll\"";
-                    yield return "SetFontSize 36";
-                    yield return "SetTextColor 170 158 130 220";
-                    yield return "SetBorderColor 30 50 100 255";
-                    yield return "SetBackgroundColor 0 0 0 255";
-                    yield return "";
-                }
-
-                if (scrapBuffer > 0 && currencyTabIndex >= 0 && numArmourers < scrapBuffer)
-                {
-                    yield return $"# Because we want at least {scrapBuffer} Armourer's Scraps in reserve";
-                    yield return "Show";
-                    yield return "Class Currency";
-                    yield return "BaseType \"Armourer's Scrap\"";
-                    yield return "SetFontSize 40";
-                    yield return "SetTextColor 170 158 130 220";
-                    yield return "SetBorderColor 75 75 75 255";
-                    yield return "SetBackgroundColor 0 0 0 255";
-                    yield return "";
-                }
-
-                if (scrapBuffer > 0 && currencyTabIndex >= 0 && numBlacksmith < scrapBuffer)
-                {
-                    yield return $"# Because we want at least {scrapBuffer} Blacksmith's Whetstones in reserve";
-                    yield return "Show";
-                    yield return "Class Currency";
-                    yield return "BaseType \"Blacksmith's Whetstone\"";
-                    yield return "SetFontSize 45";
-                    yield return "SetTextColor 170 158 130 220";
-                    yield return "SetBorderColor 190 178 135 180";
-                    yield return "SetBackgroundColor 0 0 0 255";
-                    yield return "";
-                }
-
-                // Also show currency shards
-                //
-                if (scrollBuffer > 0 && currencyTabIndex >= 0)
-                {
-                    yield return "Show";
-                    yield return "Class Currency";
-                    yield return "BaseType \"Alchemy Shard\" \"Binding Shard\" \"Engineer's Shard\" \"Orb of Augmentation\" \"Orb of Transmutation\" \"Regal Shard\"";
-                    yield return "SetFontSize 45";
-                    yield return "SetTextColor 170 158 130";
-                    yield return "SetBorderColor 190 178 135 180";
-                    yield return "SetBackgroundColor 0 0 0 255";
-                    yield return "";
-
-                    yield return "Show";
-                    yield return "Class Currency";
-                    yield return "BaseType \"Alteration Shard\" \"Transmutation Shard\"";
-                    yield return "SetFontSize 40";
-                    yield return "SetTextColor 170 158 130 220";
-                    yield return "SetBorderColor 170 158 130 220";
-                    yield return "SetBackgroundColor 0 0 0 255";
-                    yield return "";
+                    foreach (var c in Currency.DesiredList)
+                    {
+                        if (c.CurrentCount < c.Desired)
+                        {
+                            yield return $"# Because we want at least {c.Desired} {c.Name} in reserve";
+                            yield return "Show";
+                            yield return "Class Currency";
+                            yield return $"BaseType \"{c.Name}\"";
+                            yield return $"SetFontSize {c.FontSize}";
+                            yield return $"SetTextColor {c.TextColor}";
+                            yield return $"SetBorderColor {c.BorderColor}";
+                            yield return $"SetBackgroundColor {c.BackGroundColor}";
+                            yield return "";
+                        }
+                    }
                 }
 
                 yield return "# End ChaosHelper generated section";
@@ -774,7 +712,9 @@ namespace ChaosHelper
                     + $"?league={league}&tabs=1&accountName={account}");
                 var json = await httpClient.GetFromJsonAsync<JsonElement>(stashTabListUrl);
 
-                var lookForCurrencyTab = scrollBuffer > 0 || scrapBuffer > 0;
+                var lookForCurrencyTab = Currency.DesiredList.Any();
+
+                const string removeOnlyTabPattern = "remove-only";
 
                 foreach (var tab in json.GetProperty("tabs").EnumerateArray())
                 {

@@ -4,6 +4,44 @@
     "poesessid" : "",
     "template": "", // the template file used to create/update the filter - an existing Neversink filter should work
 
+    "filter": "Chaos Helper", // the name of the .filter file that will be written - see README.md
+    "filterMarker": "",
+    "filterColor": "0x6a4dff", // can be a hex number like "0x6a4dff" or a loot filter color like "106 77 255"
+    "soundFileVolume": 30, // the volume of the sound alert for when the filter is updated - 0 to 100
+
+    "maxSets": 10, // when to cut off highlighting each item slot
+    "maxIlvl": -1, // set to 74 to not show regal recipe items in the loot filter, -1 or 100 for everything
+    "allowIDedSets": true, // see README.md
+    "singleSetsForChaos": true, 
+    "includeInventoryOnForce": false, // see README.md
+
+    // Items classes that can ignore the maxSets and maxIlvl settings.
+    // Possible classes are BodyArmours, Helmets, Gloves, Boots, OneHandWeapons, Belts, Amulets, and Rings
+    "ignoreMaxSets": "Rings,Amulets,Belts",
+    "ignoreMaxIlvl": "Rings,Amulets,Belts",
+
+    // These set global hotkeys
+    // for modifiers, use '^' for Ctrl, '+' for Shift and '!' for Alt
+    // for a list of key names/numbers, see https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys
+    // they are global hotkeys, so be careful not to bork your other programs
+    "highlightItemsHotkey": "!H", // hotkey to highlight sets of items to sell
+    "showJunkItemsHotkey": "!J", // hotkey to toggle highlight of non chaos items in your stash tab
+    "forceUpdateHotkey": "!F", // hotkey to force the filter to be updated - generally not needed
+    //"characterCheckHotkey": "!C", // hotkey to recheck your character and league
+    //"testModeHotkey": "!T", // hotkey to toggle a test pattern to verify the stash window size
+
+    // leave these all blank to auto-determine
+    "league" : "",
+    "character": "",
+    "tabName": "",
+    "tabIndex": -1,
+    "isQuadTab": true,
+
+    "clientTxt": "", // see README.md - need to set if both steam and regular clients are installed
+    "processName": "", // see README.md
+    
+    "areaEnteredPattern": "] : You have entered ", // translate this if you use the PoE client in a language other than English
+
     // add your hideout here
     // these are zones with a stash and merchant, so we don't accidentally obscure the UI in combat
     // comment out the whole thing to allow the stash overlay anywhere
@@ -23,49 +61,35 @@
 //        // "Tane's Laboratory",
     ],
 
-    // leave these all blank to auto-determine
-    "league" : "",
-    "character": "",
-    "tabName": "",
-    "tabIndex": -1,
-    "isQuadTab": true,
-
-    "filter": "Chaos Helper", // the name of the .filter file that will be written - see README.md
-    "filterMarker": "",
-    "filterColor": "0x6a4dff", // can be a hex number like "0x6a4dff" or a loot filter color like "106 77 255"
-
-    "maxSets": 10, // number of chaos sets to try for (jewelry excluded)
-    "maxIlvl": -1, // set to 74 to not show regal recipe items in the loot filter, -1 or 100 for everything
-    "allowIDedSets": true, // see README.md
-    "singleSetsForChaos": true, 
-
-    // Items classes that can ignore the maxSets and maxIlvl settings.
-    // Possible classes are BodyArmours, Helmets, Gloves, Boots, OneHandWeapons, Belts, Amulets, and Rings
-    "ignoreMaxSets": "Rings,Amulets,Belts",
-    "ignoreMaxIlvl": "Rings,Amulets,Belts",
-
-    // These set global hotkeys
-    // for modifiers, use '^' for Ctrl, '+' for Shift and '!' for Alt
-    // for a list of key names/numbers, see https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys
-    // they are global hotkeys, so be careful not to bork your other programs
-    "highlightItemsHotkey": "!H", // hotkey to highlight sets of items to sell
-    "showJunkItemsHotkey": "!J", // hotkey to toggle highlight of non chaos items in your stash tab
-    "forceUpdateHotkey": "!F", // hotkey to force the filter to be updated - generally not needed
-    //"characterCheckHotkey": "!C", // hotkey to recheck your character and league
-    //"testModeHotkey": "!T", // hotkey to toggle a test pattern to verify the stash window size
-
-    "includeInventoryOnForce": false, // see README.md
-
-    "clientTxt": "", // see README.md - need to set if both steam and regular clients are installed
-    "processName": "", // see README.md
-    
-    "removeOnlyTabPattern": "Remove-only", // translate this if you use the web site in a language other than English
-    "areaEnteredPattern": "] : You have entered ", // translate this if you use the PoE client in a language other than English
-
-    "soundFileVolume": 30, // the volume of the sound alert for when the filter is updated - 0 to 100
-
-    "scrollBuffer": 0, // see README.md
-    "scrapBuffer": 0,
+    // see README.md
+    "currency": [
+        { "desired": 0, "c": "Scroll of Wisdom", "fontSize": 36, "text": "170 158 130 220", "border": "100 50 30 255", "back": "0 0 0 255" },
+        { "desired": 0, "c": "Portal Scroll", "fontSize": 36, "text": "170 158 130 220", "border": "30 50 100 255", "back": "0 0 0 255" },
+        { "desired": 0, "c": "Armourer's Scrap", "fontSize": 40, "text": "170 158 130 220", "border": "75 75 75 255", "back": "0 0 0 255" },
+        { "desired": 0, "c": "Blacksmith's Whetstone" , "fontSize": 45, "text": "170 158 130", "border": "190 178 135 180", "back": "0 0 0 255" },
+        { "desired": 0, "c": "Orb of Transmutation", "fontSize": 45, "text": "170 158 130", "border": "190 178 135 180", "back": "0 0 0 255" },
+        { "desired": 0, "c": "Orb of Augmentation", "fontSize": 45, "text": "170 158 130", "border": "190 178 135 180", "back": "0 0 0 255" },
+        { "desired": 0, "c": "Blessed Orb" , "fontSize": 45, "text": "170 158 130", "border": "190 178 135 180", "back": "0 0 0 255" },
+        { "desired": 0, "c": "Engineer's Orb", "fontSize": 45, "text": "0 0 0 255", "border": "0 0 0 200", "back": "61 156 136 255" },
+        { "desired": 0, "c": "Jeweller's Orb", "fontSize": 45, "text": "0 0 0 255", "border": "0 0 0 200", "back": "61 156 136 255" },
+        { "desired": 0, "c": "Glassblower's Bauble", "fontSize": 45, "text": "0 0 0 255", "border": "0 0 0 200", "back": "61 156 136 255" },
+        { "desired": 0, "c": "Orb of Chance", "fontSize": 45, "text": "0 0 0 255", "border": "0 0 0 200", "back": "61 156 136 255" },
+        { "desired": 0, "c": "Orb of Horizons", "fontSize": 45, "text": "0 0 0 255", "border": "0 0 0 200", "back": "61 156 136 255" },
+        { "desired": 0, "c": "Regal Orb", "fontSize": 45, "text": "0 0 0 255", "border": "0 0 0 200", "back": "61 156 136 255" },
+        { "desired": 0, "c": "Silver Coin", "fontSize": 45, "text": "0 0 0 255", "border": "0 0 0 200", "back": "61 156 136 255" },
+        { "desired": 0, "c": "Perandus Coin", "fontSize": 40, "text": "255 178 135 255", "border": "255 178 135 135", "back": "0 0 0 255" },
+        { "desired": 0, "c": "Simple Sextant", "fontSize": 45, "text": "0 0 0 255", "border": "0 0 0 200", "back": "61 156 136 255" },
+        { "desired": 0, "c": "Imbued Catalyst", "fontSize": 45, "text": "0 0 0 255", "border": "0 0 0 200", "back": "61 156 136 255" },
+        { "desired": 0, "c": "Intrinsic Catalyst", "fontSize": 45, "text": "0 0 0 255", "border": "0 0 0 200", "back": "61 156 136 255" },
+        { "desired": 0, "c": "Horizon Shard", "fontSize": 45, "text": "0 0 0 255", "border": "0 0 0 200", "back": "61 156 136 255" },
+        { "desired": 0, "c": "Chaos Shard", "fontSize": 45, "text": "0 0 0 255", "border": "0 0 0 200", "back": "61 156 136 255" },
+        { "desired": 0, "c": "Engineer's Shard", "fontSize": 45, "text": "170 158 130", "border": "190 178 135 180", "back": "0 0 0 255" },
+        { "desired": 0, "c": "Alchemy Shard", "fontSize": 45, "text": "170 158 130", "border": "190 178 135 180", "back": "0 0 0 255" },
+        { "desired": 0, "c": "Alteration Shard", "fontSize": 40, "text": "170 158 130 220", "border": "75 75 75 255", "back": "0 0 0 255" },
+        { "desired": 0, "c": "Transmutation Shard", "fontSize": 40, "text": "170 158 130 220", "border": "75 75 75 255", "back": "0 0 0 255" },
+        { "desired": 0, "c": "Binding Shard", "fontSize": 45, "text": "170 158 130", "border": "190 178 135 180", "back": "0 0 0 255" },
+        { "desired": 0, "c": "Regal Shard", "fontSize": 45, "text": "170 158 130", "border": "190 178 135 180", "back": "0 0 0 255" },
+    ],
 
     // this is to figure out the place on the screen for the stash tab to highlight items
     // use [ 0, 0, 0, 0 ] to auto determine

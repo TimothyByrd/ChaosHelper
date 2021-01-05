@@ -341,7 +341,7 @@ namespace ChaosHelper
         private ItemSet MakeSetOptimize(int numSets, bool ided, bool optimizeChaos)
         {
             var result = new ItemSet();
-            
+
             var optimizerList = new List<ChaosSlotOptimizer>
             {
                 new ChaosSlotOptimizerWeapons(this, 1),

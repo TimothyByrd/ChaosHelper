@@ -158,15 +158,6 @@ There are three things you must configure in settings.jsonc to use the tool:
 - An existing Neversink filter should work with the defaults.
 - See "About the template and filter" for more info.
 
-`townZones` defines the areas that are considered to be "towns".
-The commands noted as "town only" - highlight items, show junk items and test pattern - will only work when the tool thinks you are in a town zone.
-If no town zones are defined, then the tool will treat every area as a town zone.
-If you want protection from accidentally pressing one of the hightlight hotkeys while in combat, then uncomment the list of zones, and add you hideout to the list.
-    
-I suggest leaving `league`, `character`, `tabName`, `tabIndex` and `isQuadTab` at the defaults.
-This will cause to the tool to auto-determine the values, which is good when there are multiple leagues available.
-In particular, `tabIndex` is difficult, because the same tab can change from league to league and can depend on if there are Remove-only tabs visible.
-
 `filter` ("Chaos Helper") is the name of the .filter file to create/update - just don't make it the same as `template`.
 See "About the template and filter" for more info.
 
@@ -175,6 +166,8 @@ See "About the template and filter" for more info.
 
 `filterColor` ("80 0 220") sets the border and text color for highlighted items in the updated filter.
 It can be specified as a hex number like "0x4600e6" or a filter file color like "70 0 230".
+
+`soundFileVolume` (50) sets the volume of the sound alert for when the filter is updated. It can be an integer from 0 to 100.
 
 `maxSets` (12) is the number of chaos recipe sets the tool will aim to collect in your stash tab.
 It uses this number to determine when to stop showing item classes in the loot filter.
@@ -200,6 +193,10 @@ contains one ilvl 74 glove and one ilvl 74 helmet and everything else is ilvl 75
 it will hihglight them in two different sales.
 It defaults to false, because the extra vendor trips waste time.
 
+`includeInventoryOnForce` (false) will cause items in the character's inventory to be included when a force update command is executed.
+It ought to be useful for when a Keepers of the Trove pack gives you all the gloves you need,
+but it depends on your inventory on the website having been updated, and there's a bit of a lag for that.
+
 `ignoreMaxSets` causes the specified item classes to ignore the `maxSets` setting.
 For example, setting `ignoreMaxSets` to "Rings,Amulets,Belts" when `maxSets` is 12,
 will cause the filter to keep highlighting rings, amulets and belts even when there are 12 or more of them in the stash tab.
@@ -214,9 +211,9 @@ Possible item classes are BodyArmours, Helmets, Gloves, Boots, OneHandWeapons, B
 If not defined, the hotkeys are not enabled.
 See "Commands and hotkeys" for more info.
 	
-`includeInventoryOnForce` (false) will cause items in the character's inventory to be included when a force update command is executed.
-It ought to be useful for when a Keepers of the Trove pack gives you all the gloves you need,
-but it depends on your inventory on the website having been updated, and there's a bit of a lag for that.
+I suggest leaving `league`, `character`, `tabName`, `tabIndex` and `isQuadTab` at the defaults.
+This will cause to the tool to auto-determine the values, which is good when there are multiple leagues available.
+In particular, `tabIndex` is difficult, because the same tab can change from league to league and can depend on if there are Remove-only tabs visible.
 
 `clientTxt` defines where to find the PoE client.txt log file, which the tool uses to track zone changes.
 The tool tries to auto-determine this, but if Path of Exile was installed to a custom folder,
@@ -233,28 +230,25 @@ To run two copies of Path of Exile while using the tool,
 run one PoE using the stand alone client and one PoE using the Steam client,
 and configure `processName` (and `clientTxt`) for the copy you want the tool to go with.
 
-`removeOnlyTabPattern` ("Remove-only") sets the text used to determine if stash tabs are remove-only so the tool can ignore those tabs.
-Translate this if you use the web site in a language other than English.
-
 `areaEnteredPattern` ("] : You have entered ") is the text marker used when tailing client.txt to determine when a character change areas.
 Translate this if you use the PoE client in a language other than English.
 
-`soundFileVolume` (50) sets the volume of the sound alert for when the filter is updated. It can be an integer from 0 to 100.
-
-`scrollBuffer` (0) sets a minimum number of wisdom/portal scrolls to have in the currency tab.
-The default value of 0 disables this.
-For example, if this value is set to 100 and there are 90 scrolls of wisdom and 110 portal scrolls in the currency tab,
-then when the loot filter is next written, it will include a Show block for wisdom scrolls, but not portal scrolls.
-Turning this on will also turn on showing orbs of transmutation and augmentation, as well as currency shards.
-The loot filter will not be automatically re-written just to add/remove the scroll blocks - use a force update in that case.
-Since the code specifically looks for the text "Scroll of Wisdom" and "Portal Scroll", it will only work when using the PoE website in English.
-
-`scrapBuffer` (0)" sets a minimum number of scraps/whetstones to have in the currency tab.
-The default value of 0 disables this.
-For example, if this value is set to 100 and there are 90 armourer's scraps and 110 blacksmith's whetstones in the currency tab,
-then when the loot filter is next written, it will include a Show block for armourer's scraps, but not blacksmith's whetstones.
-The loot filter will not be automatically re-written just to add/remove the scrap blocks - use a force update in that case.
-Since the code specifically looks for the text "Armourer's Scrap" and "Blacksmith's Whetstone", it will only work when using the PoE website in English.
+`townZones` defines the areas that are considered to be "towns".
+The commands noted as "town only" - highlight items, show junk items and test pattern - will only work when the tool thinks you are in a town zone.
+If no town zones are defined, then the tool will treat every area as a town zone.
+If you want protection from accidentally pressing one of the hightlight hotkeys while in combat, then uncomment the list of zones, and add you hideout to the list.
+    
+The `currency` array sets desired targets for currencies and conditionally puts code in the loot filter to display them.
+This lets you run a stricter loot filter, but show certain currencies when the supply in your currency tab runs low. 
+For example if there was an entry for wisdom scrolls that read:
+```
+{ "desired": 0, "c": "Scroll of Wisdom", "fontSize": 36, "text": "170 158 130 220", "border": "100 50 30 255", "back": "0 0 0 255" },
+```
+then when the loot filter is next written, if the number of wisom scrolls in the currency tab was less than 100,
+it will include a Show block for wisdom scrolls with the specified font size and colors.
+The default desired value of 0 disables making code blocks for that currency type.
+The loot filter will not be automatically re-written just to add/remove the currency blocks - use a force update in that case.
+This feature will never hide currency that the loot filter would display anyway, but may change the highlighting of it.
 
 `stashPageXYWH` ([ 0, 0, 0, 0 ]) specifies the rectangle in the PoE client window where the stash tab grid is.
 It usually auto-determines correctly, but may need to be specified for certain monitors.
