@@ -454,8 +454,8 @@ namespace ChaosHelper
                     return;
                 }
 
-                var stashTabUrl = "https://www.pathofexile.com/character-window/get-stash-items"
-                    + $"?league={league}&tabIndex={tabIndex}&accountName={account}";
+                var stashTabUrl = System.Uri.EscapeUriString("https://www.pathofexile.com/character-window/get-stash-items"
+                    + $"?league={league}&tabIndex={tabIndex}&accountName={account}");
                 var json = await httpClient.GetFromJsonAsync<JsonElement>(stashTabUrl);
                 foreach (var item in json.GetProperty("items").EnumerateArray())
                 {
@@ -507,8 +507,8 @@ namespace ChaosHelper
                 if (currencyTabIndex < 0)
                     return;
 
-                var stashTabUrl = "https://www.pathofexile.com/character-window/get-stash-items"
-                    + $"?league={league}&tabIndex={currencyTabIndex}&accountName={account}";
+                var stashTabUrl = System.Uri.EscapeUriString("https://www.pathofexile.com/character-window/get-stash-items"
+                    + $"?league={league}&tabIndex={currencyTabIndex}&accountName={account}");
                 var json = await httpClient.GetFromJsonAsync<JsonElement>(stashTabUrl);
                                 foreach (var item in json.GetProperty("items").EnumerateArray())
                 {
@@ -770,8 +770,8 @@ namespace ChaosHelper
 
             try
             {
-                var stashTabListUrl = "https://www.pathofexile.com/character-window/get-stash-items"
-                    + $"?league={league}&tabs=1&accountName={account}";
+                var stashTabListUrl = System.Uri.EscapeUriString("https://www.pathofexile.com/character-window/get-stash-items"
+                    + $"?league={league}&tabs=1&accountName={account}");
                 var json = await httpClient.GetFromJsonAsync<JsonElement>(stashTabListUrl);
 
                 var lookForCurrencyTab = scrollBuffer > 0 || scrapBuffer > 0;
