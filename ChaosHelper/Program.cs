@@ -485,7 +485,7 @@ namespace ChaosHelper
                     return;
 
                 if (listCurrencyToConsole)
-                    Console.WriteLine("currency;count;value");
+                    Console.WriteLine("currency;count;ratio;value");
 
                 var currencyDict = Currency.GetWebDictionary();
 
@@ -511,7 +511,7 @@ namespace ChaosHelper
                     {
                         var line = currentItem == null
                             ? $"{typeLine}; {stackSize}"
-                            : $"{typeLine}; {stackSize}; {currentItem.Value}";
+                            : $"{typeLine}; {stackSize}; {currentItem.ValueRatio}; {currentItem.Value}";
                             Console.WriteLine(line);
                     }
                     
@@ -520,7 +520,7 @@ namespace ChaosHelper
                 }
 
                 if (listCurrencyToConsole)
-                    Console.WriteLine($"total value = {Currency.GetTotalValue()}");
+                    Console.WriteLine($"total value = {Currency.GetTotalValue():F2}");
             }
             catch (Exception ex)
             {

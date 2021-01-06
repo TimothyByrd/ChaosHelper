@@ -190,7 +190,7 @@ namespace ChaosHelper
 
             var valueRatio = GetValueRatio(element);
             
-            Log.Info($"Adding currency entry for {currencyName}: des={desired}, value={valueRatio}");
+            Log.Info($"Adding currency entry for {currencyName}: des={desired}, ratio={valueRatio}");
 
             CurrencyList.Add(new Currency {
                 Name = currencyName,
