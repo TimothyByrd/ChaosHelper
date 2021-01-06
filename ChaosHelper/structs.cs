@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 using Overlay.NET.Common;
@@ -114,22 +115,49 @@ namespace ChaosHelper
         public string TextColor { get; private set; }
         public string BorderColor { get; private set; }
         public string BackGroundColor { get; private set; }
+        public double ValueRatio { get; private set; }
+        public double Value { get { return ValueRatio * CurrentCount; } }
+        public bool CanFilterOn { get; private set; }
+        public bool ShowBlock { get { return CanFilterOn && CurrentCount < Desired; } } 
         public int CurrentCount { get; set; }
 
-        static public List<Currency> DesiredList = new List<Currency>();
+        static public List<Currency> CurrencyList = new List<Currency>();
 
         public static void ResetCounts()
         {
-            foreach (var x in DesiredList)
+            foreach (var x in CurrencyList)
                 x.CurrentCount = 0;
         }
 
         static public Dictionary<string, Currency> GetWebDictionary()
         {
             var result = new Dictionary<string, Currency>();
-            foreach (var x in DesiredList)
+            foreach (var x in CurrencyList)
                 result[x.Name] = x;
             return result;
+        }
+
+        public static double GetTotalValue()
+        {
+            return CurrencyList.Sum(x => x.Value);
+        }
+
+        static double GetValueRatio(System.Text.Json.JsonElement element)
+        {
+            if (!element.TryGetProperty("value", out var valueProp))
+                return 0.0;
+
+            if (valueProp.ValueKind == System.Text.Json.JsonValueKind.Number)
+                return Math.Max(valueProp.GetDouble(), 0.0);
+
+            var s = valueProp.GetString();
+            var slash = s.IndexOf('/');
+            if (slash > 0 && double.TryParse(s.Substring(0, slash), out var num)
+                && double.TryParse(s.Substring(slash + 1), out var denom) && denom > 0)
+                return Math.Max(num / denom, 0.0);
+            if (double.TryParse(s, out var d))
+                return Math.Max(d, 0.0); ;
+            return 0.0;
         }
 
         static public void AddArray(System.Text.Json.JsonElement.ArrayEnumerator array)
@@ -140,39 +168,39 @@ namespace ChaosHelper
 
         static public void Add(System.Text.Json.JsonElement element)
         {
+            var canFilterOn = true;
+
             var desired = element.GetIntOrDefault("desired", 0);
-            if (desired <= 0)
-                return;
+            if (desired <= 0) canFilterOn = false;
 
             var currencyName = element.GetStringOrDefault("c");
-            if (string.IsNullOrWhiteSpace(currencyName))
-                return;
-
+            if (string.IsNullOrWhiteSpace(currencyName)) canFilterOn = false;
+            
             var fontSize = element.GetIntOrDefault("fontSize", 0).Clamp(0, 50);
-            if (fontSize <= 10)
-                return;
+            if (fontSize <= 10) canFilterOn = false;
 
             var textColor = element.GetStringOrDefault("text").CheckColorString();
-            if (string.IsNullOrWhiteSpace(textColor))
-                return;
-
+            if (string.IsNullOrWhiteSpace(textColor)) canFilterOn = false;
+ 
             var borderColor = element.GetStringOrDefault("border").CheckColorString();
-            if (string.IsNullOrWhiteSpace(borderColor))
-                return;
+            if (string.IsNullOrWhiteSpace(borderColor)) canFilterOn = false;
 
             var backgroundColor = element.GetStringOrDefault("back").CheckColorString();
-            if (string.IsNullOrWhiteSpace(backgroundColor))
-                return;
+            if (string.IsNullOrWhiteSpace(backgroundColor)) canFilterOn = false;
 
-            Log.Info($"Adding desired currency block for {currencyName}: {desired}");
+            var valueRatio = GetValueRatio(element);
+            
+            Log.Info($"Adding currency entry for {currencyName}: des={desired}, value={valueRatio}");
 
-            DesiredList.Add(new Currency {
+            CurrencyList.Add(new Currency {
                 Name = currencyName,
                 Desired = desired,
                 FontSize = fontSize,
                 TextColor = textColor,
                 BorderColor = borderColor,
                 BackGroundColor = backgroundColor,
+                CanFilterOn = canFilterOn,
+                ValueRatio = valueRatio,
                 CurrentCount = int.MaxValue,
             });
         }
@@ -251,6 +279,19 @@ public static class Helpers
                 return s;
             }
             return defaultValue;
+        }
+
+        static readonly char[] spaceArray = new char[] { ' ' };
+
+        public static int ColorStringToRGB(this string s)
+        {
+            if (!string.IsNullOrEmpty(s))
+            {
+                var nums = s.Split(spaceArray, StringSplitOptions.RemoveEmptyEntries);
+                if (nums.Length >= 3)
+                    return System.Drawing.Color.FromArgb(int.Parse(nums[0]), int.Parse(nums[1]), int.Parse(nums[2])).ToArgb();
+            }
+            return -1;
         }
     }
 }

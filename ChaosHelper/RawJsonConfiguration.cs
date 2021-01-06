@@ -65,22 +65,16 @@ namespace ChaosHelper
             return result;
         }
 
-        public List<int> GetIntList(string s)
+        public List<int> GetColorList(string s)
         {
             var result = new List<int>();
             var array = GetArray(s);
             while (array.MoveNext())
             {
-                if (array.Current.ValueKind == JsonValueKind.Number)
-                    result.Add(array.Current.GetInt32());
-                else
-                {
-                    var intStr = array.Current.GetString();
-                    if (intStr.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
-                        result.Add(int.Parse(intStr.Substring(2), System.Globalization.NumberStyles.HexNumber));
-                    else
-                        result.Add(int.Parse(intStr));
-                }
+                var colorStr = array.Current.GetString().CheckColorString();
+                var intVal = colorStr.ColorStringToRGB();
+                if (intVal >= 0)
+                    result.Add(intVal);
             }
             return result;
         }

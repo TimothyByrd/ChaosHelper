@@ -95,13 +95,14 @@ There are five commands you can send to the tool:
 3. Force update (F): To force a re-read of the stash tab and a write of the filter file.
 4. Character check (C): Recheck your character and league. (This should happen automatically when you switch chararacters.)
 5. Test pattern (T): (town only) Toggle displaying a test pattern to verify the stash window size is correct. Once good, you can disable any hotkey for it, unless you change monitors.
+6. Currency list (Z): Print a listing of the contents of the currency tab in the ChaosHelper console window, with a total value. See `currency` in the "Configuration details" section below.
 
 The commands can be invoked:
 
 1. By typing the appropriate letter (H,J,F,C,T) in the ChaosHelper console window.
 - Best for commands you will hardly ever use, like character check and test pattern.
 2. By using global hotkeys created by ChaosHelper
-- By default they are enabled and use the keys `Alt-H`, `Alt-J`, `Alt-F`, `Alt-C` and `Alt-T`, respectively.
+- By default global hotkeys are enabled for the Highlight items, Show Junk items and Force update commands, on `Alt-H`, `Alt-J` and `Alt-F`, respectively.
 - These hotkeys can be rebound or disabled in settings.jsonc.
 - The character check and test pattern command hotkeys are disabled by default, they can be uncommented in settings.jsonc.
 - When definining a hotkey, for modifiers, use '^' for Ctrl, '+' for Shift and '!' for Alt.
@@ -141,7 +142,7 @@ This would probably not be what you want, for example, it would override the nor
 ## Security
 <a name="h06" />
 
-I trust myself, but you shouldn't. I suggest building the tool yourself (see below).
+I trust myself, but you shouldn't. I suggest building the tool yourself (see "Building the tool" below).
 Or for security, limit what the tool can do via your firewall.
 The only HTTP calls the tool should make are all to www.pathofexile.com.
 They are all HTTP GETs, so they aren't changing anything on the server.
@@ -207,6 +208,10 @@ For example, setting `ignoreMaxIlvl` to "Rings,Amulets,Belts" when `maxIlvl` is 
 will cause the filter to keep highlighting rings, amulets and belts at higher ilvls.
 Possible item classes are BodyArmours, Helmets, Gloves, Boots, OneHandWeapons, Belts, Amulets, and Rings
 
+`highlightColors` ([ "0xffffff", "0xffff00", "0x00ff00", "0x0000ff" ]) is an array of color values (as strings)
+to specify stash highlight colours for armour/weapons, helmets/gloves/boots, belts, and rings/amulets, respectively.
+There must be four strings in the array and they can be hex numbers ("0xRRGGBB") or loot filter colors ("RRR GGG BBB").
+
 `highlightItemsHotkey`, `showJunkItemsHotkey`, `forceUpdateHotkey`, `characterCheckHotkey` and `testModeHotkey` can be set to enable global hotkeys to execute ChaosHelper commands.
 If not defined, the hotkeys are not enabled.
 See "Commands and hotkeys" for more info.
@@ -238,17 +243,32 @@ The commands noted as "town only" - highlight items, show junk items and test pa
 If no town zones are defined, then the tool will treat every area as a town zone.
 If you want protection from accidentally pressing one of the hightlight hotkeys while in combat, then uncomment the list of zones, and add you hideout to the list.
     
-The `currency` array sets desired targets for currencies and conditionally puts code in the loot filter to display them.
+The `currency` array can serve two purposes. First it can provide currency value to allow the Currency list to give a total valuation of the contents of the currency tab.
+For example, if the currency array contained the following entries:
+
+```
+{ "c": "Exalted Orb", "value": 110, },
+{ "c": "Chaos Orb", "value": 1, },
+{ "c": "Orb of Fusing", "value": "1/2", },
+```
+and the currency tab had 2 Exalts, 6 Chaos and 11 Fusing, the Currency list command (Z) would say the total value of the tab was 110 * 2 + 1 * 6 + .5 * 11 = 231.5.
+(Note that fractional values can be specified, but require quotes.)
+
+The other use for the `currency` array is to specify minimum desired amounts for currencies and to put code in the loot filter to display them then the currency tab contains less than those amounts.
 This lets you run a stricter loot filter, but show certain currencies when the supply in your currency tab runs low. 
 For example if there was an entry for wisdom scrolls that read:
 ```
-{ "desired": 0, "c": "Scroll of Wisdom", "fontSize": 36, "text": "170 158 130 220", "border": "100 50 30 255", "back": "0 0 0 255" },
+{ "c": "Scroll of Wisdom", "value: 0, "desired": 100, "fontSize": 36, "text": "170 158 130 220", "border": "100 50 30 255", "back": "0 0 0 255" },
 ```
-then when the loot filter is next written, if the number of wisom scrolls in the currency tab was less than 100,
-it will include a Show block for wisdom scrolls with the specified font size and colors.
-The default desired value of 0 disables making code blocks for that currency type.
-The loot filter will not be automatically re-written just to add/remove the currency blocks - use a force update in that case.
-This feature will never hide currency that the loot filter would display anyway, but may change the highlighting of it.
+then when the loot filter was next written, if the number of wisdom scrolls in the currency tab was less than 100,
+it would include a Show block for wisdom scrolls with the specified font size and colors.
+
+- For the higlight feature to work the "desired", "fontSize", "text", "border" and "back" fields must all be specified.
+- Since this feature is meant for lower value currencies that the loot filter might hide by default, it doesn't include a way to specify drop sounds, mini-map icons, etc.
+- This feature can be combined with the valuation feature by also including a "value" field in the entry. It will not work to make two entries for the same currency to split the valuation and higlight features.
+- The default desired value of 0 disables making code blocks for that currency type.
+- The loot filter will not be automatically re-written just to add/remove the currency blocks - use a force update in that case.
+- This feature will never hide currency that the loot filter would display anyway, but may change the highlighting of it.
 
 `stashPageXYWH` ([ 0, 0, 0, 0 ]) specifies the rectangle in the PoE client window where the stash tab grid is.
 It usually auto-determines correctly, but may need to be specified for certain monitors.
@@ -256,10 +276,6 @@ It usually auto-determines correctly, but may need to be specified for certain m
 If you need to set a custom value, take a screenshot of your stash tab,then open the screen shot in a program like IrfanView.
 Make a select rectangle over the grid part of the tab, and determine the X,Y,Height,Width of the selection.
 You can test the values by typing 't' in the ChaosHelper console to execute the test pattern command.
-
-`highlightColors` ([ "0xffffff", "0xffff00", "0x00ff00", "0x0000ff" ]) is an array of color values (as strings)
-to specify stash highlight colours for armour/weapons, helmets/gloves/boots, belts, and rings/amulets, respectively.
-There must be four colors in the array and they must be hex number strings of the forms "0xRRGGBB".
 
 ## Troubleshooting
 <a name="h08" />

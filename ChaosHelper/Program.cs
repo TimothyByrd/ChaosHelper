@@ -286,7 +286,7 @@ namespace ChaosHelper
             testModeHotkey = configuration.GetHotKey("testModeHotkey");
             ChaosOverlay.ShouldHookMouseEvents = false; // configuration.GetBoolean("hookMouseEvents", false);
 
-            highlightColors = configuration.GetIntList("highlightColors");
+            highlightColors = configuration.GetColorList("highlightColors");
             if (highlightColors.Count == 0)
             {
                 highlightColors = new List<int> { 0xffffff, 0xffff00, 0x00ff00, 0x6060ff };
@@ -481,8 +481,11 @@ namespace ChaosHelper
             {
                 Currency.ResetCounts();
 
-                if (currencyTabIndex < 0 || !Currency.DesiredList.Any())
+                if (currencyTabIndex < 0 || !Currency.CurrencyList.Any())
                     return;
+
+                if (listCurrencyToConsole)
+                    Console.WriteLine("currency;count;value");
 
                 var currencyDict = Currency.GetWebDictionary();
 
@@ -497,27 +500,27 @@ namespace ChaosHelper
 
                     var typeLine = item.GetProperty("typeLine").GetString();
 
-                    if (listCurrencyToConsole)
+                    Currency currentItem = null;
+                    if (currencyDict.TryGetValue(typeLine, out currentItem))
                     {
-                        var iconUrl = item.GetProperty("icon").GetString();
-                        var pngIndex = iconUrl.IndexOf(".png", StringComparison.OrdinalIgnoreCase);
-                        if (pngIndex > 0)
-                        {
-                            var slashIndex = iconUrl.LastIndexOf("/", pngIndex);
-                            var icon = iconUrl.Substring(slashIndex + 1, pngIndex - slashIndex - 1);
-                            Console.WriteLine($"{typeLine}, {icon}, {stackSize}");
-                        }
-                    }
-
-                    if (currencyDict.TryGetValue(typeLine, out var value))
-                    {
-                        value.CurrentCount = stackSize;
+                        currentItem.CurrentCount = stackSize;
                         currencyDict.Remove(typeLine);
                     }
 
+                    if (listCurrencyToConsole)
+                    {
+                        var line = currentItem == null
+                            ? $"{typeLine}; {stackSize}"
+                            : $"{typeLine}; {stackSize}; {currentItem.Value}";
+                            Console.WriteLine(line);
+                    }
+                    
                     if (!listCurrencyToConsole && currencyDict.Count == 0)
                         break;
                 }
+
+                if (listCurrencyToConsole)
+                    Console.WriteLine($"total value = {Currency.GetTotalValue()}");
             }
             catch (Exception ex)
             {
@@ -652,7 +655,7 @@ namespace ChaosHelper
 
                 if (currencyTabIndex >= 0)
                 {
-                    foreach (var c in Currency.DesiredList)
+                    foreach (var c in Currency.CurrencyList)
                     {
                         if (c.CurrentCount < c.Desired)
                         {
@@ -712,7 +715,7 @@ namespace ChaosHelper
                     + $"?league={league}&tabs=1&accountName={account}");
                 var json = await httpClient.GetFromJsonAsync<JsonElement>(stashTabListUrl);
 
-                var lookForCurrencyTab = Currency.DesiredList.Any();
+                var lookForCurrencyTab = Currency.CurrencyList.Any();
 
                 const string removeOnlyTabPattern = "remove-only";
 
