@@ -28,6 +28,7 @@ namespace ChaosHelper
             {
                 while (!cancellationToken.IsCancellationRequested)
                 {
+                    _plugin?.SendKey(ConsoleKey.Spacebar);
                     _plugin = null;
                     _processSharp = null;
 

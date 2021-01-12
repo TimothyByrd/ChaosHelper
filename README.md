@@ -215,6 +215,10 @@ There must be four strings in the array and they can be hex numbers ("0xRRGGBB")
 `highlightItemsHotkey`, `showJunkItemsHotkey`, `forceUpdateHotkey`, `characterCheckHotkey` and `testModeHotkey` can be set to enable global hotkeys to execute ChaosHelper commands.
 If not defined, the hotkeys are not enabled.
 See "Commands and hotkeys" for more info.
+
+`hookMouseEvents` (false) sets if mouse events should be hooked.
+Setting this to true will let the tool detect when clicking through a highlighted item and remove the highlight.
+Set to false if this causes any issues on your system.
 	
 I suggest leaving `league`, `character`, `tabName`, `tabIndex` and `isQuadTab` at the defaults.
 This will cause to the tool to auto-determine the values, which is good when there are multiple leagues available.

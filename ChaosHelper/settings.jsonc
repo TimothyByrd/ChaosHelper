@@ -38,6 +38,7 @@
     "forceUpdateHotkey": "!F", // hotkey to force the filter to be updated - generally not needed
     //"characterCheckHotkey": "!C", // hotkey to recheck your character and league
     //"testModeHotkey": "!T", // hotkey to toggle a test pattern to verify the stash window size
+    "hookMouseEvents": true,
 
     // leave these all blank to auto-determine
     "league": "",

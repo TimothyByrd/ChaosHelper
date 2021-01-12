@@ -160,8 +160,9 @@ namespace ChaosHelper
             return 0.0;
         }
 
-        static public void AddArray(System.Text.Json.JsonElement.ArrayEnumerator array)
+        static public void SetArray(System.Text.Json.JsonElement.ArrayEnumerator array)
         {
+            CurrencyList.Clear();
             while (array.MoveNext())
                 Add(array.Current);
         }

@@ -17,7 +17,7 @@ namespace ChaosHelper
 {
     class Program
     {
-        static RawJsonConfiguration configuration;
+        static RawJsonConfiguration rawConfig;
         static HttpClient httpClient;
 
         static string account;
@@ -119,7 +119,7 @@ namespace ChaosHelper
                         else if (keyInfo.KeyChar == '?')
                         {
                             Log.Info("\t'?' for this help");
-                            Log.Info("\t'n' to highlight a set of items to sell");
+                            Log.Info("\t'h' to highlight a set of items to sell");
                             Log.Info("\t'j' to highlight junk items in the stash tab");
                             Log.Info("\t'f' to force a filter update");
                             Log.Info("\t'c' to switch characters");
@@ -137,11 +137,11 @@ namespace ChaosHelper
             });
 
             Task overlayTask = null;
-            var requiredProcessName = configuration["processName"];
+            var requiredProcessName = rawConfig["processName"];
             overlayTask = Task.Run(() =>
             {
                 overlay = new ChaosOverlay();
-                var stashPageXYWH = configuration.GetRectangle("stashPageXYWH");
+                var stashPageXYWH = rawConfig.GetRectangle("stashPageXYWH");
                 overlay.RunOverLay(requiredProcessName, stashPageXYWH, isQuadTab, highlightColors, token);
                 overlay = null;
             });
@@ -158,9 +158,11 @@ namespace ChaosHelper
             {
                 try
                 {
-                    if (highlightItemsHotkey != null || showJunkItemsHotkey != null
+                    var doHotKeys = highlightItemsHotkey != null || showJunkItemsHotkey != null
                         || forceUpdateHotkey != null || characterCheckHotkey != null
-                        || testModeHotkey != null)
+                        || testModeHotkey != null;
+
+                    if (doHotKeys)
                     {
                         Log.Info("registering hotkeys");
 
@@ -228,7 +230,7 @@ namespace ChaosHelper
 
             try
             {
-                configuration = new RawJsonConfiguration(configFile);
+                rawConfig = new RawJsonConfiguration(configFile);
             }
             catch (Exception ex)
             {
@@ -237,17 +239,17 @@ namespace ChaosHelper
             }
 
             filterUpdateSound = Path.Combine(exePath, "./FilterUpdateSound.wav");
-            var filterUpdateVolumeInt = configuration.GetInt("soundFileVolume", 50).Clamp(0, 100);
+            var filterUpdateVolumeInt = rawConfig.GetInt("soundFileVolume", 50).Clamp(0, 100);
             filterUpdateVolume = filterUpdateVolumeInt / 100.0f;
 
-            account = configuration["account"];
+            account = rawConfig["account"];
             if (string.IsNullOrWhiteSpace(account))
             {
                 Log.Error($"ERROR: account not configured");
                 return false;
             }
 
-            var poesessid = configuration["poesessid"];
+            var poesessid = rawConfig["poesessid"];
             if (string.IsNullOrWhiteSpace(poesessid))
             {
                 Log.Error($"ERROR: poesessid not configured");
@@ -263,30 +265,29 @@ namespace ChaosHelper
             if (!await CheckAccount())
                 return false;
 
-            maxSets = configuration.GetInt("maxSets", 12);
-            maxIlvl = configuration.GetInt("maxIlvl", -1);
-            allowIDedSets = configuration.GetBoolean("allowIDedSets", true);
-            singleSetsForChaos = configuration.GetBoolean("singleSetsForChaos", false);
-            ignoreMaxSets = configuration["ignoreMaxSets"];
-            ignoreMaxIlvl = configuration["ignoreMaxIlvl"];
-            includeInventoryOnForce = configuration.GetBoolean("includeInventoryOnForce", false);
-            townZones = configuration.GetStringList("townZones");
+            maxSets = rawConfig.GetInt("maxSets", 12);
+            maxIlvl = rawConfig.GetInt("maxIlvl", -1);
+            allowIDedSets = rawConfig.GetBoolean("allowIDedSets", true);
+            singleSetsForChaos = rawConfig.GetBoolean("singleSetsForChaos", false);
+            ignoreMaxSets = rawConfig["ignoreMaxSets"];
+            ignoreMaxIlvl = rawConfig["ignoreMaxIlvl"];
+            includeInventoryOnForce = rawConfig.GetBoolean("includeInventoryOnForce", false);
+            townZones = rawConfig.GetStringList("townZones");
 
-            areaEnteredPattern = configuration["areaEnteredPattern "];
+            areaEnteredPattern = rawConfig["areaEnteredPattern "];
             if (string.IsNullOrWhiteSpace(areaEnteredPattern))
                 areaEnteredPattern = "] : You have entered ";
 
-            var currencyArray = configuration.GetArray("currency");
-            Currency.AddArray(currencyArray);
+            Currency.SetArray(rawConfig.GetArray("currency"));
 
-            highlightItemsHotkey = configuration.GetHotKey("highlightItemsHotkey");
-            showJunkItemsHotkey = configuration.GetHotKey("showJunkItemsHotkey");
-            forceUpdateHotkey = configuration.GetHotKey("forceUpdateHotkey");
-            characterCheckHotkey = configuration.GetHotKey("characterCheckHotkey");
-            testModeHotkey = configuration.GetHotKey("testModeHotkey");
-            ChaosOverlay.ShouldHookMouseEvents = false; // configuration.GetBoolean("hookMouseEvents", false);
+            highlightItemsHotkey = rawConfig.GetHotKey("highlightItemsHotkey");
+            showJunkItemsHotkey = rawConfig.GetHotKey("showJunkItemsHotkey");
+            forceUpdateHotkey = rawConfig.GetHotKey("forceUpdateHotkey");
+            characterCheckHotkey = rawConfig.GetHotKey("characterCheckHotkey");
+            testModeHotkey = rawConfig.GetHotKey("testModeHotkey");
+            ChaosOverlay.ShouldHookMouseEvents = rawConfig.GetBoolean("hookMouseEvents", false);
 
-            highlightColors = configuration.GetColorList("highlightColors");
+            highlightColors = rawConfig.GetColorList("highlightColors");
             if (highlightColors.Count == 0)
             {
                 highlightColors = new List<int> { 0xffffff, 0xffff00, 0x00ff00, 0x6060ff };
@@ -298,17 +299,17 @@ namespace ChaosHelper
             }
 
             const string defaultFilterColor = "106 77 255";
-            filterColor = configuration["filterColor"].CheckColorString(defaultFilterColor);
+            filterColor = rawConfig["filterColor"].CheckColorString(defaultFilterColor);
             Log.Info($"filterColor is '{filterColor}'");
 
-            filterMarker = configuration["filterMarker"];
+            filterMarker = rawConfig["filterMarker"];
             if (string.IsNullOrWhiteSpace(filterMarker))
                 filterMarker = "section displays 20% quality rares";
             Log.Info($"filterMarker is '{filterMarker}'");
 
             var poeDocDir = Environment.ExpandEnvironmentVariables($"%USERPROFILE%\\Documents\\My Games\\Path of Exile\\");
 
-            var templateBase = Environment.ExpandEnvironmentVariables(configuration["template"]);
+            var templateBase = Environment.ExpandEnvironmentVariables(rawConfig["template"]);
             if (string.IsNullOrWhiteSpace(templateBase))
                 templateBase = "simplesample.template";
             if (File.Exists(templateBase))
@@ -327,7 +328,7 @@ namespace ChaosHelper
             templateFileName = Path.GetFullPath(templateFileName);
             Log.Info($"using template file '{templateFileName}'");
 
-            var filterBase = Environment.ExpandEnvironmentVariables(configuration["filter"]);
+            var filterBase = Environment.ExpandEnvironmentVariables(rawConfig["filter"]);
             if (string.IsNullOrWhiteSpace(filterBase))
                 filterBase = "Chaos Helper";
             filterFileName = Path.ChangeExtension(Path.Combine(poeDocDir, filterBase), "filter");
@@ -339,7 +340,7 @@ namespace ChaosHelper
                 return false;
             }
 
-            var clientTxtBase = configuration["clientTxt"];
+            var clientTxtBase = rawConfig["clientTxt"];
             clientFileName = Environment.ExpandEnvironmentVariables(clientTxtBase);
             if (!File.Exists(clientFileName))
                 clientFileName = Environment.ExpandEnvironmentVariables("%ProgramFiles(x86)%\\Games\\Grinding Gear Games\\Path of Exile\\logs\\Client.txt");
@@ -500,8 +501,7 @@ namespace ChaosHelper
 
                     var typeLine = item.GetProperty("typeLine").GetString();
 
-                    Currency currentItem = null;
-                    if (currencyDict.TryGetValue(typeLine, out currentItem))
+                    if (currencyDict.TryGetValue(typeLine, out Currency currentItem))
                     {
                         currentItem.CurrentCount = stackSize;
                         currencyDict.Remove(typeLine);
@@ -694,11 +694,11 @@ namespace ChaosHelper
             //
             if (!forceWebCheck)
             {
-                tabIndex = configuration.GetInt("tabIndex", -1);
+                tabIndex = rawConfig.GetInt("tabIndex", -1);
                 if (tabIndex >= 0)
                 {
                     Log.Info($"using configured tab index = {tabIndex}");
-                    isQuadTab = configuration.GetBoolean("isQuadTab", true);
+                    isQuadTab = rawConfig.GetBoolean("isQuadTab", true);
                     return true;
                 }
             }
@@ -706,7 +706,7 @@ namespace ChaosHelper
             tabIndex = -1;
             currencyTabIndex = -1;
 
-            var tabNameFromConfig = configuration["tabName"];
+            var tabNameFromConfig = rawConfig["tabName"];
             var checkTabNames = !string.IsNullOrWhiteSpace(tabNameFromConfig);
 
             try
@@ -776,8 +776,8 @@ namespace ChaosHelper
         {
             try
             {
-                SetLeague(configuration["league"]);
-                character = configuration["character"];
+                SetLeague(rawConfig["league"]);
+                character = rawConfig["character"];
 
                 if (forceWebCheck || string.IsNullOrEmpty(league) || league == "auto")
                 {
@@ -871,7 +871,7 @@ namespace ChaosHelper
                         {
                             var setToSell = itemsCurrent.GetSetToSell(allowIDedSets, singleSetsForChaos);
                             overlay?.SetitemSetToSell(setToSell);
-                            overlay?.SendKey(ConsoleKey.N);
+                            overlay?.SendKey(ConsoleKey.H);
                             highlightSetsToSell = false;
                             SetOverlayStatusMessage();
                         }

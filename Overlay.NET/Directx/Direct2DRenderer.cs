@@ -293,6 +293,15 @@ namespace Overlay.NET.Directx {
         public void DrawRectangle(int x, int y, int width, int height, float stroke, int brush) => _device.DrawRectangle(new RawRectangleF(x, y, x + width, y + height), _brushContainer[brush], stroke);
 
         /// <summary>
+        ///     Draws the rectangle.
+        /// </summary>
+        /// <param name="rect">The rectangle.</param>
+        /// <param name="stroke">The stroke.</param>
+        /// <param name="brush">The brush.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void DrawRectangle(RawRectangleF rect, float stroke, int brush) => _device.DrawRectangle(rect, _brushContainer[brush], stroke);
+
+        /// <summary>
         ///     Draws the circle.
         /// </summary>
         /// <param name="x">The x.</param>
@@ -528,6 +537,14 @@ namespace Overlay.NET.Directx {
         /// <param name="brush">The brush.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void FillRectangle(int x, int y, int width, int height, int brush) => _device.FillRectangle(new RawRectangleF(x, y, x + width, y + height), _brushContainer[brush]);
+
+        /// <summary>
+        ///     Fills the rectangle.
+        /// </summary>
+        /// <param name="rect">The rectangle.</param>
+        /// <param name="brush">The brush.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void FillRectangle(RawRectangleF rect, int brush) => _device.FillRectangle(rect, _brushContainer[brush]);
 
         /// <summary>
         ///     Fills the circle.

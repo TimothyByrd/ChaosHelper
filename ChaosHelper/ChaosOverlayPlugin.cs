@@ -1,7 +1,7 @@
-﻿//#define USEMOUSEKEYHOOKS
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 
 using Overlay.NET.Common;
 using Overlay.NET.Directx;
@@ -19,62 +19,62 @@ namespace ChaosHelper
         //private Stopwatch _watch;
         private readonly TimeSpan _updateRate;
 
-        private int whiteBrush;
-        private int goldBrush;
-        private string statusMessage;
-        private bool atMaxSets = false;
-        private System.Drawing.RectangleF stashRect;
-        private readonly bool autoDetermineStashRect;
-        private Dictionary<Cat, int> highlightBrushDict;
-        private Dictionary<Cat, int> solidBrushDict;
-        private readonly int numSquares;
-        private double squareWidth;
-        private double squareHeight;
-        private string areaName;
-        private bool isTown = true; // assume we start in a town
+        private int _whiteBrush;
+        private int _goldBrush;
+        private string _statusMessage;
+        private bool _atMaxSets = false;
+        private SharpDX.Mathematics.Interop.RawRectangleF _stashRect;
+        private readonly bool _autoDetermineStashRect;
+        private Dictionary<Cat, int> _highlightBrushDict;
+        private Dictionary<Cat, int> _solidBrushDict;
+        private readonly int _numSquares;
+        private double _squareWidth;
+        private double _squareHeight;
+        private string _areaName;
+        private bool _inATown = true; // assume we start in a town
 
-        private volatile ItemSet currentItems = null;
-        private string countsMsg;
+        private volatile ItemSet _currentItems = null;
+        private string _countsMsg;
 
-        private volatile ItemSet highlightSet = null;
-        private bool showHightlightSet = false;
+        private volatile ItemSet _highlightSet = null;
+        private bool _showHightlightSet = false;
 
-        private readonly bool shouldHookMouseEvents = false;
-        private bool haveHookedMouse = false;
-#if USEMOUSEKEYHOOKS
-        Gma.System.MouseKeyHook.IKeyboardMouseEvents _mouseHook = null;
-#else
-        private Process.NET.Windows.Mouse.MouseHook _mouseHook = null;
-#endif
-        private bool showStashTest = false;
-        private bool showJunkItems = false;
+        private readonly bool _shouldHookMouseEvents = false;
+        private bool _haveHookedMouse = false;
+        private GlobalMouseHook _mouseHook = null;
+
+        private bool _showStashTest = false;
+        private bool _showJunkItems = false;
+
+        private readonly List<Point> _clickList = new List<Point>();
+        private readonly List<ItemRectStruct> _itemsToDraw = new List<ItemRectStruct>();
 
         public ChaosOverlayPlugin(int fps, System.Drawing.Rectangle stashRect, bool isQuad, bool shouldHookMouseEvents)
         {
             fps = Math.Max(1, Math.Min(60, fps));
             _updateRate = TimeSpan.FromMilliseconds(1000 / fps);
-            this.stashRect = stashRect;
-            autoDetermineStashRect = stashRect.IsEmpty;
-            //this.isQuad = isQuad;
-            numSquares = isQuad ? 24 : 12;
-            this.shouldHookMouseEvents = shouldHookMouseEvents;
+            _stashRect = ToRaw(stashRect);
+            _autoDetermineStashRect = stashRect.IsEmpty;
+            _numSquares = isQuad ? 24 : 12;
+            _shouldHookMouseEvents = shouldHookMouseEvents;
         }
 
         ~ChaosOverlayPlugin()
         {
             _mouseHook?.Dispose();
+            _mouseHook = null;
         }
 
         internal void SetCurrentItems(ItemSet currentItems)
         {
-            this.currentItems = currentItems;
-            countsMsg = currentItems.GetCountsMsg();
+            _currentItems = currentItems;
+            _countsMsg = currentItems.GetCountsMsg();
         }
 
         internal void SetItemSetToSell(ItemSet itemSet)
         {
-            highlightSet = itemSet;
-            countsMsg = currentItems.GetCountsMsg(); // refresh the counts message from the current item set.
+            _highlightSet = itemSet;
+            _countsMsg = _currentItems.GetCountsMsg(); // refresh the counts message from the current item set.
         }
 
         public override void Initialize(IWindow targetWindow)
@@ -87,22 +87,22 @@ namespace ChaosHelper
 
             _redBrush = OverlayWindow.Graphics.CreateBrush(0xFF0000);
             _redOpacityBrush = OverlayWindow.Graphics.CreateBrush(Color.FromArgb(80, 255, 0, 0));
-            whiteBrush = OverlayWindow.Graphics.CreateBrush(0xFFFFFF);
-            goldBrush = OverlayWindow.Graphics.CreateBrush(0xFFB300);
+            _whiteBrush = OverlayWindow.Graphics.CreateBrush(0xFFFFFF);
+            _goldBrush = OverlayWindow.Graphics.CreateBrush(0xFFB300);
 
             _font = OverlayWindow.Graphics.CreateFont("Arial", 20);
 
-            if (autoDetermineStashRect)
+            if (_autoDetermineStashRect)
             {
                 var x = 22.0f / 1440.0f * TargetWindow.Height;
                 var y = 170.0f / 1440.0f * TargetWindow.Height;
                 var size = 844.0f / 1440.0f * TargetWindow.Height;
 
-                stashRect = new RectangleF(x, y, size, size);
+                _stashRect = new SharpDX.Mathematics.Interop.RawRectangleF(x, y, x + size, y + size);
             }
 
-            squareWidth = stashRect.Width * 1.0 / numSquares;
-            squareHeight = stashRect.Height * 1.0 / numSquares;
+            _squareWidth = (_stashRect.Right - _stashRect.Left) / _numSquares;
+            _squareHeight = (_stashRect.Bottom - _stashRect.Top) / _numSquares;
 
             // Set up update interval and register events for the tick engine.
 
@@ -117,7 +117,7 @@ namespace ChaosHelper
             var brush2h = OverlayWindow.Graphics.CreateBrush(Color.FromArgb(80, Color.FromArgb(highlightColors[2])));
             var brush3h = OverlayWindow.Graphics.CreateBrush(Color.FromArgb(80, Color.FromArgb(highlightColors[3])));
 
-            highlightBrushDict = new Dictionary<Cat, int>
+            _highlightBrushDict = new Dictionary<Cat, int>
             {
                 { Cat.BodyArmours, brush0h },
                 { Cat.Helmets, brush1h },
@@ -135,7 +135,7 @@ namespace ChaosHelper
             var brush2s = OverlayWindow.Graphics.CreateBrush(highlightColors[2]);
             var brush3s = OverlayWindow.Graphics.CreateBrush(highlightColors[3]);
 
-            solidBrushDict = new Dictionary<Cat, int>
+            _solidBrushDict = new Dictionary<Cat, int>
             {
                 { Cat.BodyArmours, brush0s },
                 { Cat.Helmets, brush1s },
@@ -152,49 +152,54 @@ namespace ChaosHelper
 
         public void SetArea(string areaName, bool isTown)
         {
-            this.areaName = areaName;
-            this.isTown = isTown;
-            showStashTest = false;
-            showJunkItems = false;
-            showHightlightSet = false;
+            _areaName = areaName;
+            _inATown = isTown;
+            _showStashTest = false;
+            _showJunkItems = false;
+            _showHightlightSet = false;
         }
 
         public void SetStatus(string msg, bool atMaxSets)
         {
-            statusMessage = msg;
-            this.atMaxSets = atMaxSets;
+            _statusMessage = msg;
+            _atMaxSets = atMaxSets;
         }
 
         public void SendKey(ConsoleKey key)
         {
             switch (key)
             {
-                case ConsoleKey.Spacebar:
-                    showStashTest = false;
-                    showJunkItems = false;
-                    showHightlightSet = false;
-                    break;
-                case ConsoleKey.T:
-                    showStashTest = !showStashTest;
-                    showJunkItems = false;
-                    showHightlightSet = false;
-                    Log.Info($"showStashTest is now {showStashTest}");
-                    break;
-                case ConsoleKey.J:
-                {
-                    var numJunk = currentItems.GetCategory(Cat.Junk).Count;
-                    showStashTest = false;
-                    showJunkItems = !showJunkItems && numJunk > 0;
-                    showHightlightSet = false;
-                    Log.Info($"showJunkItems is now {showJunkItems} ({numJunk} junk items)");
-                }
-                    break;
-                case ConsoleKey.N:
-                    showStashTest = false;
-                    showJunkItems = false;
-                    showHightlightSet = highlightSet != null;
-                    Log.Info($"showHightlightSet is now {showHightlightSet}");
-                    break;
+            case ConsoleKey.Spacebar:
+                _showStashTest = false;
+                _showJunkItems = false;
+                _showHightlightSet = false;
+                break;
+            case ConsoleKey.T:
+                _showStashTest = !_showStashTest;
+                _showJunkItems = false;
+                _showHightlightSet = false;
+                Log.Info($"showStashTest is now {_showStashTest}");
+                break;
+            case ConsoleKey.J:
+            {
+                var junk = _currentItems.GetCategory(Cat.Junk);
+                var numJunk = junk.Count;
+                _showStashTest = false;
+                _showJunkItems = !_showJunkItems && numJunk > 0;
+                _showHightlightSet = false;
+                if (_showJunkItems)
+                    FillJunkItemsToDraw(junk);
+                Log.Info($"showJunkItems is now {_showJunkItems} ({numJunk} junk items)");
+            }
+                break;
+            case ConsoleKey.H:
+                _showStashTest = false;
+                _showJunkItems = false;
+                _showHightlightSet = _highlightSet != null;
+                if (_showHightlightSet)
+                    FillItemsToDraw(_highlightSet);
+                Log.Info($"showHightlightSet is now {_showHightlightSet}");
+                break;
             }
         }
 
@@ -221,6 +226,7 @@ namespace ChaosHelper
                 OverlayWindow.Show();
             }
             CheckMouseHooks(targetWindowIsActivated);
+            CheckItemsClicked();
         }
 
         public override void Enable()
@@ -243,11 +249,11 @@ namespace ChaosHelper
             OverlayWindow.Graphics.BeginScene();
             OverlayWindow.Graphics.ClearScene();
 
-            if (showHightlightSet && highlightSet != null)
+            if (_showHightlightSet)
                 ShowItemSet();
-            else if (showJunkItems)
+            else if (_showJunkItems)
                 ShowJunkItems();
-            else if (showStashTest)
+            else if (_showStashTest)
                 ShowStashTest();
 
             ShowTextLines();
@@ -255,76 +261,63 @@ namespace ChaosHelper
             OverlayWindow.Graphics.EndScene();
         }
 
-#if USEMOUSEKEYHOOKS
         private void CheckMouseHooks(bool targetWindowActivated)
         {
-            var wantMouseHook = targetWindowActivated && shouldHookMouseEvents && (showHightlightSet || showJunkItems);
+            var wantMouseHook = targetWindowActivated && _shouldHookMouseEvents && (_showHightlightSet || _showJunkItems);
 
-            if (wantMouseHook && !haveHookedMouse)
+            if (wantMouseHook && !_haveHookedMouse)
             {
                 if (_mouseHook == null)
-                    _mouseHook = Gma.System.MouseKeyHook.Hook.GlobalEvents();
+                    _mouseHook = new GlobalMouseHook();
 
-                _mouseHook.MouseDown += MouseLeftButtonDown;
-                haveHookedMouse = true;
+                GlobalMouseHook.MouseLButtonUp += MouseLeftButtonDown;
+                _haveHookedMouse = true;
                 Console.WriteLine("hooked mouse");
             }
-            else if (!wantMouseHook && haveHookedMouse)
+            else if (!wantMouseHook && _haveHookedMouse)
             {
-                _mouseHook.MouseDown -= MouseLeftButtonDown;
-                haveHookedMouse = false;
+                GlobalMouseHook.MouseLButtonUp -= MouseLeftButtonDown;
+                _haveHookedMouse = false;
                 Console.WriteLine("unhooked mouse");
             }
         }
 
-        private void MouseLeftButtonDown(object sender, System.Windows.Forms.MouseEventArgs e)
+        private void MouseLeftButtonDown(object sender, GlobalMouseHookEventArgs e)
         {
-            Console.WriteLine($"The mouse was at the position: ({e.X}, {e.Y}), location: ({e?.Location.X}, {e?.Location.Y}) when left clicked.");
-        }
-#else
-        private void CheckMouseHooks(bool targetWindowActivated)
-        {
-            var wantMouseHook = targetWindowActivated && shouldHookMouseEvents && (showHightlightSet || showJunkItems);
-
-            if (wantMouseHook && !haveHookedMouse)
+            lock (_clickList)
             {
-                if (_mouseHook == null)
-                {
-                    _mouseHook = new Process.NET.Windows.Mouse.MouseHook("Chaos");
-                    _mouseHook.LeftButtonDown += MouseLeftButtonDown;
-                }
-
-                _mouseHook.Enable();
-                haveHookedMouse = true;
-                Console.WriteLine("hooked mouse");
-            }
-            else if (!wantMouseHook && haveHookedMouse)
-            {
-                _mouseHook.Disable();
-                haveHookedMouse = false;
-                Console.WriteLine("unhooked mouse");
+                if (_showHightlightSet || _showJunkItems)
+                    _clickList.Add(e.MouseData.Point);
             }
         }
 
-        private void MouseLeftButtonDown(object sender, Process.NET.Windows.Mouse.MouseHookEventArgs e)
+        private void CheckItemsClicked()
         {
-            Console.WriteLine($"The mouse was at the position: {e.Position} when left clicked.");
+            lock (_clickList)
+            {
+                _itemsToDraw.RemoveAll(x => _clickList.Any(y => x.Contains(y)));
+                _clickList.Clear();
+            }
         }
-#endif
 
         private void ShowItemSet()
         {
-            if (!isTown) return;
+            if (!_inATown || _itemsToDraw.Count == 0)
+            {
+                _showHightlightSet = false;
+                return;
+            }
 
-            var y = (int)(stashRect.Bottom + squareHeight * numSquares / 16);
-            var width = (int)squareWidth;
-            var height = (int)squareHeight;
-            RectAndArrow(width, y, width, height, highlightBrushDict[Cat.BodyArmours], solidBrushDict[Cat.BodyArmours]);
-            RectAndArrow(width * 3, y, width, height, highlightBrushDict[Cat.Helmets], solidBrushDict[Cat.Helmets]);
-            RectAndArrow(width * 5, y, width, height, highlightBrushDict[Cat.Belts], solidBrushDict[Cat.Belts]);
-            RectAndArrow(width * 7, y, width, height, highlightBrushDict[Cat.Rings], solidBrushDict[Cat.Rings], false);
+            var y = (int)(_stashRect.Bottom + _squareHeight * _numSquares / 16);
+            var width = (int)_squareWidth;
+            var height = (int)_squareHeight;
+            RectAndArrow(width, y, width, height, _highlightBrushDict[Cat.BodyArmours], _solidBrushDict[Cat.BodyArmours]);
+            RectAndArrow(width * 3, y, width, height, _highlightBrushDict[Cat.Helmets], _solidBrushDict[Cat.Helmets]);
+            RectAndArrow(width * 5, y, width, height, _highlightBrushDict[Cat.Belts], _solidBrushDict[Cat.Belts]);
+            RectAndArrow(width * 7, y, width, height, _highlightBrushDict[Cat.Rings], _solidBrushDict[Cat.Rings], false);
 
-            HighlightItems(highlightSet);
+            foreach (var item in _itemsToDraw)
+                HightlightItem(item);
         }
 
         private void RectAndArrow(int x, int y, int width, int height, int brushF, int brushS, bool drawArrow = true)
@@ -337,9 +330,9 @@ namespace ChaosHelper
                 var arrowX2 = (int) (x + width * 1.9);
                 var arrowYc = y + height / 2;
                 var arrowX3 = (arrowX1 + arrowX2 + arrowX2) / 3;
-                OverlayWindow.Graphics.DrawLine(arrowX1, arrowYc, arrowX2, arrowYc, 2, whiteBrush);
-                OverlayWindow.Graphics.DrawLine(arrowX3, y + 10, arrowX2, arrowYc, 2, whiteBrush);
-                OverlayWindow.Graphics.DrawLine(arrowX3, y + height - 10, arrowX2, arrowYc, 2, whiteBrush);
+                OverlayWindow.Graphics.DrawLine(arrowX1, arrowYc, arrowX2, arrowYc, 2, _whiteBrush);
+                OverlayWindow.Graphics.DrawLine(arrowX3, y + 10, arrowX2, arrowYc, 2, _whiteBrush);
+                OverlayWindow.Graphics.DrawLine(arrowX3, y + height - 10, arrowX2, arrowYc, 2, _whiteBrush);
             }
         }
 
@@ -347,31 +340,31 @@ namespace ChaosHelper
         {
             var h = TargetWindow.Height;
 
-            if (!string.IsNullOrWhiteSpace(countsMsg))
-                OverlayWindow.Graphics.DrawText(countsMsg, _font, whiteBrush, 50, h - 30);
+            if (!string.IsNullOrWhiteSpace(_countsMsg))
+                OverlayWindow.Graphics.DrawText(_countsMsg, _font, _whiteBrush, 50, h - 30);
 
-            if (!string.IsNullOrWhiteSpace(statusMessage))
-                OverlayWindow.Graphics.DrawText(statusMessage, _font, atMaxSets ? goldBrush : whiteBrush, 50, h - 60);
+            if (!string.IsNullOrWhiteSpace(_statusMessage))
+                OverlayWindow.Graphics.DrawText(_statusMessage, _font, _atMaxSets ? _goldBrush : _whiteBrush, 50, h - 60);
             else
                 OverlayWindow.Graphics.DrawText("Change zones to initialize", _font, _redBrush, 50, h - 60);
 
-            if (!string.IsNullOrWhiteSpace(areaName))
-                OverlayWindow.Graphics.DrawText(areaName, _font, whiteBrush, 50, h - 90);
+            if (!string.IsNullOrWhiteSpace(_areaName))
+                OverlayWindow.Graphics.DrawText(_areaName, _font, _whiteBrush, 50, h - 90);
         }
 
         protected void ShowStashTest()
         {
-            if (!isTown) return;
+            if (!_inATown) return;
 
             bool drawThis = true;
             var width = 1;
             var height = 1;
             var brush = _redBrush;
 
-            for (var row = 0; row < numSquares; ++row)
+            for (var row = 0; row < _numSquares; ++row)
             {
                 drawThis = !drawThis;
-                for (var col = 0; col < numSquares; ++col)
+                for (var col = 0; col < _numSquares; ++col)
                 {
                     drawThis = !drawThis;
                     if (!drawThis) continue;
@@ -383,42 +376,76 @@ namespace ChaosHelper
 
         private void ShowJunkItems()
         {
-            if (!isTown || currentItems == null) return;
+            if (!_inATown || _currentItems == null) return;
 
-            var junkItems = currentItems.GetCategory(Cat.Junk);
+            if (_itemsToDraw.Count == 0)
+                _showJunkItems = false;
 
-            foreach (var item in junkItems)
-                ItemHighlightRectangle(item, _redOpacityBrush, _redBrush);
+            foreach (var item in _itemsToDraw)
+                HightlightItem(item);
         }
 
-        private void HighlightItems(ItemSet itemSet)
+        private void FillJunkItemsToDraw(List<ItemPosition> junkItems)
         {
+            _itemsToDraw.Clear();
+            var brushH = _redOpacityBrush;
+            var brushS = _redBrush;
+            foreach (var item in junkItems)
+                _itemsToDraw.Add(GetHighlightRectangle(item, brushH, brushS));
+        }
+
+        private void FillItemsToDraw(ItemSet itemSet)
+        {
+            _itemsToDraw.Clear();
             foreach (var c in ItemClass.Iterator())
             {
-                if (!highlightBrushDict.ContainsKey(c.Category))
+                if (!_highlightBrushDict.ContainsKey(c.Category))
                     continue;
-                var brushH = highlightBrushDict[c.Category];
-                var brushS = solidBrushDict[c.Category];
+                var brushH = _highlightBrushDict[c.Category];
+                var brushS = _solidBrushDict[c.Category];
                 var items = itemSet.GetCategory(c.Category);
                 foreach (var item in items)
-                    ItemHighlightRectangle(item, brushH, brushS);
+                    _itemsToDraw.Add(GetHighlightRectangle(item, brushH, brushS));
             }
-        }
-
-        private void ItemHighlightRectangle(ItemPosition item, int brushH, int brushS)
-        {
-            ItemHighlightRectangle(item.X, item.Y, item.W, item.H, brushH, brushS);
         }
 
         private void ItemHighlightRectangle(int col, int row, int width, int height, int brushH, int brushS)
         {
-            var x = (int)(stashRect.X + squareWidth * col);
-            var x2 = (int)(stashRect.X + squareWidth * (col + width));
-            var y = (int)(stashRect.Y + squareHeight * row);
-            var y2 = (int)(stashRect.Y + squareHeight * (row + height));
+            var x = (int)(_stashRect.Left + _squareWidth * col);
+            var x2 = (int)(_stashRect.Left + _squareWidth * (col + width));
+            var y = (int)(_stashRect.Top + _squareHeight * row);
+            var y2 = (int)(_stashRect.Top + _squareHeight * (row + height));
             var stroke = 3;
             OverlayWindow.Graphics.FillRectangle(x, y, x2 - x, y2 - y, brushH);
             OverlayWindow.Graphics.DrawRectangle(x, y, x2 - x, y2 - y, stroke, brushS);
+        }
+
+        private ItemRectStruct GetHighlightRectangle(ItemPosition item, int brushH, int brushS)
+        {
+            return  GetHighlightRectangle(item.X, item.Y, item.W, item.H, brushH, brushS);
+        }
+
+        private ItemRectStruct GetHighlightRectangle(int col, int row, int width, int height, int brushH, int brushS)
+        {
+            return new ItemRectStruct
+            {
+                Rect = new SharpDX.Mathematics.Interop.RawRectangleF
+                {
+                    Left = (float)(_stashRect.Left + _squareWidth * col),
+                    Right = (float)(_stashRect.Left + _squareWidth * (col + width)),
+                    Top = (float)(_stashRect.Top + _squareHeight * row),
+                    Bottom = (float)(_stashRect.Top + _squareHeight * (row + height)),
+                },
+                Stroke = 3,
+                BrushH = brushH,
+                BrushS = brushS,
+            };
+        }
+
+        private void HightlightItem(ItemRectStruct s)
+        {
+            OverlayWindow.Graphics.FillRectangle(s.Rect, s.BrushH);
+            OverlayWindow.Graphics.DrawRectangle(s.Rect, s.Stroke, s.BrushS);
         }
 
         public override void Dispose()
@@ -432,6 +459,30 @@ namespace ChaosHelper
             OverlayWindow.Graphics.BeginScene();
             OverlayWindow.Graphics.ClearScene();
             OverlayWindow.Graphics.EndScene();
+        }
+
+        private static SharpDX.Mathematics.Interop.RawRectangleF ToRaw(System.Drawing.Rectangle r)
+        {
+            return new SharpDX.Mathematics.Interop.RawRectangleF
+            {
+                Left = r.Left,
+                Top = r.Top,
+                Right = r.Right,
+                Bottom = r.Bottom,
+            };
+        }
+
+        private class ItemRectStruct
+        {
+            public SharpDX.Mathematics.Interop.RawRectangleF Rect { get; set; }
+            public int BrushH { get; set; }
+            public int BrushS { get; set; }
+            public int Stroke{ get; set; }
+
+            public bool Contains(Point p)
+            {
+                return Rect.Left < p.X && p.X < Rect.Right && Rect.Top < p.Y && p.Y < Rect.Bottom;
+            }
         }
     }
 }

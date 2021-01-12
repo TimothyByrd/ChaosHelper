@@ -111,7 +111,19 @@ namespace ChaosHelper
                 var haveSoFar = countsDict[c.Category].NumUnIded;
                 if (c.Category == Cat.OneHandWeapons)
                 {
-                    haveSoFar += countsDict[Cat.TwoHandWeapons].NumUnIded * 2;
+                    wanted *= 2;
+                    var num2hd = countsDict[Cat.TwoHandWeapons].NumUnIded;
+                    if (num2hd > 0)
+                    {
+                        // can only use one 2x4 2hd-weapon per recipe inventory
+                        var unIded2x4 = itemsDict[Cat.TwoHandWeapons].Count(x => !x.Identified && x.H == 4);
+                        haveSoFar += (num2hd - unIded2x4) * 2;
+                        unIded2x4 = Math.Min(haveSoFar / 2, unIded2x4);
+                        haveSoFar += unIded2x4 * 2;
+                    }
+                }
+                else if (c.Category == Cat.Rings)
+                {
                     wanted *= 2;
                 }
                 showDict[c.Category] = haveSoFar < wanted;
