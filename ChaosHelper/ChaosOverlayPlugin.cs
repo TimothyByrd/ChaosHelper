@@ -98,11 +98,16 @@ namespace ChaosHelper
                 var y = 170.0f / 1440.0f * TargetWindow.Height;
                 var size = 844.0f / 1440.0f * TargetWindow.Height;
 
+                y += 10; // may need to add config for this
+
                 _stashRect = new SharpDX.Mathematics.Interop.RawRectangleF(x, y, x + size, y + size);
             }
 
             _squareWidth = (_stashRect.Right - _stashRect.Left) / _numSquares;
             _squareHeight = (_stashRect.Bottom - _stashRect.Top) / _numSquares;
+
+            Log.Info($"stashrect left {_stashRect.Left} top {_stashRect.Top}  right {_stashRect.Right} bottom {_stashRect.Bottom}");
+            Log.Info($"stashrect squareWidth {_squareWidth}  squareHeight {_squareHeight}  height {_stashRect.Bottom - _stashRect.Top}");
 
             // Set up update interval and register events for the tick engine.
 

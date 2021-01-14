@@ -17,8 +17,8 @@ $text = $text -replace '"soundFileVolume"\s*:\s*\d+\s*,', "`"soundFileVolume`": 
 
 $text = $text -replace '"maxSets"\s*:\s*\d+\s*,', "`"maxSets`": 10,"
 $text = $text -replace '"maxIlvl"\s*:[^,]+,', "`"maxIlvl`": -1,"
-$text = $text -replace '"allowIDedSets"\s*:[^,]+,', "`"allowIDedSets`": true,"
-$text = $text -replace '"singleSetsForChaos"\s*:[^,]+,', "`"singleSetsForChaos`": true,"
+$text = $text -replace '"allowIDedSets"\s*:[^,]+,', "`"allowIDedSets`": false,"
+$text = $text -replace '"chaosParanoiaLevel"\s*:[^,]+,', "`"chaosParanoiaLevel`": 0,"
 $text = $text -replace '"includeInventoryOnForce"\s*:[^,]+,', "`"includeInventoryOnForce`": false,"
 
 $text = $text -replace '"ignoreMaxSets"\s*:\s*"[^"]*"', "`"ignoreMaxSets`": `"Rings,Amulets,Belts`""

@@ -11,8 +11,8 @@
 
     "maxSets": 10, // when to cut off highlighting each item slot
     "maxIlvl": -1, // set to 74 to not show regal recipe items in the loot filter, -1 or 100 for everything
-    "allowIDedSets": true, // see README.md
-    "singleSetsForChaos": true, 
+    "allowIDedSets": false, // see README.md
+    "chaosParanoiaLevel": 0, // see README.md
     "includeInventoryOnForce": false, // see README.md
 
     // Items classes that can ignore the maxSets and maxIlvl settings.
@@ -38,7 +38,7 @@
     "forceUpdateHotkey": "!F", // hotkey to force the filter to be updated - generally not needed
     //"characterCheckHotkey": "!C", // hotkey to recheck your character and league
     //"testModeHotkey": "!T", // hotkey to toggle a test pattern to verify the stash window size
-    "hookMouseEvents": true,
+    "hookMouseEvents": true, // see README.md
 
     // leave these all blank to auto-determine
     "league": "",

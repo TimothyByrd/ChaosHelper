@@ -188,11 +188,13 @@ Only the highlighting may change from the chaos recipe highlight to what was alr
 - In an IDed set, both rings must be IDed, and other slots will prefer IDed items.
 - The tool will not mix an IDed set and an un-IDed set in one sale.
 
-`singleSetsForChaos` (false) sets whether the tool will highlight a single set at a time
-when starting to get ilvl 75+ items to maximize chaos over regals. For example, if the stash
-contains one ilvl 74 glove and one ilvl 74 helmet and everything else is ilvl 75+,
-it will hihglight them in two different sales.
-It defaults to false, because the extra vendor trips waste time.
+`chaosParanoiaLevel` (0) sets the level of effort to maximize chaos vs. regal orbs.
+- The default of 0 will do nothing, because extra vendor trips waste time.
+- A value of 1 will allow the tool will highlight a single set at a time.
+For example, if the stash contains one ilvl 74 glove and one ilvl 74 helmet and everything else is ilvl 75+, it will highlight them in two individual sales.
+- A value of 2 will also cause unidentified ilvl 75+ items to be favored over identified ilvl 60-74 items in IDed recipes.
+This will tend to cause hoarding of identified ilvl 60-74 items in teh stash tab.
+
 
 `includeInventoryOnForce` (false) will cause items in the character's inventory to be included when a force update command is executed.
 It ought to be useful for when a Keepers of the Trove pack gives you all the gloves you need,

@@ -33,7 +33,7 @@ namespace ChaosHelper
         static int tabIndex = -1;
         static bool isQuadTab = true;
         static bool allowIDedSets;
-        static bool singleSetsForChaos;
+        static int chaosParanoiaLevel;
         static string ignoreMaxSets;
         static string ignoreMaxIlvl;
         static bool includeInventoryOnForce;
@@ -267,8 +267,8 @@ namespace ChaosHelper
 
             maxSets = rawConfig.GetInt("maxSets", 12);
             maxIlvl = rawConfig.GetInt("maxIlvl", -1);
-            allowIDedSets = rawConfig.GetBoolean("allowIDedSets", true);
-            singleSetsForChaos = rawConfig.GetBoolean("singleSetsForChaos", false);
+            allowIDedSets = rawConfig.GetBoolean("allowIDedSets", false);
+            chaosParanoiaLevel = rawConfig.GetInt("chaosParanoiaLevel", 0);
             ignoreMaxSets = rawConfig["ignoreMaxSets"];
             ignoreMaxIlvl = rawConfig["ignoreMaxIlvl"];
             includeInventoryOnForce = rawConfig.GetBoolean("includeInventoryOnForce", false);
@@ -650,6 +650,21 @@ namespace ChaosHelper
                             yield return $"ItemLevel <= {maxIlvl}";
                         yield return "Height = 3";
                         yield return "";
+
+                        yield return "# 1x4 2hd weapons for chaos";
+                        yield return "Show";
+                        yield return "Class \"Two Hand\" \"Staves\"";
+                        yield return "Rarity Rare";
+                        yield return $"SetBorderColor {filterColor}";
+                        yield return $"SetTextColor {filterColor}";
+                        yield return $"SetFontSize {c.FontSize}";
+                        if (!canBeIded)
+                            yield return "Identified False";
+                        yield return $"ItemLevel >= {ilvl60}";
+                        if (limitIlvl)
+                            yield return $"ItemLevel <= {maxIlvl}";
+                        yield return "Width = 1";
+                        yield return "";
                     }
                 }
 
@@ -869,7 +884,7 @@ namespace ChaosHelper
 
                         if (highlightSetsToSell)
                         {
-                            var setToSell = itemsCurrent.GetSetToSell(allowIDedSets, singleSetsForChaos);
+                            var setToSell = itemsCurrent.GetSetToSell(allowIDedSets, chaosParanoiaLevel);
                             overlay?.SetitemSetToSell(setToSell);
                             overlay?.SendKey(ConsoleKey.H);
                             highlightSetsToSell = false;
