@@ -21,8 +21,9 @@ Compared to poe_qol, this tool has no UI. So if that matters, use poe_qol.
 [Configuration details](#h07)<br>
 [Troubleshooting](#h08)<br>
 [Building the tool](#h09)<br>
-[Links](#h10)<br>
-[Donation](#h11)<br>
+[Questions](#h10)<br>
+[Links](#h11)<br>
+[Donation](#h12)<br>
 
 ## TLDR to use it
 <a name="h01" />
@@ -308,15 +309,40 @@ Building the tool is pretty easy once you clone the git repo:
 - You should be able to open ChaosHelper.sln and then build/run the tool
     - Still need to configure setting.jsonc, though.
 
-## Links
+## Questions
 <a name="h10" />
+
+**What does the filter whatn you have enough of an item slot? Are they hidden entirely?**
+
+ChaosHelper will never hide items your filter would show anyway.
+It only inserts a set of SHOW blocks for the categories of items you don't have enough of in your dump tab.
+But since PoE filtering stops on the first matching SHOW/HIDE block, you want the inserted block to come after your blocks for highlighting awesome items.
+Wouldn't want a 6-link chest piece to just display as ho-hum-another-recipe-ingredient.
+
+**Is it a separate filter, or something like a block you can put into any filter?**
+
+The way you use it is that you point it at your filter, and configure a thing to say where in the filter the chaos recipe highlight code should go.
+It does not alter your existing loot filter.
+It copies your filter into "Chaos Helper.filter", inserting the chaos recipe code in the marked place.
+By default it's set up to work with a Neversink filter - I found a place that had unique text that worked.
+If you are using your own filter, I'd suggest putting a comment line like "#%%" or something unique in the filter in the place you want to chaos recipe code to be, and then configure the "filterMarker" setting to be "%%"
+
+**I put a bunch of two handed axes in the tab and it tells me I can only make one recipe!**
+
+Yep. It's an odd corner case. Only one recipe set using a 2x4 weapon will fit in your inventory at a time.
+So the tool only considers 2x4 weapons based on the number of shorter weapons available.
+When there are no shorter weapons, it will say one recipe, repeatedly.
+
+
+## Links
+<a name="h11" />
 
 - Originally inspired by [poe_qolV2](https://github.com/notablackbear/poe_qolV2), which uses Python.
 - The overlay code comes from [Overlay.NET](https://github.com/lolp1/Overlay.NET). I copied in this code because there are posts in the project that the published Nuget package is not up to date with source code.
 - The hotkey code is originally from [StackOverflow](https://stackoverflow.com/questions/3654787/global-hotkey-in-console-application/3654821).
 
 ## Donation
-<a name="h11" />
+<a name="h12" />
 
 If this project helped you, you can help me :) 
 
