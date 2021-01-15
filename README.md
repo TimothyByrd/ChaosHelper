@@ -312,7 +312,7 @@ Building the tool is pretty easy once you clone the git repo:
 ## Questions
 <a name="h10" />
 
-**What does the filter whatn you have enough of an item slot? Are they hidden entirely?**
+**What does the filter when you have enough of an item slot? Are they hidden entirely?**
 
 ChaosHelper will never hide items your filter would show anyway.
 It only inserts a set of SHOW blocks for the categories of items you don't have enough of in your dump tab.
