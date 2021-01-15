@@ -88,7 +88,7 @@ to "fully automatic" - having the first click in a highlight window do a loop to
 ## Commands and hotkeys
 <a name="h04" />
 
-There are five commands you can send to the tool:
+There are seven commands you can send to the tool:
 
 1. Highlight items (H): (town only) To highlight sets of items to sell (it tries for two sets).
 2. Show junk items (J): (town only) To toggle showing items in your stash tab that are not for the recipe, so you can clear them out.
@@ -96,15 +96,17 @@ There are five commands you can send to the tool:
 4. Character check (C): Recheck your character and league. (This should happen automatically when you switch chararacters.)
 5. Test pattern (T): (town only) Toggle displaying a test pattern to verify the stash window size is correct. Once good, you can disable any hotkey for it, unless you change monitors.
 6. Currency list (Z): Print a listing of the contents of the currency tab in the ChaosHelper console window, with a total value. See `currency` in the "Configuration details" section below.
+7. Re-read configuation (R): Re-reads the settings.jsonc file. Active hotkeys are not updated, and changes to hotkeys will cause them to be ineffective.
 
 The commands can be invoked:
 
-1. By typing the appropriate letter (H,J,F,C,T) in the ChaosHelper console window.
+1. By typing the appropriate letter (H,J,F,C,T,Z,R) in the ChaosHelper console window.
 - Best for commands you will hardly ever use, like character check and test pattern.
 2. By using global hotkeys created by ChaosHelper
 - By default global hotkeys are enabled for the Highlight items, Show Junk items and Force update commands, on `Alt-H`, `Alt-J` and `Alt-F`, respectively.
 - These hotkeys can be rebound or disabled in settings.jsonc.
 - The character check and test pattern command hotkeys are disabled by default, they can be uncommented in settings.jsonc.
+- The Currency list and Re-read configuration commands do not have hot keys. They must be invoked from the ChaosHelper console window. 
 - When definining a hotkey, for modifiers, use '^' for Ctrl, '+' for Shift and '!' for Alt.
 - For a list of key names/numbers, see https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys
 - Remember, these set **global** hotkeys, so be careful not to bork your other programs.
@@ -216,6 +218,7 @@ There must be four strings in the array and they can be hex numbers ("0xRRGGBB")
 
 `highlightItemsHotkey`, `showJunkItemsHotkey`, `forceUpdateHotkey`, `characterCheckHotkey` and `testModeHotkey` can be set to enable global hotkeys to execute ChaosHelper commands.
 If not defined, the hotkeys are not enabled.
+Altering these settings will require that the ChaosHelper be restarted. The Re-read configuration command will not suffice.
 See "Commands and hotkeys" for more info.
 
 `hookMouseEvents` (false) sets if mouse events should be hooked.
@@ -278,6 +281,10 @@ it would include a Show block for wisdom scrolls with the specified font size an
 
 `stashPageXYWH` ([ 0, 0, 0, 0 ]) specifies the rectangle in the PoE client window where the stash tab grid is.
 It usually auto-determines correctly, but may need to be specified for certain monitors.
+
+`stashPageVerticalOffset` sets a number of pixels to vertically offset the stash rectangle.
+To set this, type a 'T' in the ChaosHelper console window to toggle the test pattern and check how well the test pattern aligns with the stash tab squares.
+If the pattern is a little too high, try increasing `stashPageVerticalOffset` (e.g. from 0 to 10) and typing 'R' to reload the configuation - or restart ChaosHelper.
 
 If you need to set a custom value, take a screenshot of your stash tab,then open the screen shot in a program like IrfanView.
 Make a select rectangle over the grid part of the tab, and determine the X,Y,Height,Width of the selection.

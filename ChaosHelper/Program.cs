@@ -17,49 +17,15 @@ namespace ChaosHelper
     {
         private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
-        static RawJsonConfiguration rawConfig;
-        static HttpClient httpClient;
-
-        static string account;
-        static string league;
-        static string character;
-        static string templateFileName;
-        static string filterFileName;
-        static string clientFileName;
-        static string filterUpdateSound;
-        static float filterUpdateVolume = 0.5f;
-        static int maxSets;
-        static int maxIlvl;
-        static int tabIndex = -1;
-        static bool isQuadTab = true;
-        static bool allowIDedSets;
-        static int chaosParanoiaLevel;
-        static string ignoreMaxSets;
-        static string ignoreMaxIlvl;
-        static bool includeInventoryOnForce;
-        static List<string> townZones;
-        static List<int> highlightColors;
-        static string filterColor;
-        static string filterMarker;
-        static string areaEnteredPattern;
-        static int currencyTabIndex = -1;
-
-        static HotKeyBinding highlightItemsHotkey;
-        static HotKeyBinding showJunkItemsHotkey;
-        static HotKeyBinding forceUpdateHotkey;
-        static HotKeyBinding characterCheckHotkey;
-        static HotKeyBinding testModeHotkey;
-
         static bool forceFilterUpdate = false;
         static bool checkCharacter = false;
         static bool highlightSetsToSell = false;
+        static bool reloadConfig = false;
 
         static ChaosOverlay overlay;
 
         static ItemSet itemsPrevious = null;
         static ItemSet itemsCurrent = null;
-
-        const int ilvl60 = 60;
 
         static void Main()
         {
@@ -82,7 +48,7 @@ namespace ChaosHelper
         {
             logger.Info("******************************************** Startup");
 
-            if (!await ConfigureSettings())
+            if (!await Config.ReadConfigFile())
                 return;
 
             // Define the cancellation token.
@@ -119,6 +85,11 @@ namespace ChaosHelper
                             logger.Info("Highlighting sets to sell");
                             highlightSetsToSell = true;
                         }
+                        else if (keyInfo.Key == ConsoleKey.R)
+                        {
+                            logger.Info("Reloading config");
+                            reloadConfig = true;
+                        }
                         else if (keyInfo.Key == ConsoleKey.Z)
                         {
                             await GetCurrencyTabContents(true);
@@ -131,8 +102,8 @@ namespace ChaosHelper
                             logger.Info("\t'f' to force a filter update");
                             logger.Info("\t'c' to switch characters");
                             logger.Info("\t't' to toggle stash test mode (to make sure the rectangle is good)");
-                            logger.Info("\t'z' to list contents of stash tab");
-                            //logger.Info("\t'h' to highlight in tab");
+                            logger.Info("\t'z' to list contents of currency stash tab");
+                            logger.Info("\t'r' to reload configuration, except hotkeys");
                         }
                         else
                             overlay?.SendKey(keyInfo.Key);
@@ -144,32 +115,26 @@ namespace ChaosHelper
             });
 
             Task overlayTask = null;
-            var requiredProcessName = rawConfig["processName"];
             overlayTask = Task.Run(() =>
             {
                 overlay = new ChaosOverlay();
-                var stashPageXYWH = rawConfig.GetRectangle("stashPageXYWH");
-                overlay.RunOverLay(requiredProcessName, stashPageXYWH, isQuadTab, highlightColors, token);
+                overlay.RunOverLay(token);
                 overlay = null;
             });
 
             // get initial counts
             itemsCurrent = new ItemSet();
-            await GetTabContents(tabIndex, itemsCurrent);
+            await GetTabContents(Config.TabIndex, itemsCurrent);
             await GetCurrencyTabContents();
             itemsCurrent.RefreshCounts();
-            itemsCurrent.CalculateClassesToShow(maxSets, ignoreMaxSets);
+            itemsCurrent.CalculateClassesToShow(Config.MaxSets, Config.IgnoreMaxSets);
             overlay?.SetCurrentItems(itemsCurrent);
 
             if (overlayTask != null && !overlayTask.IsCompleted)
             {
                 try
                 {
-                    var doHotKeys = highlightItemsHotkey != null || showJunkItemsHotkey != null
-                        || forceUpdateHotkey != null || characterCheckHotkey != null
-                        || testModeHotkey != null;
-
-                    if (doHotKeys)
+                    if (Config.HaveAHotKey())
                     {
                         logger.Info("registering hotkeys");
 
@@ -178,11 +143,11 @@ namespace ChaosHelper
                             if (x != null)
                                 HotKeyManager.RegisterHotKey(x.Key, x.Modifiers);
                         }
-                        MaybeRegister(highlightItemsHotkey);
-                        MaybeRegister(showJunkItemsHotkey);
-                        MaybeRegister(forceUpdateHotkey);
-                        MaybeRegister(characterCheckHotkey);
-                        MaybeRegister(testModeHotkey);
+                        MaybeRegister(Config.HighlightItemsHotkey);
+                        MaybeRegister(Config.ShowJunkItemsHotkey);
+                        MaybeRegister(Config.ForceUpdateHotkey);
+                        MaybeRegister(Config.CharacterCheckHotkey);
+                        MaybeRegister(Config.TestModeHotkey);
                         HotKeyManager.HotKeyPressed += new EventHandler<HotKeyEventArgs>(HotKeyManager_HotKeyPressed);
                     }
 
@@ -204,186 +169,37 @@ namespace ChaosHelper
             var activated = overlay.IsPoeWindowActivated();
             if (!activated)
                 return;
-            if (e.Key == highlightItemsHotkey?.Key && e.Modifiers == highlightItemsHotkey?.Modifiers)
+            if (Config.IsHighlightItemsHotkey(e))
             {
                 logger.Info("Highlighting sets to sell");
                 highlightSetsToSell = true;
             }
-            else if (e.Key == showJunkItemsHotkey?.Key && e.Modifiers == showJunkItemsHotkey?.Modifiers)
+            else if (Config.IsShowJunkItemsHotkey(e))
                 overlay?.SendKey(ConsoleKey.J);
-            else if (e.Key == forceUpdateHotkey?.Key && e.Modifiers == forceUpdateHotkey?.Modifiers)
+            else if (Config.IsForceUpdateHotkey(e))
             {
                 logger.Info("Forcing a filter update");
                 forceFilterUpdate = true;
             }
-            else if (e.Key == characterCheckHotkey?.Key && e.Modifiers == characterCheckHotkey?.Modifiers)
+            else if (Config.IsCharacterCheckHotkey(e))
             {
                 logger.Info("Rechecking character and league");
                 checkCharacter = true;
             }
-            else if (e.Key == testModeHotkey?.Key && e.Modifiers == testModeHotkey?.Modifiers)
+            else if (Config.IsTestModeHotkey(e))
                 overlay?.SendKey(ConsoleKey.T);
-        }
-
-        static async Task<bool> ConfigureSettings()
-        {
-            string exePath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            var configFile = Path.Combine(exePath, "./settings.jsonc");
-            if (!File.Exists(configFile))
-            {
-                logger.Error("ERROR: config file 'settings.jsonc' not found");
-                return false;
-            }
-
-            try
-            {
-                rawConfig = new RawJsonConfiguration(configFile);
-            }
-            catch (Exception ex)
-            {
-                logger.Error($"ERROR cannot read settings.jsonc: {ex.Message}");
-                return false;
-            }
-
-            filterUpdateSound = Path.Combine(exePath, "./FilterUpdateSound.wav");
-            var filterUpdateVolumeInt = rawConfig.GetInt("soundFileVolume", 50).Clamp(0, 100);
-            filterUpdateVolume = filterUpdateVolumeInt / 100.0f;
-
-            account = rawConfig["account"];
-            if (string.IsNullOrWhiteSpace(account))
-            {
-                logger.Error("ERROR: account not configured");
-                return false;
-            }
-
-            var poesessid = rawConfig["poesessid"];
-            if (string.IsNullOrWhiteSpace(poesessid))
-            {
-                logger.Error("ERROR: poesessid not configured");
-                return false;
-            }
-
-            var cookieContainer = new CookieContainer();
-            cookieContainer.Add(new Cookie("POESESSID", poesessid, "/", "pathofexile.com"));
-
-            var handler = new HttpClientHandler() { CookieContainer = cookieContainer };
-            httpClient = new HttpClient(handler);
-
-            if (!await CheckAccount())
-                return false;
-
-            maxSets = rawConfig.GetInt("maxSets", 12);
-            maxIlvl = rawConfig.GetInt("maxIlvl", -1);
-            allowIDedSets = rawConfig.GetBoolean("allowIDedSets", false);
-            chaosParanoiaLevel = rawConfig.GetInt("chaosParanoiaLevel", 0);
-            ignoreMaxSets = rawConfig["ignoreMaxSets"];
-            ignoreMaxIlvl = rawConfig["ignoreMaxIlvl"];
-            includeInventoryOnForce = rawConfig.GetBoolean("includeInventoryOnForce", false);
-            townZones = rawConfig.GetStringList("townZones");
-
-            areaEnteredPattern = rawConfig["areaEnteredPattern "];
-            if (string.IsNullOrWhiteSpace(areaEnteredPattern))
-                areaEnteredPattern = "] : You have entered ";
-
-            Currency.SetArray(rawConfig.GetArray("currency"));
-
-            highlightItemsHotkey = rawConfig.GetHotKey("highlightItemsHotkey");
-            showJunkItemsHotkey = rawConfig.GetHotKey("showJunkItemsHotkey");
-            forceUpdateHotkey = rawConfig.GetHotKey("forceUpdateHotkey");
-            characterCheckHotkey = rawConfig.GetHotKey("characterCheckHotkey");
-            testModeHotkey = rawConfig.GetHotKey("testModeHotkey");
-            ChaosOverlay.ShouldHookMouseEvents = rawConfig.GetBoolean("hookMouseEvents", false);
-
-            highlightColors = rawConfig.GetColorList("highlightColors");
-            if (highlightColors.Count == 0)
-            {
-                highlightColors = new List<int> { 0xffffff, 0xffff00, 0x00ff00, 0x6060ff };
-            }
-            else if (highlightColors.Count != 4)
-            {
-                logger.Error("ERROR: highlightColors must be empty or exactly 4 numbers");
-                return false;
-            }
-
-            const string defaultFilterColor = "106 77 255";
-            filterColor = rawConfig["filterColor"].CheckColorString(defaultFilterColor);
-            logger.Info($"filterColor is '{filterColor}'");
-
-            filterMarker = rawConfig["filterMarker"];
-            if (string.IsNullOrWhiteSpace(filterMarker))
-                filterMarker = "section displays 20% quality rares";
-            logger.Info($"filterMarker is '{filterMarker}'");
-
-            var poeDocDir = Environment.ExpandEnvironmentVariables($"%USERPROFILE%\\Documents\\My Games\\Path of Exile\\");
-
-            var templateBase = Environment.ExpandEnvironmentVariables(rawConfig["template"]);
-            if (string.IsNullOrWhiteSpace(templateBase))
-                templateBase = "simplesample.template";
-            if (File.Exists(templateBase))
-                templateFileName = templateBase;
-            else
-                templateFileName = Path.Combine(poeDocDir, templateBase);
-            if (!File.Exists(templateFileName))
-                templateFileName = Path.ChangeExtension(Path.Combine(poeDocDir, templateBase), "template");
-            if (!File.Exists(templateFileName))
-                templateFileName = Path.ChangeExtension(Path.Combine(poeDocDir, templateBase), "filter");
-            if (!File.Exists(templateFileName))
-            {
-                logger.Error($"ERROR: template file '{templateBase}' not found");
-                return false;
-            }
-            templateFileName = Path.GetFullPath(templateFileName);
-            logger.Info($"using template file '{templateFileName}'");
-
-            var filterBase = Environment.ExpandEnvironmentVariables(rawConfig["filter"]);
-            if (string.IsNullOrWhiteSpace(filterBase))
-                filterBase = "Chaos Helper";
-            filterFileName = Path.ChangeExtension(Path.Combine(poeDocDir, filterBase), "filter");
-            logger.Info($"will write filter file '{filterFileName}'");
-
-            if (string.Equals(Path.GetFileName(templateFileName), Path.GetFileName(filterFileName), StringComparison.OrdinalIgnoreCase))
-            {
-                logger.Error("ERROR: template file and filter file must have different names");
-                return false;
-            }
-
-            var clientTxtBase = rawConfig["clientTxt"];
-            clientFileName = Environment.ExpandEnvironmentVariables(clientTxtBase);
-            if (!File.Exists(clientFileName))
-                clientFileName = Environment.ExpandEnvironmentVariables("%ProgramFiles(x86)%\\Games\\Grinding Gear Games\\Path of Exile\\logs\\Client.txt");
-            if (!File.Exists(clientFileName))
-                clientFileName = Environment.ExpandEnvironmentVariables("%ProgramFiles(x86)%\\Grinding Gear Games\\Path of Exile\\logs\\Client.txt");
-            if (!File.Exists(clientFileName))
-                clientFileName = Environment.ExpandEnvironmentVariables("%ProgramFiles%\\Grinding Gear Games\\Path of Exile\\logs\\Client.txt");
-            if (!File.Exists(clientFileName))
-                clientFileName = Environment.ExpandEnvironmentVariables("%ProgramFiles(x86)%\\Steam\\steamapps\\common\\Path of Exile\\logs\\Client.txt");
-            if (!File.Exists(clientFileName))
-            {
-                logger.Error($"ERROR: client.txt file '{clientTxtBase}' not found");
-                return false;
-            }
-
-            if (!await DetermineTabIndex())
-                return false;
-
-            return true;
-        }
-
-        static void SetLeague(string s)
-        {
-            league = s.Replace(' ', '+');
         }
 
         static async Task CheckForUpdate()
         {
             itemsPrevious = itemsCurrent;
             itemsCurrent = new ItemSet();
-            await GetTabContents(tabIndex, itemsCurrent);
+            await GetTabContents(Config.TabIndex, itemsCurrent);
             await GetCurrencyTabContents();
-            if (includeInventoryOnForce && forceFilterUpdate)
+            if (Config.IncludeInventoryOnForce && forceFilterUpdate)
                 await GetInventoryContents(itemsCurrent);
             itemsCurrent.RefreshCounts();
-            itemsCurrent.CalculateClassesToShow(maxSets, ignoreMaxSets);
+            itemsCurrent.CalculateClassesToShow(Config.MaxSets, Config.IgnoreMaxSets);
 
             overlay?.SetCurrentItems(itemsCurrent);
             SetOverlayStatusMessage();
@@ -392,11 +208,11 @@ namespace ChaosHelper
             {
                 var msg = itemsCurrent.GetCountsMsg();
                 logger.Info($"updating filter - {msg}");
-                File.WriteAllLines(filterFileName, NewFilterContents(itemsCurrent));
+                File.WriteAllLines(Config.FilterFileName, NewFilterContents(itemsCurrent));
 
-                if (filterUpdateVolume > 0.0f && File.Exists(filterUpdateSound))
+                if (Config.FilterUpdateVolume > 0.0f && File.Exists(Config.FilterUpdateSound))
                 {
-                    SharpDxSoundPlayer.PlaySoundFile(filterUpdateSound, filterUpdateVolume);
+                    SharpDxSoundPlayer.PlaySoundFile(Config.FilterUpdateSound, Config.FilterUpdateVolume);
                 }
                 overlay?.SendKey(ConsoleKey.Spacebar);
                 forceFilterUpdate = false;
@@ -411,13 +227,13 @@ namespace ChaosHelper
                 msg = $"you can make {numSets} un-IDed sets";
             else
             {
-                numSets = allowIDedSets ? itemsCurrent.CountPossible(true) : 0;
+                numSets = Config.AllowIDedSets ? itemsCurrent.CountPossible(true) : 0;
                 if (numSets > 0)
                     msg = $"you can make {numSets} IDed sets";
                 else
                     msg = $"no sets, yet";
             }
-            overlay?.SetStatus(msg, numSets >= maxSets);
+            overlay?.SetStatus(msg, numSets >= Config.MaxSets);
         }
 
         // frameType:
@@ -443,8 +259,8 @@ namespace ChaosHelper
                 }
 
                 var stashTabUrl = System.Uri.EscapeUriString("https://www.pathofexile.com/character-window/get-stash-items"
-                    + $"?league={league}&tabIndex={tabIndex}&accountName={account}");
-                var json = await httpClient.GetFromJsonAsync<JsonElement>(stashTabUrl);
+                    + $"?league={Config.League}&tabIndex={tabIndex}&accountName={Config.Account}");
+                var json = await Config.HttpClient.GetFromJsonAsync<JsonElement>(stashTabUrl);
                 foreach (var item in json.GetProperty("items").EnumerateArray())
                 {
                     var frameType = item.GetIntOrDefault("frameType", 0);
@@ -453,7 +269,7 @@ namespace ChaosHelper
 
                     var category = Cat.Junk;
 
-                    if (frameType == 2 && ilvl >= ilvl60 && (allowIDedSets || !identified)) // only look at rares of ilvl 60+
+                    if (frameType == 2 && ilvl >= Config.Ilvl60 && (Config.AllowIDedSets || !identified)) // only look at rares of ilvl 60+
                     {
                         var iconUrl = item.GetProperty("icon").GetString();
                         foreach (var c in ItemClass.Iterator())
@@ -489,7 +305,7 @@ namespace ChaosHelper
             {
                 Currency.ResetCounts();
 
-                if (currencyTabIndex < 0 || !Currency.CurrencyList.Any())
+                if (Config.CurrencyTabIndex < 0 || !Currency.CurrencyList.Any())
                     return;
 
                 if (listCurrencyToConsole)
@@ -498,8 +314,8 @@ namespace ChaosHelper
                 var currencyDict = Currency.GetWebDictionary();
 
                 var stashTabUrl = System.Uri.EscapeUriString("https://www.pathofexile.com/character-window/get-stash-items"
-                    + $"?league={league}&tabIndex={currencyTabIndex}&accountName={account}");
-                var json = await httpClient.GetFromJsonAsync<JsonElement>(stashTabUrl);
+                    + $"?league={Config.League}&tabIndex={Config.CurrencyTabIndex}&accountName={Config.Account}");
+                var json = await Config.HttpClient.GetFromJsonAsync<JsonElement>(stashTabUrl);
                 foreach (var item in json.GetProperty("items").EnumerateArray())
                 {
                     var stackSize = item.GetIntOrDefault("stackSize", 0);
@@ -521,7 +337,7 @@ namespace ChaosHelper
                             : $"{typeLine}; {stackSize}; {currentItem.ValueRatio}; {currentItem.Value}";
                             Console.WriteLine(line);
                     }
-                    
+
                     if (!listCurrencyToConsole && currencyDict.Count == 0)
                         break;
                 }
@@ -537,7 +353,7 @@ namespace ChaosHelper
 
         private static async Task GetInventoryContents(ItemSet items)
         {
-            if (string.IsNullOrWhiteSpace(character))
+            if (string.IsNullOrWhiteSpace(Config.Character))
             {
                 logger.Error($"Error: No character name, cannot get inventory");
                 return;
@@ -546,12 +362,12 @@ namespace ChaosHelper
             {
                 var formContent = new FormUrlEncodedContent(new[]
                 {
-                new KeyValuePair<string, string>("accountName", account),
+                new KeyValuePair<string, string>("accountName", Config.Account),
                 new KeyValuePair<string, string>("realm", "pc"),
-                new KeyValuePair<string, string>("character", character),
+                new KeyValuePair<string, string>("character", Config.Character),
             });
                 var inventoryUrl = "https://www.pathofexile.com/character-window/get-items";
-                var response = await httpClient.PostAsync(inventoryUrl, formContent);
+                var response = await Config.HttpClient.PostAsync(inventoryUrl, formContent);
                 response.EnsureSuccessStatusCode();
 
                 var json = await response.Content.ReadFromJsonAsync<JsonElement>();
@@ -566,7 +382,7 @@ namespace ChaosHelper
                     var identified = item.GetProperty("identified").GetBoolean();
                     var ilvl = item.GetIntOrDefault("ilvl", 0);
 
-                    if (identified || frameType != 2 || ilvl < ilvl60)
+                    if (identified || frameType != 2 || ilvl < Config.Ilvl60)
                         continue; // only look at un-IDed rares of ilvl 60+
 
                     var category = Cat.Junk;
@@ -600,11 +416,11 @@ namespace ChaosHelper
         static IEnumerable<string> NewFilterContents(ItemSet items)
         {
             var numMarkerlinesFound = 0;
-            foreach (var line in File.ReadAllLines(templateFileName))
+            foreach (var line in File.ReadAllLines(Config.TemplateFileName))
             {
                 yield return line;
 
-                if (!line.StartsWith("#") || !line.Contains(filterMarker, StringComparison.OrdinalIgnoreCase))
+                if (!line.StartsWith("#") || !line.Contains(Config.FilterMarker, StringComparison.OrdinalIgnoreCase))
                     continue;
 
                 ++numMarkerlinesFound;
@@ -618,21 +434,21 @@ namespace ChaosHelper
                     if (c.Skip || !items.ShouldShow(c.Category))
                         continue;
 
-                    var canBeIded = allowIDedSets && (c.Category == Cat.Rings || c.Category == Cat.Amulets);
-                    var limitIlvl = maxIlvl > 60 && maxIlvl < 100 && ignoreMaxIlvl.IndexOf(c.CategoryStr, StringComparison.OrdinalIgnoreCase) < 0;
+                    var canBeIded = Config.AllowIDedSets && (c.Category == Cat.Rings || c.Category == Cat.Amulets);
+                    var limitIlvl = Config.LimitIlvl(c);
 
                     yield return $"# {c.Category} for chaos";
                     yield return "Show";
                     yield return $"Class \"{c.FilterClass}\"";
                     yield return "Rarity Rare";
-                    yield return $"SetBorderColor {filterColor}";
-                    yield return $"SetTextColor {filterColor}";
+                    yield return $"SetBorderColor {Config.FilterColor}";
+                    yield return $"SetTextColor {Config.FilterColor}";
                     yield return $"SetFontSize {c.FontSize}";
                     if (!canBeIded)
                         yield return "Identified False";
-                    yield return $"ItemLevel >= {ilvl60}";
+                    yield return $"ItemLevel >= {Config.Ilvl60}";
                     if (limitIlvl)
-                        yield return $"ItemLevel <= {maxIlvl}";
+                        yield return $"ItemLevel <= {Config.MaxIlvl}";
                     if (c.Category == Cat.OneHandWeapons)
                     {
                         yield return "Height = 3";
@@ -647,14 +463,14 @@ namespace ChaosHelper
                         yield return "Show";
                         yield return "Class \"Bows\"";
                         yield return "Rarity Rare";
-                        yield return $"SetBorderColor {filterColor}";
-                        yield return $"SetTextColor {filterColor}";
+                        yield return $"SetBorderColor {Config.FilterColor}";
+                        yield return $"SetTextColor {Config.FilterColor}";
                         yield return $"SetFontSize {c.FontSize}";
                         if (!canBeIded)
                             yield return "Identified False";
-                        yield return $"ItemLevel >= {ilvl60}";
+                        yield return $"ItemLevel >= {Config.Ilvl60}";
                         if (limitIlvl)
-                            yield return $"ItemLevel <= {maxIlvl}";
+                            yield return $"ItemLevel <= {Config.MaxIlvl}";
                         yield return "Height = 3";
                         yield return "";
 
@@ -662,20 +478,20 @@ namespace ChaosHelper
                         yield return "Show";
                         yield return "Class \"Two Hand\" \"Staves\"";
                         yield return "Rarity Rare";
-                        yield return $"SetBorderColor {filterColor}";
-                        yield return $"SetTextColor {filterColor}";
+                        yield return $"SetBorderColor {Config.FilterColor}";
+                        yield return $"SetTextColor {Config.FilterColor}";
                         yield return $"SetFontSize {c.FontSize}";
                         if (!canBeIded)
                             yield return "Identified False";
-                        yield return $"ItemLevel >= {ilvl60}";
+                        yield return $"ItemLevel >= {Config.Ilvl60}";
                         if (limitIlvl)
-                            yield return $"ItemLevel <= {maxIlvl}";
+                            yield return $"ItemLevel <= {Config.MaxIlvl}";
                         yield return "Width = 1";
                         yield return "";
                     }
                 }
 
-                if (currencyTabIndex >= 0)
+                if (Config.CurrencyTabIndex >= 0)
                 {
                     foreach (var c in Currency.CurrencyList)
                     {
@@ -701,151 +517,18 @@ namespace ChaosHelper
             if (numMarkerlinesFound == 0)
             {
                 logger.Warn("WARNING: marker not found in filter template - chaos recipe items will not be highlighted");
-                logger.Warn($"filter template marker is '{filterMarker}'");
+                logger.Warn($"filter template marker is '{Config.FilterMarker}'");
             }
             else if (numMarkerlinesFound > 1)
             {
                 logger.Warn($"WARNING: marker found {numMarkerlinesFound} times in filter template - this may be a problem - see README.md");
-                logger.Warn($"filter template marker is '{filterMarker}'");
+                logger.Warn($"filter template marker is '{Config.FilterMarker}'");
             }
-        }
-
-        static async Task<bool> DetermineTabIndex(bool forceWebCheck = false)
-        {
-            // see if we have configured a tab index
-            //
-            if (!forceWebCheck)
-            {
-                tabIndex = rawConfig.GetInt("tabIndex", -1);
-                if (tabIndex >= 0)
-                {
-                    logger.Info($"using configured tab index = {tabIndex}");
-                    isQuadTab = rawConfig.GetBoolean("isQuadTab", true);
-                    return true;
-                }
-            }
-
-            tabIndex = -1;
-            currencyTabIndex = -1;
-
-            var tabNameFromConfig = rawConfig["tabName"];
-            var checkTabNames = !string.IsNullOrWhiteSpace(tabNameFromConfig);
-
-            try
-            {
-                var stashTabListUrl = System.Uri.EscapeUriString("https://www.pathofexile.com/character-window/get-stash-items"
-                    + $"?league={league}&tabs=1&accountName={account}");
-                var json = await httpClient.GetFromJsonAsync<JsonElement>(stashTabListUrl);
-
-                var lookForCurrencyTab = Currency.CurrencyList.Any();
-
-                const string removeOnlyTabPattern = "remove-only";
-
-                foreach (var tab in json.GetProperty("tabs").EnumerateArray())
-                {
-                    var name = tab.GetProperty("n").GetString();
-                    var isRemoveOnly = name.Contains(removeOnlyTabPattern, StringComparison.OrdinalIgnoreCase);
-                    var tabType = tab.GetProperty("type").GetString();
-                    var i = tab.GetIntOrDefault("i", -1);
-                    bool found = false;
-
-                    if (tabIndex == -1)
-                    {
-                        if (checkTabNames)
-                        {
-                            found = string.Equals(name, tabNameFromConfig, StringComparison.OrdinalIgnoreCase);
-                        }
-                        else if (!isRemoveOnly)
-                        {
-                            found = string.Equals(tabType, "QuadStash", StringComparison.OrdinalIgnoreCase);
-                        }
-                        if (found)
-                        {
-                            tabIndex = i;
-                            logger.Info($"found tab '{name}', index = {tabIndex}, type = {tabType}");
-                            isQuadTab = string.Equals(tabType, "QuadStash", StringComparison.OrdinalIgnoreCase);
-                            if (!lookForCurrencyTab || currencyTabIndex >= 0)
-                                break;
-                        }
-                    }
-
-                    if (lookForCurrencyTab && currencyTabIndex == -1 && !isRemoveOnly)
-                    {
-                        found = string.Equals(tabType, "CurrencyStash", StringComparison.OrdinalIgnoreCase);
-                        if (found)
-                        {
-                            currencyTabIndex = i;
-                            logger.Info($"found currency tab '{name}', index = {currencyTabIndex}");
-                            if (tabIndex >= 0)
-                                break;
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, $"HTTP error getting tab list: {ex.Message}");
-            }
-            if (tabIndex < 0)
-            {
-                logger.Error("ERROR: stash tab not found");
-                return false;
-            }
-            return true;
-        }
-
-        static async Task<bool> CheckAccount(bool forceWebCheck = false)
-        {
-            try
-            {
-                SetLeague(rawConfig["league"]);
-                character = rawConfig["character"];
-
-                if (forceWebCheck || string.IsNullOrEmpty(league) || league == "auto")
-                {
-                    const string characterPrefixPattern = "{var c = new C(";
-                    const string checkUrl = "https://www.pathofexile.com/shop/redeem-key"; // because it's a relatively simple page.
-                    var responseString = await httpClient.GetStringAsync(checkUrl);
-                    if (string.IsNullOrWhiteSpace(responseString))
-                    {
-                        logger.Warn("Determine character failed to get page");
-                        return false;
-                    }
-                    var startPos = responseString.IndexOf(characterPrefixPattern);
-                    if (startPos < 0)
-                    {
-                        logger.Warn("Determine character failed to find structure start");
-                        return false;
-                    }
-                    startPos += characterPrefixPattern.Length;
-                    var endPos = responseString.IndexOf(");", startPos);
-                    if (endPos < 0)
-                    {
-                        logger.Warn("Determine character failed to find structure end");
-                        return false;
-                    }
-
-                    var jsonElement = JsonSerializer.Deserialize<JsonElement>(responseString.Substring(startPos, endPos - startPos));
-                    if (jsonElement.TryGetProperty("league", out var leagueElement))
-                        SetLeague(leagueElement.GetString());
-
-                    if (jsonElement.TryGetProperty("name", out var nameElement))
-                        character = nameElement.GetString();
-                }
-
-                logger.Info($"account = {account}, league = '{league}', character = '{character}'");
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, $"Determine character failed: {ex.Message}");
-                return false;
-            }
-            return true;
         }
 
         static async Task TailClientTxt(CancellationToken token)
         {
-            using (var fs = new FileStream(clientFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (var fs = new FileStream(Config.ClientFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             using (var sr = new StreamReader(fs))
             {
                 sr.BaseStream.Seek(0, SeekOrigin.End);
@@ -860,26 +543,32 @@ namespace ChaosHelper
                         string line = await sr.ReadLineAsync();
                         while (line != null)
                         {
-                            var i = line.IndexOf(areaEnteredPattern);
+                            var i = line.IndexOf(Config.AreaEnteredPattern);
                             if (i > 0)
-                                newArea = line.Substring(i + areaEnteredPattern.Length).Trim().TrimEnd('.');
+                                newArea = line.Substring(i + Config.AreaEnteredPattern.Length).Trim().TrimEnd('.');
                             else if (line.IndexOf(loginPattern) > 0)
                                 sawLoginLine = true;
                             line = await sr.ReadLineAsync();
                         }
 
+                        if (reloadConfig)
+                        {
+                            await Config.ReadConfigFile();
+                            overlay?.SendKey(ConsoleKey.R);
+                            reloadConfig = false;
+                        }
+
                         if (checkCharacter || sawLoginLine && newArea != null)
                         {
-                            await CheckAccount(forceWebCheck: true);
-                            await DetermineTabIndex(forceWebCheck: true);
+                            await Config.CheckAccount(forceWebCheck: true);
+                            await Config.DetermineTabIndex(forceWebCheck: true);
                             checkCharacter = false;
                             sawLoginLine = false;
                         }
 
                         if (newArea != null)
                         {
-                            bool isTown = townZones == null || townZones.Count == 0
-                                || townZones.Any(x => string.Equals(x, newArea, StringComparison.OrdinalIgnoreCase));
+                            bool isTown = Config.IsTown(newArea);
                             logger.Info($"new area - {newArea} - town: {isTown}");
                             overlay?.SetArea(newArea, isTown);
                         }
@@ -891,7 +580,7 @@ namespace ChaosHelper
 
                         if (highlightSetsToSell)
                         {
-                            var setToSell = itemsCurrent.GetSetToSell(allowIDedSets, chaosParanoiaLevel);
+                            var setToSell = itemsCurrent.GetSetToSell(Config.AllowIDedSets, Config.ChaosParanoiaLevel);
                             overlay?.SetitemSetToSell(setToSell);
                             overlay?.SendKey(ConsoleKey.H);
                             highlightSetsToSell = false;

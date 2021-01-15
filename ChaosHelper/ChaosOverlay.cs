@@ -20,11 +20,9 @@ namespace ChaosHelper
         private volatile bool _processExited = false;
         private bool _haveLoggedWaitingForProcessMessage = false;
 
-        public static bool ShouldHookMouseEvents { get; set; } = false;
-
-        public void RunOverLay(string requiredProcessName, System.Drawing.Rectangle stashRect, bool isQuad, List<int> highlightColors, CancellationToken cancellationToken)
+        public void RunOverLay(CancellationToken cancellationToken)
         {
-            _requiredProcessName = requiredProcessName;
+            _requiredProcessName = Config.RequiredProcessName;
 
             try
             {
@@ -51,7 +49,7 @@ namespace ChaosHelper
                     int fps = 30;
 
                     _processExited = false;
-                    _plugin = new ChaosOverlayPlugin(fps, stashRect, isQuad, ShouldHookMouseEvents);
+                    _plugin = new ChaosOverlayPlugin(fps);
                     _processSharp = new ProcessSharp(process, MemoryType.Remote);
                     _processSharp.ProcessExited += ProcessExitedDelegate;
 
@@ -64,7 +62,6 @@ namespace ChaosHelper
                     }
 
                     _plugin.Initialize(_processSharp.WindowFactory.MainWindow);
-                    _plugin.SetHighlightColors(highlightColors);
                     _plugin.Enable();
 
                     while (!cancellationToken.IsCancellationRequested && !_processExited)
@@ -125,7 +122,10 @@ namespace ChaosHelper
 
         public void SendKey(ConsoleKey key)
         {
-            _plugin?.SendKey(key);
+            if (key == ConsoleKey.R)
+                _processExited = true;
+            else
+                _plugin?.SendKey(key);
         }
 
         public bool IsPoeWindowActivated()

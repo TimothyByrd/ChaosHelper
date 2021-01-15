@@ -51,14 +51,14 @@ namespace ChaosHelper
         private readonly List<Point> _clickList = new List<Point>();
         private readonly List<ItemRectStruct> _itemsToDraw = new List<ItemRectStruct>();
 
-        public ChaosOverlayPlugin(int fps, System.Drawing.Rectangle stashRect, bool isQuad, bool shouldHookMouseEvents)
+        public ChaosOverlayPlugin(int fps)
         {
             fps = Math.Max(1, Math.Min(60, fps));
             _updateRate = TimeSpan.FromMilliseconds(1000 / fps);
-            _stashRect = ToRaw(stashRect);
-            _autoDetermineStashRect = stashRect.IsEmpty;
-            _numSquares = isQuad ? 24 : 12;
-            _shouldHookMouseEvents = shouldHookMouseEvents;
+            _stashRect = ToRaw(Config.StashPageXYWH);
+            _autoDetermineStashRect = Config.StashPageXYWH.IsEmpty;
+            _numSquares = Config.IsQuadTab ? 24 : 12;
+            _shouldHookMouseEvents = Config.ShouldHookMouseEvents;
         }
 
         ~ChaosOverlayPlugin()
@@ -100,7 +100,7 @@ namespace ChaosHelper
                 var y = 170.0f / 1440.0f * TargetWindow.Height;
                 var size = 844.0f / 1440.0f * TargetWindow.Height;
 
-                y += 10; // may need to add config for this
+                y += Config.StashPageVerticalOffset;
 
                 _stashRect = new SharpDX.Mathematics.Interop.RawRectangleF(x, y, x + size, y + size);
             }
@@ -115,10 +115,13 @@ namespace ChaosHelper
 
             _tickEngine.PreTick += OnPreTick;
             _tickEngine.Tick += OnTick;
+
+            SetHighlightColors();
         }
 
-        public void SetHighlightColors(List<int> highlightColors)
+        private void SetHighlightColors()
         {
+            var highlightColors = Config.HighlightColors;
             var brush0h = OverlayWindow.Graphics.CreateBrush(Color.FromArgb(80, Color.FromArgb(highlightColors[0])));
             var brush1h = OverlayWindow.Graphics.CreateBrush(Color.FromArgb(80, Color.FromArgb(highlightColors[1])));
             var brush2h = OverlayWindow.Graphics.CreateBrush(Color.FromArgb(80, Color.FromArgb(highlightColors[2])));
@@ -154,7 +157,6 @@ namespace ChaosHelper
                 { Cat.Amulets, brush3s },
                 { Cat.Rings, brush3s },
             };
-
         }
 
         public void SetArea(string areaName, bool isTown)

@@ -134,4 +134,5 @@
     //"stashPageXYWH": [ 16, 127, 634, 634 ], // for 1920x1080 16:9
     //"stashPageXYWH": [ 12, 90, 450, 450 ], // for 1366x768 16:9
     //"stashPageXYWH": [ 12, 90, 450, 450 ], // for 1024x768 4:3
+    "stashPageVerticalOffset": 0, // see README.md
 }

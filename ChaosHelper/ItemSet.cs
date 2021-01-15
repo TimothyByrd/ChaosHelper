@@ -224,11 +224,10 @@ namespace ChaosHelper
                 else if (c.Category == Cat.OneHandWeapons)
                 {
                     count /= 2;
-                    var c2Short = itemsDict[Cat.TwoHandWeapons].Count(x => !x.Identified || ided && x.H == 3);
-                    var c2Tall = itemsDict[Cat.TwoHandWeapons].Count(x => !x.Identified || ided && x.H == 4);
-                    if (c2Tall > 0) // can only fit in 1 2x4 weapon
-                        ++c2Short;
+                    var c2Short = itemsDict[Cat.TwoHandWeapons].Count(x => (!x.Identified || ided) && x.H == 3);
+                    var c2Tall = itemsDict[Cat.TwoHandWeapons].Count(x => (!x.Identified || ided) && x.H == 4);
                     count += c2Short;
+                    count += Math.Min(Math.Max(1, count), c2Tall);
                 }
                 possible = Math.Min(possible, count);
                 if (possible == 0)

@@ -148,6 +148,7 @@
   <ItemGroup>
     <Compile Include="ChaosOverlay.cs" />
     <Compile Include="ChaosOverlayPlugin.cs" />
+    <Compile Include="Config.cs" />
     <Compile Include="Currency.cs" />
     <Compile Include="GlobalMouseHook.cs" />
     <Compile Include="HotkeyManager.cs" />
