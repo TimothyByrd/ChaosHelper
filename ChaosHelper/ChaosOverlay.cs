@@ -12,6 +12,8 @@ namespace ChaosHelper
 {
     class ChaosOverlay
     {
+        private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+
         private ChaosOverlayPlugin _plugin;
         private ProcessSharp _processSharp;
         private string _requiredProcessName;
@@ -37,14 +39,14 @@ namespace ChaosHelper
                     {
                         if (!_haveLoggedWaitingForProcessMessage)
                         {
-                            Log.Info($"wait for PoE process - required name '{_requiredProcessName}'");
+                            logger.Info($"wait for PoE process - required name '{_requiredProcessName}'");
                             _haveLoggedWaitingForProcessMessage = true;
                         }
                         Thread.Sleep(2000);
                         continue;
                     }
 
-                    Log.Info($"found process '{process.ProcessName}', pid {process.Id}");
+                    logger.Info($"found process '{process.ProcessName}', pid {process.Id}");
 
                     int fps = 30;
 
@@ -57,7 +59,7 @@ namespace ChaosHelper
                         && (_processSharp.WindowFactory.MainWindow == null
                          || _processSharp.WindowFactory.MainWindow.Handle == IntPtr.Zero))
                     {
-                        Log.Info("waiting for window");
+                        logger.Info("waiting for window");
                         Thread.Sleep(2000);
                     }
 
@@ -81,7 +83,7 @@ namespace ChaosHelper
         {
             if (!_processExited)
             {
-                Log.Info($"PoE process exiting");
+                logger.Info($"PoE process exiting");
                 _processExited = true;
                 _haveLoggedWaitingForProcessMessage = false;
             }

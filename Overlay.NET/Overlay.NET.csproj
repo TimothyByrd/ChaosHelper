@@ -39,6 +39,7 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="Process.NET, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Process.NET.1.0.8\lib\Process.NET.dll</HintPath>
     </Reference>
@@ -55,7 +56,13 @@
       <HintPath>..\packages\SharpDX.Mathematics.4.2.0\lib\net45\SharpDX.Mathematics.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Transactions" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xaml">
@@ -72,8 +79,6 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Common\FileLogger.cs" />
-    <Compile Include="Common\Log.cs" />
     <Compile Include="Common\Native.cs" />
     <Compile Include="Common\PluginBase.cs" />
     <Compile Include="Common\PluginLoader.cs" />

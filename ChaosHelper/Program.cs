@@ -11,12 +11,12 @@ using System.Threading.Tasks;
 
 using ConsoleHotKey;
 
-using Overlay.NET.Common;
-
 namespace ChaosHelper
 {
     class Program
     {
+        private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+
         static RawJsonConfiguration rawConfig;
         static HttpClient httpClient;
 
@@ -63,17 +63,24 @@ namespace ChaosHelper
 
         static void Main()
         {
-            Console.Title = "ChaosHelper.exe";
-            MainAsync().Wait();
+            try
+            {
+                Console.Title = "ChaosHelper.exe";
 
-            Console.WriteLine("Press 'Enter' to end program");
-            Console.Read();
+                MainAsync().Wait();
+
+                Console.WriteLine("Press 'Enter' to end program");
+                Console.Read();
+            }
+            finally
+            {
+                NLog.LogManager.Shutdown();
+            }
         }
 
         static async Task MainAsync()
         {
-            Log.Register("Console", new ConsoleLog());
-            Log.Info("******************************************** Startup");
+            logger.Info("******************************************** Startup");
 
             if (!await ConfigureSettings())
                 return;
@@ -85,7 +92,7 @@ namespace ChaosHelper
             var keyboardTask = Task.Run(async () =>
             {
                 await Task.Delay(2000);
-                Log.Info("Press 'Escape' to exit, '?' for help");
+                logger.Info("Press 'Escape' to exit, '?' for help");
                 while (!token.IsCancellationRequested)
                 {
                     if (Console.KeyAvailable)
@@ -99,17 +106,17 @@ namespace ChaosHelper
                         }
                         else if (keyInfo.Key == ConsoleKey.F)
                         {
-                            Log.Info("Forcing a filter update");
+                            logger.Info("Forcing a filter update");
                             forceFilterUpdate = true;
                         }
                         else if (keyInfo.Key == ConsoleKey.C)
                         {
-                            Log.Info("Rechecking character and league");
+                            logger.Info("Rechecking character and league");
                             checkCharacter = true;
                         }
                         else if (keyInfo.Key == ConsoleKey.H)
                         {
-                            Log.Info("Highlighting sets to sell");
+                            logger.Info("Highlighting sets to sell");
                             highlightSetsToSell = true;
                         }
                         else if (keyInfo.Key == ConsoleKey.Z)
@@ -118,18 +125,18 @@ namespace ChaosHelper
                         }
                         else if (keyInfo.KeyChar == '?')
                         {
-                            Log.Info("\t'?' for this help");
-                            Log.Info("\t'h' to highlight a set of items to sell");
-                            Log.Info("\t'j' to highlight junk items in the stash tab");
-                            Log.Info("\t'f' to force a filter update");
-                            Log.Info("\t'c' to switch characters");
-                            Log.Info("\t't' to toggle stash test mode (to make sure the rectangle is good)");
-                            Log.Info("\t'z' to list contents of stash tab");
-                            //Log.Info("\t'h' to highlight in tab");
+                            logger.Info("\t'?' for this help");
+                            logger.Info("\t'h' to highlight a set of items to sell");
+                            logger.Info("\t'j' to highlight junk items in the stash tab");
+                            logger.Info("\t'f' to force a filter update");
+                            logger.Info("\t'c' to switch characters");
+                            logger.Info("\t't' to toggle stash test mode (to make sure the rectangle is good)");
+                            logger.Info("\t'z' to list contents of stash tab");
+                            //logger.Info("\t'h' to highlight in tab");
                         }
                         else
                             overlay?.SendKey(keyInfo.Key);
-                        Log.Info("Press 'Escape' to exit, '?' for help");
+                        logger.Info("Press 'Escape' to exit, '?' for help");
                     }
                     else
                         await Task.Delay(100);
@@ -164,7 +171,7 @@ namespace ChaosHelper
 
                     if (doHotKeys)
                     {
-                        Log.Info("registering hotkeys");
+                        logger.Info("registering hotkeys");
 
                         void MaybeRegister(HotKeyBinding x)
                         {
@@ -199,19 +206,19 @@ namespace ChaosHelper
                 return;
             if (e.Key == highlightItemsHotkey?.Key && e.Modifiers == highlightItemsHotkey?.Modifiers)
             {
-                Log.Info("Highlighting sets to sell");
+                logger.Info("Highlighting sets to sell");
                 highlightSetsToSell = true;
             }
             else if (e.Key == showJunkItemsHotkey?.Key && e.Modifiers == showJunkItemsHotkey?.Modifiers)
                 overlay?.SendKey(ConsoleKey.J);
             else if (e.Key == forceUpdateHotkey?.Key && e.Modifiers == forceUpdateHotkey?.Modifiers)
             {
-                Log.Info("Forcing a filter update");
+                logger.Info("Forcing a filter update");
                 forceFilterUpdate = true;
             }
             else if (e.Key == characterCheckHotkey?.Key && e.Modifiers == characterCheckHotkey?.Modifiers)
             {
-                Log.Info("Rechecking character and league");
+                logger.Info("Rechecking character and league");
                 checkCharacter = true;
             }
             else if (e.Key == testModeHotkey?.Key && e.Modifiers == testModeHotkey?.Modifiers)
@@ -224,7 +231,7 @@ namespace ChaosHelper
             var configFile = Path.Combine(exePath, "./settings.jsonc");
             if (!File.Exists(configFile))
             {
-                Log.Error($"ERROR: config file 'settings.jsonc' not found");
+                logger.Error("ERROR: config file 'settings.jsonc' not found");
                 return false;
             }
 
@@ -234,7 +241,7 @@ namespace ChaosHelper
             }
             catch (Exception ex)
             {
-                Log.Error($"ERROR cannot read settings.jsonc: {ex.Message}");
+                logger.Error($"ERROR cannot read settings.jsonc: {ex.Message}");
                 return false;
             }
 
@@ -245,14 +252,14 @@ namespace ChaosHelper
             account = rawConfig["account"];
             if (string.IsNullOrWhiteSpace(account))
             {
-                Log.Error($"ERROR: account not configured");
+                logger.Error("ERROR: account not configured");
                 return false;
             }
 
             var poesessid = rawConfig["poesessid"];
             if (string.IsNullOrWhiteSpace(poesessid))
             {
-                Log.Error($"ERROR: poesessid not configured");
+                logger.Error("ERROR: poesessid not configured");
                 return false;
             }
 
@@ -294,18 +301,18 @@ namespace ChaosHelper
             }
             else if (highlightColors.Count != 4)
             {
-                Log.Error($"ERROR: highlightColors must be empty or exactly 4 numbers");
+                logger.Error("ERROR: highlightColors must be empty or exactly 4 numbers");
                 return false;
             }
 
             const string defaultFilterColor = "106 77 255";
             filterColor = rawConfig["filterColor"].CheckColorString(defaultFilterColor);
-            Log.Info($"filterColor is '{filterColor}'");
+            logger.Info($"filterColor is '{filterColor}'");
 
             filterMarker = rawConfig["filterMarker"];
             if (string.IsNullOrWhiteSpace(filterMarker))
                 filterMarker = "section displays 20% quality rares";
-            Log.Info($"filterMarker is '{filterMarker}'");
+            logger.Info($"filterMarker is '{filterMarker}'");
 
             var poeDocDir = Environment.ExpandEnvironmentVariables($"%USERPROFILE%\\Documents\\My Games\\Path of Exile\\");
 
@@ -322,21 +329,21 @@ namespace ChaosHelper
                 templateFileName = Path.ChangeExtension(Path.Combine(poeDocDir, templateBase), "filter");
             if (!File.Exists(templateFileName))
             {
-                Log.Error($"ERROR: template file '{templateBase}' not found");
+                logger.Error($"ERROR: template file '{templateBase}' not found");
                 return false;
             }
             templateFileName = Path.GetFullPath(templateFileName);
-            Log.Info($"using template file '{templateFileName}'");
+            logger.Info($"using template file '{templateFileName}'");
 
             var filterBase = Environment.ExpandEnvironmentVariables(rawConfig["filter"]);
             if (string.IsNullOrWhiteSpace(filterBase))
                 filterBase = "Chaos Helper";
             filterFileName = Path.ChangeExtension(Path.Combine(poeDocDir, filterBase), "filter");
-            Log.Info($"will write filter file '{filterFileName}'");
+            logger.Info($"will write filter file '{filterFileName}'");
 
             if (string.Equals(Path.GetFileName(templateFileName), Path.GetFileName(filterFileName), StringComparison.OrdinalIgnoreCase))
             {
-                Log.Error("ERROR: template file and filter file must have different names");
+                logger.Error("ERROR: template file and filter file must have different names");
                 return false;
             }
 
@@ -352,7 +359,7 @@ namespace ChaosHelper
                 clientFileName = Environment.ExpandEnvironmentVariables("%ProgramFiles(x86)%\\Steam\\steamapps\\common\\Path of Exile\\logs\\Client.txt");
             if (!File.Exists(clientFileName))
             {
-                Log.Error($"ERROR: client.txt file '{clientTxtBase}' not found");
+                logger.Error($"ERROR: client.txt file '{clientTxtBase}' not found");
                 return false;
             }
 
@@ -384,7 +391,7 @@ namespace ChaosHelper
             if (forceFilterUpdate || !itemsCurrent.SameClassesToShow(itemsPrevious))
             {
                 var msg = itemsCurrent.GetCountsMsg();
-                Log.Info($"updating filter - {msg}");
+                logger.Info($"updating filter - {msg}");
                 File.WriteAllLines(filterFileName, NewFilterContents(itemsCurrent));
 
                 if (filterUpdateVolume > 0.0f && File.Exists(filterUpdateSound))
@@ -431,7 +438,7 @@ namespace ChaosHelper
             {
                 if (tabIndex < 0)
                 {
-                    Log.Error("ERROR: stash tab index not set");
+                    logger.Error("ERROR: stash tab index not set");
                     return;
                 }
 
@@ -472,7 +479,7 @@ namespace ChaosHelper
             }
             catch (Exception ex)
             {
-                Log.Error($"HTTP error getting tab contents: {ex.Message}");
+                logger.Error(ex, $"HTTP error getting tab contents: {ex.Message}");
             }
         }
 
@@ -524,7 +531,7 @@ namespace ChaosHelper
             }
             catch (Exception ex)
             {
-                Log.Error($"HTTP error getting currency tab contents: {ex.Message}");
+                logger.Error(ex, $"HTTP error getting currency tab contents: {ex.Message}");
             }
         }
 
@@ -532,7 +539,7 @@ namespace ChaosHelper
         {
             if (string.IsNullOrWhiteSpace(character))
             {
-                Log.Error($"Error: No character name, cannot get inventory");
+                logger.Error($"Error: No character name, cannot get inventory");
                 return;
             }
             try
@@ -586,7 +593,7 @@ namespace ChaosHelper
             }
             catch (Exception ex)
             {
-                Log.Error($"HTTP error getting inventory contents: {ex.Message}");
+                logger.Error(ex, $"HTTP error getting inventory contents: {ex.Message}");
             }
         }
 
@@ -693,13 +700,13 @@ namespace ChaosHelper
 
             if (numMarkerlinesFound == 0)
             {
-                Log.Warn("WARNING: marker not found in filter template - chaos recipe items will not be highlighted");
-                Log.Warn($"filter template marker is '{filterMarker}'");
+                logger.Warn("WARNING: marker not found in filter template - chaos recipe items will not be highlighted");
+                logger.Warn($"filter template marker is '{filterMarker}'");
             }
             else if (numMarkerlinesFound > 1)
             {
-                Log.Warn($"WARNING: marker found {numMarkerlinesFound} times in filter template - this may be a problem - see README.md");
-                Log.Warn($"filter template marker is '{filterMarker}'");
+                logger.Warn($"WARNING: marker found {numMarkerlinesFound} times in filter template - this may be a problem - see README.md");
+                logger.Warn($"filter template marker is '{filterMarker}'");
             }
         }
 
@@ -712,7 +719,7 @@ namespace ChaosHelper
                 tabIndex = rawConfig.GetInt("tabIndex", -1);
                 if (tabIndex >= 0)
                 {
-                    Log.Info($"using configured tab index = {tabIndex}");
+                    logger.Info($"using configured tab index = {tabIndex}");
                     isQuadTab = rawConfig.GetBoolean("isQuadTab", true);
                     return true;
                 }
@@ -755,7 +762,7 @@ namespace ChaosHelper
                         if (found)
                         {
                             tabIndex = i;
-                            Log.Info($"found tab '{name}', index = {tabIndex}, type = {tabType}");
+                            logger.Info($"found tab '{name}', index = {tabIndex}, type = {tabType}");
                             isQuadTab = string.Equals(tabType, "QuadStash", StringComparison.OrdinalIgnoreCase);
                             if (!lookForCurrencyTab || currencyTabIndex >= 0)
                                 break;
@@ -768,7 +775,7 @@ namespace ChaosHelper
                         if (found)
                         {
                             currencyTabIndex = i;
-                            Log.Info($"found currency tab '{name}', index = {currencyTabIndex}");
+                            logger.Info($"found currency tab '{name}', index = {currencyTabIndex}");
                             if (tabIndex >= 0)
                                 break;
                         }
@@ -777,11 +784,11 @@ namespace ChaosHelper
             }
             catch (Exception ex)
             {
-                Log.Error($"HTTP error getting tab list: {ex.Message}");
+                logger.Error(ex, $"HTTP error getting tab list: {ex.Message}");
             }
             if (tabIndex < 0)
             {
-                Log.Error("ERROR: stash tab not found");
+                logger.Error("ERROR: stash tab not found");
                 return false;
             }
             return true;
@@ -801,20 +808,20 @@ namespace ChaosHelper
                     var responseString = await httpClient.GetStringAsync(checkUrl);
                     if (string.IsNullOrWhiteSpace(responseString))
                     {
-                        Log.Warn("Determine character failed to get page");
+                        logger.Warn("Determine character failed to get page");
                         return false;
                     }
                     var startPos = responseString.IndexOf(characterPrefixPattern);
                     if (startPos < 0)
                     {
-                        Log.Warn("Determine character failed to find structure start");
+                        logger.Warn("Determine character failed to find structure start");
                         return false;
                     }
                     startPos += characterPrefixPattern.Length;
                     var endPos = responseString.IndexOf(");", startPos);
                     if (endPos < 0)
                     {
-                        Log.Warn("Determine character failed to find structure end");
+                        logger.Warn("Determine character failed to find structure end");
                         return false;
                     }
 
@@ -826,11 +833,11 @@ namespace ChaosHelper
                         character = nameElement.GetString();
                 }
 
-                Log.Info($"account = {account}, league = '{league}', character = '{character}'");
+                logger.Info($"account = {account}, league = '{league}', character = '{character}'");
             }
             catch (Exception ex)
             {
-                Log.Error($"Determine character failed: {ex.Message}");
+                logger.Error(ex, $"Determine character failed: {ex.Message}");
                 return false;
             }
             return true;
@@ -873,11 +880,11 @@ namespace ChaosHelper
                         {
                             bool isTown = townZones == null || townZones.Count == 0
                                 || townZones.Any(x => string.Equals(x, newArea, StringComparison.OrdinalIgnoreCase));
-                            Log.Info($"new area - {newArea} - town: {isTown}");
+                            logger.Info($"new area - {newArea} - town: {isTown}");
                             overlay?.SetArea(newArea, isTown);
                         }
                         else if (forceFilterUpdate)
-                            Log.Info("forcing filter update");
+                            logger.Info("forcing filter update");
 
                         if (newArea != null || forceFilterUpdate)
                             await CheckForUpdate();

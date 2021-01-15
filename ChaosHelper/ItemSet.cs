@@ -350,6 +350,8 @@ namespace ChaosHelper
 
     public class ChaosSlotOptimizer
     {
+        protected static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+
         public Cat Category { get; protected set; }
         public int Priority { get; protected set; }
         public int CanMake { get; protected set; }
@@ -437,7 +439,7 @@ namespace ChaosHelper
 
             if (list.Count < numSets)
             {
-                Log.Error($"Wanted {numSets} for {Category}, but only got {list.Count}, mustBe60:{mustBe60}, ided:{ided}");
+                logger.Error($"Wanted {numSets} for {Category}, but only got {list.Count}, mustBe60:{mustBe60}, ided:{ided}");
             }
             destination.GetCategory(Category).AddRange(list);
         }
@@ -489,7 +491,7 @@ namespace ChaosHelper
             }
             if (list.Count < wanted )
             {
-                Log.Error($"Wanted {numSets} sets for {Category}, but only got {list.Count / 2}, mustBe60:{mustBe60}, ided:{ided}");
+                logger.Error($"Wanted {numSets} sets for {Category}, but only got {list.Count / 2}, mustBe60:{mustBe60}, ided:{ided}");
             }
             destination.GetCategory(Category).AddRange(list);
         }
@@ -637,7 +639,7 @@ namespace ChaosHelper
 
             if (StillNeed() > 0)
             {
-                Log.Error($"Wanted {numSets} for weapons, but only got {w1List.Count} 1hd and {w2List.Count} 2hd, mustBe60:{mustBe60}, ided:{ided}");
+                logger.Error($"Wanted {numSets} for weapons, but only got {w1List.Count} 1hd and {w2List.Count} 2hd, mustBe60:{mustBe60}, ided:{ided}");
             }
 
             destination.GetCategory(Cat.TwoHandWeapons).AddRange(w2List);

@@ -12,6 +12,8 @@ namespace ChaosHelper
 {
     class ChaosOverlayPlugin : DirectXOverlayPlugin
     {
+        private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+
         private readonly TickEngine _tickEngine = new TickEngine();
         private int _font;
         private int _redBrush;
@@ -106,8 +108,8 @@ namespace ChaosHelper
             _squareWidth = (_stashRect.Right - _stashRect.Left) / _numSquares;
             _squareHeight = (_stashRect.Bottom - _stashRect.Top) / _numSquares;
 
-            Log.Info($"stashrect left {_stashRect.Left} top {_stashRect.Top}  right {_stashRect.Right} bottom {_stashRect.Bottom}");
-            Log.Info($"stashrect squareWidth {_squareWidth}  squareHeight {_squareHeight}  height {_stashRect.Bottom - _stashRect.Top}");
+            logger.Info($"stashrect left {_stashRect.Left} top {_stashRect.Top}  right {_stashRect.Right} bottom {_stashRect.Bottom}");
+            logger.Info($"stashrect squareWidth {_squareWidth}  squareHeight {_squareHeight}  height {_stashRect.Bottom - _stashRect.Top}");
 
             // Set up update interval and register events for the tick engine.
 
@@ -183,7 +185,7 @@ namespace ChaosHelper
                 _showStashTest = !_showStashTest;
                 _showJunkItems = false;
                 _showHightlightSet = false;
-                Log.Info($"showStashTest is now {_showStashTest}");
+                logger.Info($"showStashTest is now {_showStashTest}");
                 break;
             case ConsoleKey.J:
             {
@@ -194,7 +196,7 @@ namespace ChaosHelper
                 _showHightlightSet = false;
                 if (_showJunkItems)
                     FillJunkItemsToDraw(junk);
-                Log.Info($"showJunkItems is now {_showJunkItems} ({numJunk} junk items)");
+                logger.Info($"showJunkItems is now {_showJunkItems} ({numJunk} junk items)");
             }
                 break;
             case ConsoleKey.H:
@@ -203,7 +205,7 @@ namespace ChaosHelper
                 _showHightlightSet = _highlightSet != null;
                 if (_showHightlightSet)
                     FillItemsToDraw(_highlightSet);
-                Log.Info($"showHightlightSet is now {_showHightlightSet}");
+                logger.Info($"showHightlightSet is now {_showHightlightSet}");
                 break;
             }
         }
