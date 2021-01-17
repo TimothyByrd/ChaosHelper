@@ -16,6 +16,7 @@ $text = $text -replace '"filterColor"\s*:\s*"[^"]+"', "`"filterColor`": `"0x6a4d
 $text = $text -replace '"soundFileVolume"\s*:\s*\d+\s*,', "`"soundFileVolume`": 25,"
 
 $text = $text -replace '"maxSets"\s*:\s*\d+\s*,', "`"maxSets`": 10,"
+$text = $text -replace '"minIlvl"\s*:[^,]+,', "`"minIlvl`": 60,"
 $text = $text -replace '"maxIlvl"\s*:[^,]+,', "`"maxIlvl`": -1,"
 $text = $text -replace '"allowIDedSets"\s*:[^,]+,', "`"allowIDedSets`": true,"
 $text = $text -replace '"chaosParanoiaLevel"\s*:[^,]+,', "`"chaosParanoiaLevel`": 0,"
@@ -40,6 +41,7 @@ $text = $text -replace '"character"\s*:\s*"[^"]*"', "`"character`": `"`""
 $text = $text -replace '"tabName"\s*:\s*"[^"]*"', "`"tabName`": `"`""
 $text = $text -replace '"tabIndex"\s*:[^,]+,', "`"tabIndex`": -1,"
 $text = $text -replace '"isQuadTab"\s*:[^,]+,', "`"isQuadTab`": true,"
+$text = $text -replace '"manualMode"\s*:[^,]+,', "`"manualMode`": false,"
 
 $text = $text -replace '"clientTxt"\s*:\s*"[^"]*"', "`"clientTxt`": `"`""
 $text = $text -replace '"processName"\s*:\s*"[^"]*"', "`"processName`": `"`""

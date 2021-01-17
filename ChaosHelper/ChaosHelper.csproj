@@ -158,6 +158,7 @@
     <Compile Include="RawJsonConfiguration.cs" />
     <Compile Include="SharpDxSoundPlayer.cs" />
     <Compile Include="structs.cs" />
+    <Compile Include="WindowsClipboard.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\LICENCE.md">

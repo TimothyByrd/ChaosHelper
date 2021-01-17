@@ -10,6 +10,7 @@
     "soundFileVolume": 25, // the volume of the sound alert for when the filter is updated - 0 to 100
 
     "maxSets": 10, // when to cut off highlighting each item slot
+    "minIlvl": 60,
     "maxIlvl": -1, // set to 74 to not show regal recipe items in the loot filter, -1 or 100 for everything
     "allowIDedSets": true, // see README.md
     "chaosParanoiaLevel": 0, // see README.md
@@ -46,6 +47,7 @@
     "tabName": "",
     "tabIndex": -1,
     "isQuadTab": true,
+    "manualMode": false,
 
     "clientTxt": "", // see README.md - need to set if both steam and regular clients are installed
     "processName": "", // see README.md

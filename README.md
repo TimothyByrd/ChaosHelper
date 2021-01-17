@@ -98,6 +98,7 @@ There are seven commands you can send to the tool:
 5. Test pattern (T): (town only) Toggle displaying a test pattern to verify the stash window size is correct. Once good, you can disable any hotkey for it, unless you change monitors.
 6. Currency list (Z): Print a listing of the contents of the currency tab in the ChaosHelper console window, with a total value. See `currency` in the "Configuration details" section below.
 7. Re-read configuation (R): Re-reads the settings.jsonc file. Active hotkeys are not updated, and changes to hotkeys will cause them to be ineffective.
+8. Pause (P): Pauses getting data from the PoE site automatically on area change.
 
 The commands can be invoked:
 
@@ -178,6 +179,9 @@ It uses this number to determine when to stop showing item classes in the loot f
 A quad tab can hold about 16 complete sets (and a regular tab about 4).
 Since you want to be able to ctrl-click to quickly dump items into the tab (and the tab can get messy over time - this is "fragmentation") setting this to 10 or 12 seems reasonable.
 
+`minIlvl` (60) is the minimum ilvl of items to highlight in the loot filter.
+Setting this to 1 turns the tool into a Chance recipe helper...
+
 `maxIlvl` (-1) is the maximum ilvl of items to highlight in the loot filter.
 It can be set to 74 to not show regal recipe items.
 The default of -1 means to give the recipe highlight to all applicable items of ilvl 60 and above.
@@ -229,6 +233,10 @@ Set to false if this causes any issues on your system.
 I suggest leaving `league`, `character`, `tabName`, `tabIndex` and `isQuadTab` at the defaults.
 This will cause to the tool to auto-determine the values, which is good when there are multiple leagues available.
 In particular, `tabIndex` is difficult, because the same tab can change from league to league and can depend on if there are Remove-only tabs visible.
+
+`manualMode` (false) turns on a manual mode in case GGG blocks non-site access to the inventory information due to server overload.
+When manual mode is enabled, the console window will show a URL to open in your browser (the URL should already be copiued to your clipboard).
+The page should open as a JSON document. Select the entire document and copy to your clipboard. At that point, the tool should continue.
 
 `clientTxt` defines where to find the PoE client.txt log file, which the tool uses to track zone changes.
 The tool tries to auto-determine this, but if Path of Exile was installed to a custom folder,

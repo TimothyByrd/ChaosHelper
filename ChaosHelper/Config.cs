@@ -5,7 +5,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -51,6 +50,7 @@ namespace ChaosHelper
         public static string RequiredProcessName { get; private set; }
         public static System.Drawing.Rectangle StashPageXYWH { get; private set; }
         public static int StashPageVerticalOffset { get; private set; }
+        public static bool ManualMode { get; private set; }
 
         private static void SetLeague(string s)
         {
@@ -153,6 +153,11 @@ namespace ChaosHelper
 
             var handler = new HttpClientHandler() { CookieContainer = cookieContainer };
             HttpClient = new HttpClient(handler);
+            HttpClient.DefaultRequestHeaders.UserAgent.Add(new System.Net.Http.Headers.ProductInfoHeaderValue("ChaosHelper", "1.0"));
+            
+            ManualMode = rawConfig.GetBoolean("manualMode", false);
+
+            await GetJsonForUrl("https://www.pathofexile.com/character-window/get-stash-items?league=SSF+Ritual&tabs=1&accountName=CelticHound");
 
             if (!await CheckAccount())
                 return false;
@@ -332,7 +337,7 @@ namespace ChaosHelper
             {
                 var stashTabListUrl = System.Uri.EscapeUriString("https://www.pathofexile.com/character-window/get-stash-items"
                     + $"?league={League}&tabs=1&accountName={Account}");
-                var json = await HttpClient.GetFromJsonAsync<JsonElement>(stashTabListUrl);
+                JsonElement json = await GetJsonForUrl(stashTabListUrl);
 
                 var lookForCurrencyTab = Currency.CurrencyList.Any();
 
@@ -389,6 +394,45 @@ namespace ChaosHelper
                 return false;
             }
             return true;
+        }
+
+        public static async Task<JsonElement> GetJsonForUrl(string theUrl)
+        {
+            if (!ManualMode)
+            {
+                try
+                {
+                    return await HttpClient.GetFromJsonAsync<JsonElement>(theUrl);
+                }
+                catch (Exception ex)
+                {
+                    logger.Error(ex, $"Getting URL '{theUrl}'");
+                }
+            }
+
+            return await ManualGetUrlJson(theUrl);
+        }
+
+        private static async Task<JsonElement> ManualGetUrlJson(string theUrl)
+        {
+            await WindowsClipboard.SetTextAsync(theUrl, default);
+            Console.WriteLine();
+            Console.WriteLine("Go to the following URL in your browser and then copy the results to the clipboard:");
+            Console.WriteLine();
+            Console.WriteLine(theUrl);
+            Console.WriteLine();
+            await Task.Delay(3000);
+            var text = await WindowsClipboard.GetTextAsync(default);
+            while (text == null || text == theUrl)
+            {
+                await Task.Delay(1000);
+                text = await WindowsClipboard.GetTextAsync(default);
+            }
+
+            text = text.Trim();
+            if (text.StartsWith("{") && text.EndsWith("}"))
+                return JsonSerializer.Deserialize<JsonElement>(text); ;
+            return JsonSerializer.Deserialize<JsonElement>("{}");
         }
     }
 }

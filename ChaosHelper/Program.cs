@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -21,6 +20,7 @@ namespace ChaosHelper
         static bool checkCharacter = false;
         static bool highlightSetsToSell = false;
         static bool reloadConfig = false;
+        static bool isPaused = false;
 
         static ChaosOverlay overlay;
 
@@ -94,6 +94,11 @@ namespace ChaosHelper
                         {
                             await GetCurrencyTabContents(true);
                         }
+                        else if (keyInfo.Key == ConsoleKey.P)
+                        {
+                            isPaused = !isPaused;
+                            logger.Info($"Setting isPaused to {isPaused}");
+                        }
                         else if (keyInfo.KeyChar == '?')
                         {
                             logger.Info("\t'?' for this help");
@@ -104,6 +109,7 @@ namespace ChaosHelper
                             logger.Info("\t't' to toggle stash test mode (to make sure the rectangle is good)");
                             logger.Info("\t'z' to list contents of currency stash tab");
                             logger.Info("\t'r' to reload configuration, except hotkeys");
+                            logger.Info("\t'p' to to toggle pausing the page checks");
                         }
                         else
                             overlay?.SendKey(keyInfo.Key);
@@ -192,6 +198,9 @@ namespace ChaosHelper
 
         static async Task CheckForUpdate()
         {
+            if (isPaused && !forceFilterUpdate)
+                return;
+
             itemsPrevious = itemsCurrent;
             itemsCurrent = new ItemSet();
             await GetTabContents(Config.TabIndex, itemsCurrent);
@@ -260,7 +269,7 @@ namespace ChaosHelper
 
                 var stashTabUrl = System.Uri.EscapeUriString("https://www.pathofexile.com/character-window/get-stash-items"
                     + $"?league={Config.League}&tabIndex={tabIndex}&accountName={Config.Account}");
-                var json = await Config.HttpClient.GetFromJsonAsync<JsonElement>(stashTabUrl);
+                var json = await Config.GetJsonForUrl(stashTabUrl);
                 foreach (var item in json.GetProperty("items").EnumerateArray())
                 {
                     var frameType = item.GetIntOrDefault("frameType", 0);
@@ -315,7 +324,7 @@ namespace ChaosHelper
 
                 var stashTabUrl = System.Uri.EscapeUriString("https://www.pathofexile.com/character-window/get-stash-items"
                     + $"?league={Config.League}&tabIndex={Config.CurrencyTabIndex}&accountName={Config.Account}");
-                var json = await Config.HttpClient.GetFromJsonAsync<JsonElement>(stashTabUrl);
+                var json = await Config.GetJsonForUrl(stashTabUrl);
                 foreach (var item in json.GetProperty("items").EnumerateArray())
                 {
                     var stackSize = item.GetIntOrDefault("stackSize", 0);
@@ -353,6 +362,9 @@ namespace ChaosHelper
 
         private static async Task GetInventoryContents(ItemSet items)
         {
+            if (Config.ManualMode)
+                return;
+
             if (string.IsNullOrWhiteSpace(Config.Character))
             {
                 logger.Error($"Error: No character name, cannot get inventory");
@@ -569,7 +581,7 @@ namespace ChaosHelper
                         if (newArea != null)
                         {
                             bool isTown = Config.IsTown(newArea);
-                            logger.Info($"new area - {newArea} - town: {isTown}");
+                            logger.Info($"new area - {newArea} - town: {isTown} - paused: {isPaused}");
                             overlay?.SetArea(newArea, isTown);
                         }
                         else if (forceFilterUpdate)
