@@ -28,47 +28,59 @@ namespace ChaosHelper
             {
                 while (!cancellationToken.IsCancellationRequested)
                 {
-                    _plugin?.SendKey(ConsoleKey.Spacebar);
-                    _plugin = null;
-                    _processSharp = null;
-
-                    var process = FindProcess();
-                    if (process == null)
+                    try
                     {
-                        if (!_haveLoggedWaitingForProcessMessage)
+                        _plugin?.SendKey(ConsoleKey.Spacebar);
+                        _plugin = null;
+                        _processSharp = null;
+
+                        var process = FindProcess();
+                        if (process == null)
                         {
-                            logger.Info($"wait for PoE process - required name '{_requiredProcessName}'");
-                            _haveLoggedWaitingForProcessMessage = true;
+                            if (!_haveLoggedWaitingForProcessMessage)
+                            {
+                                logger.Info($"wait for PoE process - required name '{_requiredProcessName}'");
+                                _haveLoggedWaitingForProcessMessage = true;
+                            }
+                            Thread.Sleep(2000);
+                            continue;
                         }
-                        Thread.Sleep(2000);
-                        continue;
+
+                        logger.Info($"found process '{process.ProcessName}', pid {process.Id}");
+
+                        int fps = 30;
+
+                        _processExited = false;
+                        _plugin = new ChaosOverlayPlugin(fps);
+                        _processSharp = new ProcessSharp(process, MemoryType.Remote);
+                        _processSharp.ProcessExited += ProcessExitedDelegate;
+
+                        while (!_processExited && !cancellationToken.IsCancellationRequested
+                            && (_processSharp.WindowFactory.MainWindow == null
+                             || _processSharp.WindowFactory.MainWindow.Handle == IntPtr.Zero))
+                        {
+                            logger.Info("waiting for window");
+                            Thread.Sleep(2000);
+                        }
+
+                        _plugin.Initialize(_processSharp.WindowFactory.MainWindow);
+                        _plugin.Enable();
+
+                        while (!cancellationToken.IsCancellationRequested && !_processExited)
+                        {
+                            _plugin.Update();
+                        }
                     }
-
-                    logger.Info($"found process '{process.ProcessName}', pid {process.Id}");
-
-                    int fps = 30;
-
-                    _processExited = false;
-                    _plugin = new ChaosOverlayPlugin(fps);
-                    _processSharp = new ProcessSharp(process, MemoryType.Remote);
-                    _processSharp.ProcessExited += ProcessExitedDelegate;
-
-                    while (!_processExited && !cancellationToken.IsCancellationRequested
-                        && (_processSharp.WindowFactory.MainWindow == null
-                         || _processSharp.WindowFactory.MainWindow.Handle == IntPtr.Zero))
+                    catch (System.Threading.Tasks.TaskCanceledException)
                     {
-                        logger.Info("waiting for window");
-                        Thread.Sleep(2000);
+                        throw;
                     }
-
-                    _plugin.Initialize(_processSharp.WindowFactory.MainWindow);
-                    _plugin.Enable();
-
-                    while (!cancellationToken.IsCancellationRequested && !_processExited)
+                    catch (Exception ex)
                     {
-                        _plugin.Update();
+                        logger.Error(ex);
                     }
                 }
+
             }
             catch (System.Threading.Tasks.TaskCanceledException)
             {

@@ -28,6 +28,7 @@ namespace ChaosHelper
         public static float FilterUpdateVolume { get; private set; }
         public static int MaxSets { get; private set; }
         public static int MaxIlvl { get; private set; }
+        public static int MinIlvl { get; private set; }
         public static int TabIndex { get; private set; }
         public static bool IsQuadTab { get; private set; }
         public static bool AllowIDedSets { get; private set; }
@@ -50,8 +51,6 @@ namespace ChaosHelper
         public static string RequiredProcessName { get; private set; }
         public static System.Drawing.Rectangle StashPageXYWH { get; private set; }
         public static int StashPageVerticalOffset { get; private set; }
-
-        public static int Ilvl60 { get; private set; } = 60;
 
         private static void SetLeague(string s)
         {
@@ -160,6 +159,7 @@ namespace ChaosHelper
 
             MaxSets = rawConfig.GetInt("maxSets", 12);
             MaxIlvl = rawConfig.GetInt("maxIlvl", -1);
+            MinIlvl = rawConfig.GetInt("minIlvl", 60);
             AllowIDedSets = rawConfig.GetBoolean("allowIDedSets", false);
             ChaosParanoiaLevel = rawConfig.GetInt("chaosParanoiaLevel", 0);
             IgnoreMaxSets = rawConfig["ignoreMaxSets"];

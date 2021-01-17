@@ -269,7 +269,7 @@ namespace ChaosHelper
 
                     var category = Cat.Junk;
 
-                    if (frameType == 2 && ilvl >= Config.Ilvl60 && (Config.AllowIDedSets || !identified)) // only look at rares of ilvl 60+
+                    if (frameType == 2 && ilvl >= Config.MinIlvl && (Config.AllowIDedSets || !identified)) // only look at rares of ilvl 60+
                     {
                         var iconUrl = item.GetProperty("icon").GetString();
                         foreach (var c in ItemClass.Iterator())
@@ -382,7 +382,7 @@ namespace ChaosHelper
                     var identified = item.GetProperty("identified").GetBoolean();
                     var ilvl = item.GetIntOrDefault("ilvl", 0);
 
-                    if (identified || frameType != 2 || ilvl < Config.Ilvl60)
+                    if (identified || frameType != 2 || ilvl < Config.MinIlvl)
                         continue; // only look at un-IDed rares of ilvl 60+
 
                     var category = Cat.Junk;
@@ -446,7 +446,7 @@ namespace ChaosHelper
                     yield return $"SetFontSize {c.FontSize}";
                     if (!canBeIded)
                         yield return "Identified False";
-                    yield return $"ItemLevel >= {Config.Ilvl60}";
+                    yield return $"ItemLevel >= {Config.MinIlvl}";
                     if (limitIlvl)
                         yield return $"ItemLevel <= {Config.MaxIlvl}";
                     if (c.Category == Cat.OneHandWeapons)
@@ -468,7 +468,7 @@ namespace ChaosHelper
                         yield return $"SetFontSize {c.FontSize}";
                         if (!canBeIded)
                             yield return "Identified False";
-                        yield return $"ItemLevel >= {Config.Ilvl60}";
+                        yield return $"ItemLevel >= {Config.MinIlvl}";
                         if (limitIlvl)
                             yield return $"ItemLevel <= {Config.MaxIlvl}";
                         yield return "Height = 3";
@@ -483,7 +483,7 @@ namespace ChaosHelper
                         yield return $"SetFontSize {c.FontSize}";
                         if (!canBeIded)
                             yield return "Identified False";
-                        yield return $"ItemLevel >= {Config.Ilvl60}";
+                        yield return $"ItemLevel >= {Config.MinIlvl}";
                         if (limitIlvl)
                             yield return $"ItemLevel <= {Config.MaxIlvl}";
                         yield return "Width = 1";

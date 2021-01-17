@@ -223,7 +223,7 @@ namespace ChaosHelper
 
         private void OnPreTick(object sender, EventArgs e)
         {
-            var targetWindowIsActivated = TargetWindow.IsActivated;
+            var targetWindowIsActivated = TargetWindow?.IsActivated ?? false;
             if (!targetWindowIsActivated && OverlayWindow.IsVisible)
             {
                 //_watch.Stop();
@@ -347,7 +347,9 @@ namespace ChaosHelper
 
         private void ShowTextLines()
         {
-            var h = TargetWindow.Height;
+            var h = TargetWindow?.Height ?? -1;
+            if (h < 0)
+                return;
 
             if (!string.IsNullOrWhiteSpace(_countsMsg))
                 OverlayWindow.Graphics.DrawText(_countsMsg, _font, _whiteBrush, 50, h - 30);
