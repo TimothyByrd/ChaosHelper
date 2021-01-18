@@ -407,12 +407,14 @@ namespace ChaosHelper
             }
 
             // This block favors using up Ided items over using up ilvl 75+ items
-            // comment out to really optimize chaos vs regal at the expense of hoarding Ided ilvl 60 items.
+            // skip to really optimize chaos vs regal at the expense of hoarding Ided ilvl 60 items.
             //
+            var took60Ided = false;
             if (chaosParanoiaLevel < 2 && list.Count < numSets && ided)
             {
                 var want = numSets - list.Count;
                 list.AddRange(sourceList.Where(x => x.Identified && x.iLvl < 75).Take(want));
+                took60Ided = true;
             }
 
             // un-Ided ilvl 75+ in a IDed recipe
@@ -425,7 +427,7 @@ namespace ChaosHelper
 
             // now for ilvl 60 items
             //
-            if (list.Count < numSets)
+            if (list.Count < numSets && (!took60Ided || !ided))
             {
                 var want = numSets - list.Count;
                 list.AddRange(sourceList.Where(x => x.Identified == ided && x.iLvl < 75).Take(want));
@@ -437,9 +439,10 @@ namespace ChaosHelper
             }
 
             if (list.Count < numSets)
-            {
                 logger.Error($"Wanted {numSets} for {Category}, but only got {list.Count}, mustBe60:{mustBe60}, ided:{ided}");
-            }
+            else if (list.Count == 2 && list[0].X == list[1].X && list[0].Y == list[1].Y)
+                logger.Error($"Took same item twice for category {Category}, mustBe60:{mustBe60}, ided:{ided}");
+
             destination.GetCategory(Category).AddRange(list);
         }
     }
