@@ -30,6 +30,27 @@ namespace ChaosHelper
                 x.CurrentCount = 0;
         }
 
+        public static void ResetValueRatios()
+        {
+            foreach (var x in CurrencyList)
+                x.ValueRatio = 0;
+        }
+
+        public static Currency SetValueRatio(string currency, double newRatio)
+        {
+            var c = CurrencyList.FirstOrDefault(x => x.Name == currency);
+            if (c == null)
+            {
+                c = new Currency
+                {
+                    Name = currency,
+                };
+                CurrencyList.Add(c);
+            }
+            c.ValueRatio = newRatio;
+            return c;
+        }
+
         static public Dictionary<string, Currency> GetWebDictionary()
         {
             var result = new Dictionary<string, Currency>();

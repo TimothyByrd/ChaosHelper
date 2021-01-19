@@ -96,8 +96,8 @@ There are seven commands you can send to the tool:
 3. Force update (F): To force a re-read of the stash tab and a write of the filter file.
 4. Character check (C): Recheck your character and league. (This should happen automatically when you switch chararacters.)
 5. Test pattern (T): (town only) Toggle displaying a test pattern to verify the stash window size is correct. Once good, you can disable any hotkey for it, unless you change monitors.
-6. Currency list (Z): Print a listing of the contents of the currency tab in the ChaosHelper console window, with a total value. See `currency` in the "Configuration details" section below.
-7. Re-read configuation (R): Re-reads the settings.jsonc file. Active hotkeys are not updated, and changes to hotkeys will cause them to be ineffective.
+6. Re-read configuation (R): Re-reads the settings.jsonc file. Active hotkeys are not updated, and changes to hotkeys will cause them to be ineffective.
+7. Currency list (Z): Get currency prices from Poe Ninja, then print a listing of the contents of the currency tab in the ChaosHelper console window, with a total value. The listing should be copy-pastable into a spreadsheet.
 8. Pause (P): Pauses getting data from the PoE site automatically on area change.
 
 The commands can be invoked:
@@ -261,18 +261,7 @@ The commands noted as "town only" - highlight items, show junk items and test pa
 If no town zones are defined, then the tool will treat every area as a town zone.
 If you want protection from accidentally pressing one of the hightlight hotkeys while in combat, then uncomment the list of zones, and add you hideout to the list.
     
-The `currency` array can serve two purposes. First it can provide currency value to allow the Currency list to give a total valuation of the contents of the currency tab.
-For example, if the currency array contained the following entries:
-
-```
-{ "c": "Exalted Orb", "value": 110, },
-{ "c": "Chaos Orb", "value": 1, },
-{ "c": "Orb of Fusing", "value": "1/2", },
-```
-and the currency tab had 2 Exalts, 6 Chaos and 11 Fusing, the Currency list command (Z) would say the total value of the tab was 110 * 2 + 1 * 6 + .5 * 11 = 231.5.
-(Note that fractional values can be specified, but require quotes.)
-
-The other use for the `currency` array is to specify minimum desired amounts for currencies and to put code in the loot filter to display them then the currency tab contains less than those amounts.
+The `currency` array allows specifying minimum desired amounts for currencies and to put code in the loot filter to display them then the currency tab contains less than those amounts.
 This lets you run a stricter loot filter, but show certain currencies when the supply in your currency tab runs low. 
 For example if there was an entry for wisdom scrolls that read:
 ```
@@ -283,7 +272,6 @@ it would include a Show block for wisdom scrolls with the specified font size an
 
 - For the higlight feature to work the "desired", "fontSize", "text", "border" and "back" fields must all be specified.
 - Since this feature is meant for lower value currencies that the loot filter might hide by default, it doesn't include a way to specify drop sounds, mini-map icons, etc.
-- This feature can be combined with the valuation feature by also including a "value" field in the entry. It will not work to make two entries for the same currency to split the valuation and higlight features.
 - The default desired value of 0 disables making code blocks for that currency type.
 - The loot filter will not be automatically re-written just to add/remove the currency blocks - use a force update in that case.
 - This feature will never hide currency that the loot filter would display anyway, but may change the highlighting of it.

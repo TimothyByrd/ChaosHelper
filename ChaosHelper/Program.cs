@@ -92,6 +92,9 @@ namespace ChaosHelper
                         }
                         else if (keyInfo.Key == ConsoleKey.Z)
                         {
+                            logger.Info("Getting currency prices from poe ninja");
+                            await GetPricesFromPoeNinja();
+                            logger.Info("Getting currency tab contents");
                             await GetCurrencyTabContents(true);
                         }
                         else if (keyInfo.Key == ConsoleKey.P)
@@ -107,9 +110,9 @@ namespace ChaosHelper
                             logger.Info("\t'f' to force a filter update");
                             logger.Info("\t'c' to switch characters");
                             logger.Info("\t't' to toggle stash test mode (to make sure the rectangle is good)");
-                            logger.Info("\t'z' to list contents of currency stash tab");
+                            logger.Info("\t'z' to list contents of currency stash tab (with prices from poe ninja)");
                             logger.Info("\t'r' to reload configuration, except hotkeys");
-                            logger.Info("\t'p' to to toggle pausing the page checks");
+                            logger.Info("\t'p' to toggle pausing the page checks");
                         }
                         else
                             overlay?.SendKey(keyInfo.Key);
@@ -332,27 +335,34 @@ namespace ChaosHelper
                         continue;
 
                     var typeLine = item.GetProperty("typeLine").GetString();
-
                     if (currencyDict.TryGetValue(typeLine, out Currency currentItem))
+                        currentItem.CurrentCount += stackSize;
+                    else
                     {
-                        currentItem.CurrentCount = stackSize;
-                        currencyDict.Remove(typeLine);
+                        var c = Currency.SetValueRatio(typeLine, 0.0);
+                        currencyDict[typeLine] = c;
                     }
-
-                    if (listCurrencyToConsole)
-                    {
-                        var line = currentItem == null
-                            ? $"{typeLine}; {stackSize}"
-                            : $"{typeLine}; {stackSize}; {currentItem.ValueRatio}; {currentItem.Value}";
-                            Console.WriteLine(line);
-                    }
-
-                    if (!listCurrencyToConsole && currencyDict.Count == 0)
-                        break;
                 }
 
                 if (listCurrencyToConsole)
+                {
+                    var lineList = new List<string>();
+                    foreach (var kvp in currencyDict)
+                    {
+                        var c = kvp.Value;
+                        if (c.CurrentCount > 0)
+                        {
+                            var line = c.ValueRatio > 0.0
+                                ? $"{c.Name}; {c.CurrentCount}; {c.ValueRatio}; {c.Value}"
+                                : $"{c.Name}; {c.CurrentCount}";
+                            lineList.Add(line);
+                        }
+                    }
+                    lineList.Sort();
+                    foreach (var line in lineList)
+                        Console.WriteLine(line);
                     Console.WriteLine($"total value = {Currency.GetTotalValue():F2}");
+                }
             }
             catch (Exception ex)
             {
@@ -422,6 +432,33 @@ namespace ChaosHelper
             catch (Exception ex)
             {
                 logger.Error(ex, $"HTTP error getting inventory contents: {ex.Message}");
+            }
+        }
+
+        static async Task GetPricesFromPoeNinja()
+        {
+            try
+            {
+                Currency.ResetValueRatios();
+                Currency.SetValueRatio("Chaos Orb", 1.0);
+                var league = Config.League;
+                if (league.EndsWith("SSF"))
+                    league = league.Substring(0, league.Length - 4);
+                if (league.StartsWith("SSF"))
+                    league = league.Substring(4);
+
+                var poeNinjaUrl = System.Uri.EscapeUriString($"https://poe.ninja/api/data/currencyoverview?league={league}&type=Currency");
+                var json = await Config.GetJsonForUrl(poeNinjaUrl);
+                foreach (var item in json.GetProperty("lines").EnumerateArray())
+                {
+                    var currencyTypeName = item.GetProperty("currencyTypeName").GetString();
+                    var chaosEquivalent = item.GetProperty("chaosEquivalent").GetDouble();
+                    Currency.SetValueRatio(currencyTypeName, chaosEquivalent);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"HTTP error getting currency values from Poe.Ninja: {ex.Message}");
             }
         }
 
@@ -577,6 +614,8 @@ namespace ChaosHelper
                             checkCharacter = false;
                             sawLoginLine = false;
                         }
+
+
 
                         if (newArea != null)
                         {

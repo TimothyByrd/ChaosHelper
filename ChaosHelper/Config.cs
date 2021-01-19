@@ -52,11 +52,6 @@ namespace ChaosHelper
         public static int StashPageVerticalOffset { get; private set; }
         public static bool ManualMode { get; private set; }
 
-        private static void SetLeague(string s)
-        {
-            League = s.Replace(' ', '+');
-        }
-
         public static bool IsTown(string newArea)
         {
             bool isTown = TownZones == null || TownZones.Count == 0
@@ -156,8 +151,6 @@ namespace ChaosHelper
             HttpClient.DefaultRequestHeaders.UserAgent.Add(new System.Net.Http.Headers.ProductInfoHeaderValue("ChaosHelper", "1.0"));
             
             ManualMode = rawConfig.GetBoolean("manualMode", false);
-
-            await GetJsonForUrl("https://www.pathofexile.com/character-window/get-stash-items?league=SSF+Ritual&tabs=1&accountName=CelticHound");
 
             if (!await CheckAccount())
                 return false;
@@ -267,7 +260,7 @@ namespace ChaosHelper
         {
             try
             {
-                SetLeague(rawConfig["league"]);
+                League = rawConfig["league"];
                 Character = rawConfig["character"];
 
                 if (forceWebCheck || string.IsNullOrEmpty(League) || League == "auto")
@@ -296,7 +289,7 @@ namespace ChaosHelper
 
                     var jsonElement = JsonSerializer.Deserialize<JsonElement>(responseString.Substring(startPos, endPos - startPos));
                     if (jsonElement.TryGetProperty("league", out var leagueElement))
-                        SetLeague(leagueElement.GetString());
+                        League = leagueElement.GetString();
 
                     if (jsonElement.TryGetProperty("name", out var nameElement))
                         Character = nameElement.GetString();
