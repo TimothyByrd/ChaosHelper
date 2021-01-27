@@ -101,7 +101,9 @@ namespace ChaosHelper
         private System.Diagnostics.Process FindProcess()
         {
             System.Diagnostics.Process process;
-            if (!string.IsNullOrWhiteSpace(_requiredProcessName))
+            if (Config.ForceSteam)
+                process = System.Diagnostics.Process.GetProcessesByName("PathOfExile_x64Steam").FirstOrDefault();
+            else if (!string.IsNullOrWhiteSpace(_requiredProcessName))
                 process = System.Diagnostics.Process.GetProcessesByName(_requiredProcessName).FirstOrDefault();
             else
             {

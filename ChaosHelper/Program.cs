@@ -19,6 +19,7 @@ namespace ChaosHelper
         static bool forceFilterUpdate = false;
         static bool checkCharacter = false;
         static bool highlightSetsToSell = false;
+        static bool highlightQualityToSell = false;
         static bool reloadConfig = false;
         static bool isPaused = false;
 
@@ -26,11 +27,14 @@ namespace ChaosHelper
 
         static ItemSet itemsPrevious = null;
         static ItemSet itemsCurrent = null;
+        static ItemSet qualityItems = null;
 
-        static void Main()
+        static void Main(string[] args)
         {
             try
             {
+                Config.ForceSteam = args.Length > 0 && string.Equals(args[0], "steam", StringComparison.OrdinalIgnoreCase);
+
                 Console.Title = "ChaosHelper.exe";
 
                 MainAsync().Wait();
@@ -50,6 +54,16 @@ namespace ChaosHelper
 
             if (!await Config.ReadConfigFile())
                 return;
+
+            //var qualityItems = new ItemSet();
+            //await GetQualityTabContents(0, qualityItems);
+            //var keepGoing = true;
+            //while (keepGoing)
+            //{
+            //    var set = qualityItems.MakeQualitySet();
+            //    var items = set.GetCategory(Cat.Junk);
+            //    keepGoing = items.Any();
+            //}
 
             // Define the cancellation token.
             CancellationTokenSource source = new CancellationTokenSource();
@@ -97,6 +111,14 @@ namespace ChaosHelper
                             logger.Info("Getting currency tab contents");
                             await GetCurrencyTabContents(true);
                         }
+                        else if (keyInfo.Key == ConsoleKey.Q)
+                        {
+                            if (Config.QualityTabIndex >= 0)
+                            {
+                                logger.Info("Highlighting quality gems/flasks to sell");
+                                highlightQualityToSell = true;
+                            }
+                        }
                         else if (keyInfo.Key == ConsoleKey.P)
                         {
                             isPaused = !isPaused;
@@ -112,6 +134,8 @@ namespace ChaosHelper
                             logger.Info("\t't' to toggle stash test mode (to make sure the rectangle is good)");
                             logger.Info("\t'z' to list contents of currency stash tab (with prices from poe ninja)");
                             logger.Info("\t'r' to reload configuration, except hotkeys");
+                            if (Config.QualityTabIndex >= 0)
+                                logger.Info("\t'q' to highlight quality gems/flasks to sell");
                             logger.Info("\t'p' to toggle pausing the page checks");
                         }
                         else
@@ -153,6 +177,8 @@ namespace ChaosHelper
                                 HotKeyManager.RegisterHotKey(x.Key, x.Modifiers);
                         }
                         MaybeRegister(Config.HighlightItemsHotkey);
+                        if (Config.QualityTabIndex >= 0)
+                            MaybeRegister(Config.ShowQualityItemsHotkey);
                         MaybeRegister(Config.ShowJunkItemsHotkey);
                         MaybeRegister(Config.ForceUpdateHotkey);
                         MaybeRegister(Config.CharacterCheckHotkey);
@@ -183,6 +209,8 @@ namespace ChaosHelper
                 logger.Info("Highlighting sets to sell");
                 highlightSetsToSell = true;
             }
+            else if (Config.IsShowQualityItemsHotkey(e))
+                highlightQualityToSell = true;
             else if (Config.IsShowJunkItemsHotkey(e))
                 overlay?.SendKey(ConsoleKey.J);
             else if (Config.IsForceUpdateHotkey(e))
@@ -308,6 +336,90 @@ namespace ChaosHelper
             catch (Exception ex)
             {
                 logger.Error(ex, $"HTTP error getting tab contents: {ex.Message}");
+            }
+        }
+
+        private static async Task GetQualityTabContents(int tabIndex, ItemSet items)
+        {
+            try
+            {
+                if (tabIndex < 0)
+                {
+                    logger.Error("ERROR: quality tab index not set");
+                    return;
+                }
+
+                var category = Cat.Junk;
+#if true
+                var stashTabUrl = System.Uri.EscapeUriString("https://www.pathofexile.com/character-window/get-stash-items"
+                    + $"?league={Config.League}&tabIndex={tabIndex}&accountName={Config.Account}");
+                var json = await Config.GetJsonForUrl(stashTabUrl);
+#else
+                await Task.Yield();
+                var text = File.ReadAllText("D:/code/ChaosHelper/quality.json");
+                var json = JsonSerializer.Deserialize<JsonElement>(text); ;
+#endif
+                foreach (var item in json.GetProperty("items").EnumerateArray())
+                {
+                    var frameType = item.GetIntOrDefault("frameType", 0);
+                    var identified = item.GetProperty("identified").GetBoolean();
+                    var ilvl = item.GetIntOrDefault("ilvl", 0);
+                    var isVaal = false;
+
+                    // Gem
+                    //
+                    if (frameType == 4)
+                    {
+                        var typeLine = item.GetStringOrDefault("typeLine");
+                        isVaal = typeLine.StartsWith("Vaal", StringComparison.OrdinalIgnoreCase);
+                    }
+                    else
+                    {
+                        // only normal or magic flasks
+                        //
+                        if (frameType != 0 && frameType != 1)
+                            continue;
+
+                        var w = item.GetIntOrDefault("w", 999);
+                        var h = item.GetIntOrDefault("h", 999);
+
+                        if (w != 1 || h != 2)
+                            continue;
+                    }
+
+                    var quality = GetQuality(item);
+                    if (quality > 0 && quality < 20 && (!isVaal || quality <= Config.QualityVaalGemMaxQualityToUse))
+                    {
+                        items.Add(category, item, tabIndex, quality);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"HTTP error getting quality tab contents: {ex.Message}");
+            }
+
+            int GetQuality(JsonElement item)
+            {
+                var quality = 0;
+                foreach (var prop in item.GetProperty("properties").EnumerateArray())
+                {
+                    var propType = prop.GetIntOrDefault("type", -1);
+                    if (propType != 6)
+                        continue;
+
+                    var valueString = prop.GetProperty("values").ToString();
+
+                    var regex = new System.Text.RegularExpressions.Regex("\\+(\\d+)%");
+                    var m = regex.Match(valueString);
+                    if (m.Success)
+                    {
+                        var qualityString = m.Groups[1].Captures[0].Value;
+                        if (!int.TryParse(qualityString, out quality))
+                            quality = 0;
+                    }
+                }
+                return quality;
             }
         }
 
@@ -615,13 +727,13 @@ namespace ChaosHelper
                             sawLoginLine = false;
                         }
 
-
-
                         if (newArea != null)
                         {
                             bool isTown = Config.IsTown(newArea);
                             logger.Info($"new area - {newArea} - town: {isTown} - paused: {isPaused}");
                             overlay?.SetArea(newArea, isTown);
+                            qualityItems = null;
+                            highlightQualityToSell = false;
                         }
                         else if (forceFilterUpdate)
                             logger.Info("forcing filter update");
@@ -636,6 +748,18 @@ namespace ChaosHelper
                             overlay?.SendKey(ConsoleKey.H);
                             highlightSetsToSell = false;
                             SetOverlayStatusMessage();
+                        }
+                        else if (highlightQualityToSell)
+                        {
+                            if (qualityItems == null)
+                            {
+                                qualityItems = new ItemSet();
+                                await GetQualityTabContents(Config.QualityTabIndex, qualityItems);
+                            }
+                            var qualitySet = qualityItems.MakeQualitySet();
+                            overlay?.SetitemSetToSell(qualitySet);
+                            overlay?.SendKey(ConsoleKey.Q);
+                            highlightQualityToSell = false;
                         }
 
                         await Task.Delay(1000, token);

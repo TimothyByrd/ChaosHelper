@@ -52,6 +52,10 @@ $text = $text -replace '"stashPageVerticalOffset"\s*:[^,]+,', "`"stashPageVertic
 
 $text = $text -replace '"desired"\s*:[^,]+,', "`"desired`": 0,"
 
+$text = $text -replace '"qualityTab"\s*:\s*"[^"]*"', "`"qualityTab`": `"`""
+$text = $text -replace '"qualityGemRecipeSlop"\s*:[^,]+,', "`"qualityGemRecipeSlop`": 0,"
+$text = $text -replace '"qualityFlaskRecipeSlop"\s*:[^,]+,', "`"qualityFlaskRecipeSlop`": 0,"
+$text = $text -replace '"qualityVaalGemMaxQualityToUse"\s*:[^,]+,', "`"qualityVaalGemMaxQualityToUse`": 0,"
 
 if ($origText -ne $text) {
     [System.IO.File]::WriteAllText($path, $text)

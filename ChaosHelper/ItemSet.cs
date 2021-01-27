@@ -156,7 +156,7 @@ namespace ChaosHelper
             return itemsDict[category];
         }
 
-        public void Add(Cat category, JsonElement e, int tabIndex)
+        public void Add(Cat category, JsonElement e, int tabIndex, int quality = 0)
         {
             itemsDict[category].Add(new ItemPosition(
                 e.GetProperty("x").GetInt32(),
@@ -165,7 +165,8 @@ namespace ChaosHelper
                 e.GetProperty("w").GetInt32(),
                 e.GetProperty("ilvl").GetInt32(),
                 e.GetProperty("identified").GetBoolean(),
-                tabIndex
+                tabIndex,
+                quality
                 ));
         }
 
@@ -344,6 +345,57 @@ namespace ChaosHelper
             RemoveItems(result);
             RefreshCounts();
             return result;
+        }
+
+        public ItemSet MakeQualitySet()
+        {
+            var result = new ItemSet();
+            var gems = itemsDict[Cat.Junk].Where(x => x.H == 1).OrderBy(x => -x.Quality);
+            var gemSet = MakeAQualitySet(gems, Config.QualityGemRecipeSlop);
+            if (gemSet != null)
+                result.itemsDict[Cat.Junk].AddRange(gemSet);
+            var flasks = itemsDict[Cat.Junk].Where(x => x.H == 2).OrderBy(x => -x.Quality);
+            var flaskSet = MakeAQualitySet(flasks, Config.QualityFlaskRecipeSlop);
+            if (flaskSet != null)
+                result.itemsDict[Cat.Junk].AddRange(flaskSet);
+            RemoveItems(result);
+            return result;
+        }
+
+        private IEnumerable<ItemPosition> MakeAQualitySet(IEnumerable<ItemPosition> items, int allowedSlop)
+        {
+            for (int i = 0; i <= allowedSlop; ++i)
+            {
+                var result = MakeAQualitySetRecurse(items, 40, i);
+                if (result != null)
+                    return result;
+            }
+            return null;
+        }
+
+        private IEnumerable<ItemPosition> MakeAQualitySetRecurse(IEnumerable<ItemPosition> items, int minNeeded, int allowedSlop)
+        {
+            if (items == null || !items.Any())
+                return null;
+
+            // Is this item a solution?
+            //
+            var item = items.First();
+            if (item.Quality >= minNeeded && item.Quality <= minNeeded + allowedSlop)
+                return new List<ItemPosition> { item };
+
+            if (item.Quality < minNeeded)
+            {
+                // Try to solve using this item.
+                //
+                var subResult1 = MakeAQualitySetRecurse(items.Skip(1), minNeeded - item.Quality, allowedSlop);
+                if (subResult1 != null)
+                    return subResult1.Append(item);
+            }
+
+            // Try to solve skipping this item
+            //
+            return MakeAQualitySetRecurse(items.Skip(1), minNeeded, allowedSlop);
         }
     }
 

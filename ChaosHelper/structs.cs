@@ -11,7 +11,7 @@ namespace ChaosHelper
     // This file contains some small data structures that don't merit their own files.
     //
 
-    public struct ItemPosition
+    public class ItemPosition
     {
         public int X;
         public int Y;
@@ -20,8 +20,9 @@ namespace ChaosHelper
         public int iLvl;
         public bool Identified;
         public int TabIndex;
+        public int Quality;
 
-        public ItemPosition(int x, int y, int h, int w, int ilvl, bool identified, int tabIndex)
+        public ItemPosition(int x, int y, int h, int w, int ilvl, bool identified, int tabIndex, int quality)
         {
             X = x;
             Y = y;
@@ -30,6 +31,7 @@ namespace ChaosHelper
             iLvl = ilvl;
             Identified = identified;
             TabIndex = tabIndex;
+            Quality = quality;
         }
 
         public static int Compare(ItemPosition ip1, ItemPosition ip2)

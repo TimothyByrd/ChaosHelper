@@ -35,6 +35,7 @@
     // for a list of key names/numbers, see https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys
     // they are global hotkeys, so be careful not to bork your other programs
     "highlightItemsHotkey": "!H", // hotkey to highlight sets of items to sell
+    "showQualityItemsHotkey": "!K", // hotkey to highlight sets of quality gems/flasks to sell
     "showJunkItemsHotkey": "!J", // hotkey to toggle highlight of non chaos items in your stash tab
     "forceUpdateHotkey": "!F", // hotkey to force the filter to be updated - generally not needed
     //"characterCheckHotkey": "!C", // hotkey to recheck your character and league
@@ -105,6 +106,11 @@
         { "c": "Binding Shard", "desired": 0, "fontSize": 45, "text": "170 158 130", "border": "190 178 135 180", "back": "0 0 0 255" },
         { "c": "Regal Shard", "desired": 0, "fontSize": 45, "text": "170 158 130", "border": "190 178 135 180", "back": "0 0 0 255" },
     ],
+
+    "qualityTab": "", // see README.md
+    "qualityFlaskRecipeSlop": 0,
+    "qualityGemRecipeSlop": 0,
+    "qualityVaalGemMaxQualityToUse": 0,
 
     // this is to figure out the place on the screen for the stash tab to highlight items
     // use [ 0, 0, 0, 0 ] to auto determine

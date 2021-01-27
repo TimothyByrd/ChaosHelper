@@ -11,7 +11,7 @@ namespace ChaosHelper
         public static event EventHandler<GlobalMouseHookEventArgs> MouseLButtonUp;
 
         MessageWindow messageWindow = null;
-        
+
         public GlobalMouseHook()
         {
             Thread messageLoop = new Thread(delegate ()
@@ -160,7 +160,7 @@ namespace ChaosHelper
             protected override void Dispose(bool disposing)
             {
                 base.Dispose(disposing);
-                
+
                 if (disposing)
                 {
                     // because we can unhook only in the same thread, not in garbage collector thread
@@ -190,7 +190,7 @@ namespace ChaosHelper
             }
         }
     }
-    
+
     class GlobalMouseHookEventArgs : HandledEventArgs
     {
         public MSLLHOOKSTRUCT MouseData { get; private set; }

@@ -32,6 +32,8 @@ namespace ChaosHelper
         private readonly int _numSquares;
         private double _squareWidth;
         private double _squareHeight;
+        private double _qualitySquareWidth;
+        private double _qualitySquareHeight;
         private string _areaName;
         private bool _inATown = true; // assume we start in a town
 
@@ -40,6 +42,7 @@ namespace ChaosHelper
 
         private volatile ItemSet _highlightSet = null;
         private bool _showHightlightSet = false;
+        private bool _showQualitySet = false;
 
         private readonly bool _shouldHookMouseEvents = false;
         private bool _haveHookedMouse = false;
@@ -108,6 +111,10 @@ namespace ChaosHelper
             _squareWidth = (_stashRect.Right - _stashRect.Left) / _numSquares;
             _squareHeight = (_stashRect.Bottom - _stashRect.Top) / _numSquares;
 
+            var numQualitySquares = Config.QualityIsQuadTab ? 24 : 12;
+            _qualitySquareWidth = (_stashRect.Right - _stashRect.Left) / numQualitySquares;
+            _qualitySquareHeight = (_stashRect.Bottom - _stashRect.Top) / numQualitySquares;
+
             logger.Info($"stashrect left {_stashRect.Left} top {_stashRect.Top}  right {_stashRect.Right} bottom {_stashRect.Bottom}");
             logger.Info($"stashrect squareWidth {_squareWidth}  squareHeight {_squareHeight}  height {_stashRect.Bottom - _stashRect.Top}");
 
@@ -166,6 +173,7 @@ namespace ChaosHelper
             _showStashTest = false;
             _showJunkItems = false;
             _showHightlightSet = false;
+            _showQualitySet = false;
         }
 
         public void SetStatus(string msg, bool atMaxSets)
@@ -182,11 +190,13 @@ namespace ChaosHelper
                 _showStashTest = false;
                 _showJunkItems = false;
                 _showHightlightSet = false;
+                _showQualitySet = false;
                 break;
             case ConsoleKey.T:
                 _showStashTest = !_showStashTest;
                 _showJunkItems = false;
                 _showHightlightSet = false;
+                _showQualitySet = false;
                 logger.Info($"showStashTest is now {_showStashTest}");
                 break;
             case ConsoleKey.J:
@@ -196,6 +206,7 @@ namespace ChaosHelper
                 _showStashTest = false;
                 _showJunkItems = !_showJunkItems && numJunk > 0;
                 _showHightlightSet = false;
+                _showQualitySet = false;
                 if (_showJunkItems)
                     FillJunkItemsToDraw(junk);
                 logger.Info($"showJunkItems is now {_showJunkItems} ({numJunk} junk items)");
@@ -205,9 +216,21 @@ namespace ChaosHelper
                 _showStashTest = false;
                 _showJunkItems = false;
                 _showHightlightSet = _highlightSet != null;
+                _showQualitySet = false;
                 if (_showHightlightSet)
                     FillItemsToDraw(_highlightSet);
                 logger.Info($"showHightlightSet is now {_showHightlightSet}");
+                break;
+            case ConsoleKey.Q:
+                _showStashTest = false;
+                _showJunkItems = false;
+                _showHightlightSet = false;
+                var qualitySet = _highlightSet?.GetCategory(Cat.Junk);
+
+                _showQualitySet = qualitySet != null && qualitySet.Any();
+                if (_showQualitySet)
+                    FillQualityItemsToDraw(qualitySet);
+                logger.Info($"showQualitySet is now {_showQualitySet}");
                 break;
             }
         }
@@ -260,6 +283,8 @@ namespace ChaosHelper
 
             if (_showHightlightSet)
                 ShowItemSet();
+            else if (_showQualitySet)
+                ShowQualityItems();
             else if (_showJunkItems)
                 ShowJunkItems();
             else if (_showStashTest)
@@ -272,7 +297,7 @@ namespace ChaosHelper
 
         private void CheckMouseHooks(bool targetWindowActivated)
         {
-            var wantMouseHook = targetWindowActivated && _shouldHookMouseEvents && (_showHightlightSet || _showJunkItems);
+            var wantMouseHook = targetWindowActivated && _shouldHookMouseEvents && (_showHightlightSet || _showQualitySet || _showJunkItems);
 
             if (wantMouseHook && !_haveHookedMouse)
             {
@@ -295,7 +320,7 @@ namespace ChaosHelper
         {
             lock (_clickList)
             {
-                if (_showHightlightSet || _showJunkItems)
+                if (_showHightlightSet || _showQualitySet || _showJunkItems)
                     _clickList.Add(e.MouseData.Point);
             }
         }
@@ -324,6 +349,18 @@ namespace ChaosHelper
             RectAndArrow(width * 3, y, width, height, _highlightBrushDict[Cat.Helmets], _solidBrushDict[Cat.Helmets]);
             RectAndArrow(width * 5, y, width, height, _highlightBrushDict[Cat.Belts], _solidBrushDict[Cat.Belts]);
             RectAndArrow(width * 7, y, width, height, _highlightBrushDict[Cat.Rings], _solidBrushDict[Cat.Rings], false);
+
+            foreach (var item in _itemsToDraw)
+                HightlightItem(item);
+        }
+
+        private void ShowQualityItems()
+        {
+            if (!_inATown || _itemsToDraw.Count == 0)
+            {
+                _showQualitySet = false;
+                return;
+            }
 
             foreach (var item in _itemsToDraw)
                 HightlightItem(item);
@@ -405,6 +442,15 @@ namespace ChaosHelper
                 _itemsToDraw.Add(GetHighlightRectangle(item, brushH, brushS));
         }
 
+        private void FillQualityItemsToDraw(List<ItemPosition> junkItems)
+        {
+            _itemsToDraw.Clear();
+            var brushH = _highlightBrushDict[Cat.BodyArmours];
+            var brushS = _solidBrushDict[Cat.BodyArmours];
+            foreach (var item in junkItems)
+                _itemsToDraw.Add(GetQualityRectangle(item, brushH, brushS));
+        }
+
         private void FillItemsToDraw(ItemSet itemSet)
         {
             _itemsToDraw.Clear();
@@ -433,7 +479,7 @@ namespace ChaosHelper
 
         private ItemRectStruct GetHighlightRectangle(ItemPosition item, int brushH, int brushS)
         {
-            return  GetHighlightRectangle(item.X, item.Y, item.W, item.H, brushH, brushS);
+            return GetHighlightRectangle(item.X, item.Y, item.W, item.H, brushH, brushS);
         }
 
         private ItemRectStruct GetHighlightRectangle(int col, int row, int width, int height, int brushH, int brushS)
@@ -446,6 +492,28 @@ namespace ChaosHelper
                     Right = (float)(_stashRect.Left + _squareWidth * (col + width)),
                     Top = (float)(_stashRect.Top + _squareHeight * row),
                     Bottom = (float)(_stashRect.Top + _squareHeight * (row + height)),
+                },
+                Stroke = 3,
+                BrushH = brushH,
+                BrushS = brushS,
+            };
+        }
+
+        private ItemRectStruct GetQualityRectangle(ItemPosition item, int brushH, int brushS)
+        {
+            return GetQualityRectangle(item.X, item.Y, item.W, item.H, brushH, brushS);
+        }
+
+        private ItemRectStruct GetQualityRectangle(int col, int row, int width, int height, int brushH, int brushS)
+        {
+            return new ItemRectStruct
+            {
+                Rect = new SharpDX.Mathematics.Interop.RawRectangleF
+                {
+                    Left = (float)(_stashRect.Left + _qualitySquareWidth * col),
+                    Right = (float)(_stashRect.Left + _qualitySquareWidth * (col + width)),
+                    Top = (float)(_stashRect.Top + _qualitySquareHeight * row),
+                    Bottom = (float)(_stashRect.Top + _qualitySquareHeight * (row + height)),
                 },
                 Stroke = 3,
                 BrushH = brushH,

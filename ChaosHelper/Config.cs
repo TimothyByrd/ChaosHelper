@@ -22,6 +22,7 @@ namespace ChaosHelper
         public static string Character { get; private set; }
         public static string TemplateFileName { get; private set; }
         public static string FilterFileName { get; private set; }
+        public static bool ForceSteam { get; set; }
         public static string ClientFileName { get; private set; }
         public static string FilterUpdateSound { get; private set; }
         public static float FilterUpdateVolume { get; private set; }
@@ -30,6 +31,12 @@ namespace ChaosHelper
         public static int MinIlvl { get; private set; }
         public static int TabIndex { get; private set; }
         public static bool IsQuadTab { get; private set; }
+        public static int CurrencyTabIndex { get; set; } = -1;
+        public static int QualityTabIndex { get; set; } = -1;
+        public static bool QualityIsQuadTab { get; private set; }
+        public static int QualityFlaskRecipeSlop { get; private set; }
+        public static int QualityGemRecipeSlop { get; private set; }
+        public static int QualityVaalGemMaxQualityToUse { get; private set; }
         public static bool AllowIDedSets { get; private set; }
         public static int ChaosParanoiaLevel { get; private set; }
         public static string IgnoreMaxSets { get; private set; }
@@ -40,8 +47,8 @@ namespace ChaosHelper
         public static string FilterColor { get; private set; }
         public static string FilterMarker { get; private set; }
         public static string AreaEnteredPattern { get; private set; }
-        public static int CurrencyTabIndex { get; set; } = -1;
         public static HotKeyBinding HighlightItemsHotkey { get; private set; }
+        public static HotKeyBinding ShowQualityItemsHotkey { get; private set; }
         public static HotKeyBinding ShowJunkItemsHotkey { get; private set; }
         public static HotKeyBinding ForceUpdateHotkey { get; private set; }
         public static HotKeyBinding CharacterCheckHotkey { get; private set; }
@@ -62,6 +69,7 @@ namespace ChaosHelper
         public static bool HaveAHotKey()
         {
             var haveAHotKey = HighlightItemsHotkey != null
+                || ShowQualityItemsHotkey != null
                 || ShowJunkItemsHotkey != null
                 || ForceUpdateHotkey != null
                 || CharacterCheckHotkey != null
@@ -77,6 +85,11 @@ namespace ChaosHelper
         public static bool IsHighlightItemsHotkey(ConsoleHotKey.HotKeyEventArgs e)
         {
             return HotKeyMatches(HighlightItemsHotkey, e);
+        }
+
+        public static bool IsShowQualityItemsHotkey(ConsoleHotKey.HotKeyEventArgs e)
+        {
+            return HotKeyMatches(ShowQualityItemsHotkey, e);
         }
 
         public static bool IsShowJunkItemsHotkey(ConsoleHotKey.HotKeyEventArgs e)
@@ -104,7 +117,7 @@ namespace ChaosHelper
             var limitIlvl = MaxIlvl > 60 && MaxIlvl < 100 && IgnoreMaxIlvl.IndexOf(c.CategoryStr, StringComparison.OrdinalIgnoreCase) < 0;
             return limitIlvl;
         }
-        
+
         public static async Task<bool> ReadConfigFile()
         {
             string exePath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
@@ -149,7 +162,7 @@ namespace ChaosHelper
             var handler = new HttpClientHandler() { CookieContainer = cookieContainer };
             HttpClient = new HttpClient(handler);
             HttpClient.DefaultRequestHeaders.UserAgent.Add(new System.Net.Http.Headers.ProductInfoHeaderValue("ChaosHelper", "1.0"));
-            
+
             ManualMode = rawConfig.GetBoolean("manualMode", false);
 
             if (!await CheckAccount())
@@ -172,6 +185,7 @@ namespace ChaosHelper
             Currency.SetArray(rawConfig.GetArray("currency"));
 
             HighlightItemsHotkey = rawConfig.GetHotKey("highlightItemsHotkey");
+            ShowQualityItemsHotkey = rawConfig.GetHotKey("showQualityItemsHotkey");
             ShowJunkItemsHotkey = rawConfig.GetHotKey("showJunkItemsHotkey");
             ForceUpdateHotkey = rawConfig.GetHotKey("forceUpdateHotkey");
             CharacterCheckHotkey = rawConfig.GetHotKey("characterCheckHotkey");
@@ -236,19 +250,24 @@ namespace ChaosHelper
 
             var clientTxtBase = rawConfig["clientTxt"];
             ClientFileName = Environment.ExpandEnvironmentVariables(clientTxtBase);
-            if (!File.Exists(ClientFileName))
+            if (ForceSteam && !File.Exists(ClientFileName))
+                ClientFileName = Environment.ExpandEnvironmentVariables("%ProgramFiles(x86)%\\Steam\\steamapps\\common\\Path of Exile\\logs\\Client.txt");
+            if (ForceSteam && !File.Exists(ClientFileName))
+                ClientFileName = "D:/pf_games/Steam/steamapps/common/Path of Exile/logs/client.txt";
+            if (!ForceSteam && !File.Exists(ClientFileName))
                 ClientFileName = Environment.ExpandEnvironmentVariables("%ProgramFiles(x86)%\\Games\\Grinding Gear Games\\Path of Exile\\logs\\Client.txt");
-            if (!File.Exists(ClientFileName))
+            if (!ForceSteam && !File.Exists(ClientFileName))
                 ClientFileName = Environment.ExpandEnvironmentVariables("%ProgramFiles(x86)%\\Grinding Gear Games\\Path of Exile\\logs\\Client.txt");
-            if (!File.Exists(ClientFileName))
+            if (!ForceSteam && !File.Exists(ClientFileName))
                 ClientFileName = Environment.ExpandEnvironmentVariables("%ProgramFiles%\\Grinding Gear Games\\Path of Exile\\logs\\Client.txt");
-            if (!File.Exists(ClientFileName))
+            if (!ForceSteam && !File.Exists(ClientFileName))
                 ClientFileName = Environment.ExpandEnvironmentVariables("%ProgramFiles(x86)%\\Steam\\steamapps\\common\\Path of Exile\\logs\\Client.txt");
             if (!File.Exists(ClientFileName))
             {
                 logger.Error($"ERROR: client.txt file '{clientTxtBase}' not found");
                 return false;
             }
+            logger.Info($"will tail client file '{ClientFileName}'");
 
             if (!await DetermineTabIndex())
                 return false;
@@ -322,8 +341,10 @@ namespace ChaosHelper
 
             TabIndex = -1;
             CurrencyTabIndex = -1;
+            QualityTabIndex = -1;
 
             var tabNameFromConfig = rawConfig["tabName"];
+            var qualityTabNameFromConfig = rawConfig["qualityTab"];
             var checkTabNames = !string.IsNullOrWhiteSpace(tabNameFromConfig);
 
             try
@@ -333,8 +354,16 @@ namespace ChaosHelper
                 JsonElement json = await GetJsonForUrl(stashTabListUrl);
 
                 var lookForCurrencyTab = Currency.CurrencyList.Any();
+                var lookForQualityTab = !string.IsNullOrWhiteSpace(qualityTabNameFromConfig);
 
                 const string removeOnlyTabPattern = "remove-only";
+
+                bool Done()
+                {
+                    return TabIndex >= 0
+                        && (!lookForCurrencyTab || CurrencyTabIndex >= 0)
+                        && (!lookForQualityTab || QualityTabIndex >= 0);
+                }
 
                 foreach (var tab in json.GetProperty("tabs").EnumerateArray())
                 {
@@ -347,34 +376,42 @@ namespace ChaosHelper
                     if (TabIndex == -1)
                     {
                         if (checkTabNames)
-                        {
                             found = string.Equals(name, tabNameFromConfig, StringComparison.OrdinalIgnoreCase);
-                        }
                         else if (!isRemoveOnly)
-                        {
                             found = string.Equals(tabType, "QuadStash", StringComparison.OrdinalIgnoreCase);
-                        }
+
                         if (found)
                         {
                             TabIndex = i;
                             logger.Info($"found tab '{name}', index = {TabIndex}, type = {tabType}");
                             IsQuadTab = string.Equals(tabType, "QuadStash", StringComparison.OrdinalIgnoreCase);
-                            if (!lookForCurrencyTab || CurrencyTabIndex >= 0)
-                                break;
                         }
                     }
 
-                    if (lookForCurrencyTab && CurrencyTabIndex == -1 && !isRemoveOnly)
+                    if (lookForCurrencyTab && CurrencyTabIndex == -1 && !isRemoveOnly
+                        && string.Equals(tabType, "CurrencyStash", StringComparison.OrdinalIgnoreCase))
                     {
-                        found = string.Equals(tabType, "CurrencyStash", StringComparison.OrdinalIgnoreCase);
-                        if (found)
-                        {
                             CurrencyTabIndex = i;
                             logger.Info($"found currency tab '{name}', index = {CurrencyTabIndex}");
-                            if (TabIndex >= 0)
-                                break;
-                        }
                     }
+
+                    if (lookForQualityTab && QualityTabIndex == -1
+                        && string.Equals(name, qualityTabNameFromConfig, StringComparison.OrdinalIgnoreCase))
+                    {
+                        QualityTabIndex = i;
+                        QualityIsQuadTab = string.Equals(tabType, "QuadStash", StringComparison.OrdinalIgnoreCase);
+                        QualityFlaskRecipeSlop = rawConfig.GetInt("qualityFlaskRecipeSlop");
+                        if (QualityFlaskRecipeSlop >= 40)
+                            QualityFlaskRecipeSlop -= 40;
+                        QualityGemRecipeSlop = rawConfig.GetInt("qualityGemRecipeSlop");
+                        if (QualityGemRecipeSlop >= 40)
+                            QualityGemRecipeSlop -= 40;
+                        QualityVaalGemMaxQualityToUse = rawConfig.GetInt("qualityVaalGemMaxQualityToUse");
+                        logger.Info($"found quality tab '{name}', index = {QualityTabIndex}");
+                    }
+
+                    if (Done())
+                        break;
                 }
             }
             catch (Exception ex)

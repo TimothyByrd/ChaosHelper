@@ -44,6 +44,7 @@ Compared to poe_qol, this tool has no UI. So if that matters, use poe_qol.
     - Other configuration is to taste, see "Configuration details" below.
 - Start Path of Exile in windowed full-screen or windowed mode.
 - Start the ChaosHelper tool
+    - If you use the steam client but also have the standalone client installed, run the tool with a `steam` argument.
 - In Path of Exile:
     - Change zones once for the tool to know where you are.
     - If this is your first time or if you have switched leagues, force an initial generation of the loot filter by typing an 'f' in the tool window.
@@ -89,23 +90,24 @@ to "fully automatic" - having the first click in a highlight window do a loop to
 ## Commands and hotkeys
 <a name="h04" />
 
-There are seven commands you can send to the tool:
+There are nine commands you can send to the tool:
 
 1. Highlight items (H): (town only) To highlight sets of items to sell (it tries for two sets).
-2. Show junk items (J): (town only) To toggle showing items in your stash tab that are not for the recipe, so you can clear them out.
-3. Force update (F): To force a re-read of the stash tab and a write of the filter file.
-4. Character check (C): Recheck your character and league. (This should happen automatically when you switch chararacters.)
-5. Test pattern (T): (town only) Toggle displaying a test pattern to verify the stash window size is correct. Once good, you can disable any hotkey for it, unless you change monitors.
-6. Re-read configuation (R): Re-reads the settings.jsonc file. Active hotkeys are not updated, and changes to hotkeys will cause them to be ineffective.
-7. Currency list (Z): Get currency prices from Poe Ninja, then print a listing of the contents of the currency tab in the ChaosHelper console window, with a total value. The listing should be copy-pastable into a spreadsheet.
-8. Pause (P): Pauses getting data from the PoE site automatically on area change.
+2. Show quality items (Q): (town only) To highlight sets of quality gems/flasks to sell (it tries for one set of each).
+3. Show junk items (J): (town only) To toggle showing items in your stash tab that are not for the recipe, so you can clear them out.
+4. Force update (F): To force a re-read of the stash tab and a write of the filter file.
+5. Character check (C): Recheck your character and league. (This should happen automatically when you switch chararacters.)
+6. Test pattern (T): (town only) Toggle displaying a test pattern to verify the stash window size is correct. Once good, you can disable any hotkey for it, until you change monitors.
+7. Re-read configuation (R): Re-reads the settings.jsonc file. Active hotkeys are not updated, and changes to hotkeys will cause them to be ineffective.
+8. Currency list (Z): Get currency prices from Poe Ninja, then print a listing of the contents of the currency tab in the ChaosHelper console window, with a total value. The listing should be copy-pastable into a spreadsheet.
+9. Pause (P): Pauses getting data from the PoE site automatically on area change.
 
 The commands can be invoked:
 
 1. By typing the appropriate letter (H,J,F,C,T,Z,R) in the ChaosHelper console window.
 - Best for commands you will hardly ever use, like character check and test pattern.
 2. By using global hotkeys created by ChaosHelper
-- By default global hotkeys are enabled for the Highlight items, Show Junk items and Force update commands, on `Alt-H`, `Alt-J` and `Alt-F`, respectively.
+- By default global hotkeys are enabled for the Highlight items, Show quality items, Show Junk items and Force update commands, on `Alt-H`, `Alt-K', `Alt-J` and `Alt-F`, respectively.
 - These hotkeys can be rebound or disabled in settings.jsonc.
 - The character check and test pattern command hotkeys are disabled by default, they can be uncommented in settings.jsonc.
 - The Currency list and Re-read configuration commands do not have hot keys. They must be invoked from the ChaosHelper console window. 
@@ -113,7 +115,7 @@ The commands can be invoked:
 - For a list of key names/numbers, see https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys
 - Remember, these set **global** hotkeys, so be careful not to bork your other programs.
 3. If you use the PoE-TradeMacro AutoHotkey script, there are scripts in the `AhkMacros` folder you can copy into your `Documents\PoE-TradeMacro\CustomMacros` folder.
-- Since PoE-TradeMacro binds some keys, the scripts come set up to be invoked using `Crtl-H`, `Ctrl-J`, `Ctrl-U`, `Ctrl-S` and `Ctrl-P`, respectively.
+- Since PoE-TradeMacro binds some keys, the scripts come set up to be invoked using `Crtl-H`, none, `Ctrl-J`, `Ctrl-U`, `Ctrl-S` and `Ctrl-P`, respectively.
 - In this case, comment out the hotkeys in setting.jsonc.
 
 ## About the template and filter
@@ -202,7 +204,6 @@ For example, if the stash contains one ilvl 74 glove and one ilvl 74 helmet and 
 - A value of 2 will also cause unidentified ilvl 75+ items to be favored over identified ilvl 60-74 items in IDed recipes.
 This will tend to cause hoarding of identified ilvl 60-74 items in teh stash tab.
 
-
 `includeInventoryOnForce` (false) will cause items in the character's inventory to be included when a force update command is executed.
 It ought to be useful for when a Keepers of the Trove pack gives you all the gloves you need,
 but it depends on your inventory on the website having been updated, and there's a bit of a lag for that.
@@ -221,7 +222,7 @@ Possible item classes are BodyArmours, Helmets, Gloves, Boots, OneHandWeapons, B
 to specify stash highlight colours for armour/weapons, helmets/gloves/boots, belts, and rings/amulets, respectively.
 There must be four strings in the array and they can be hex numbers ("0xRRGGBB") or loot filter colors ("RRR GGG BBB").
 
-`highlightItemsHotkey`, `showJunkItemsHotkey`, `forceUpdateHotkey`, `characterCheckHotkey` and `testModeHotkey` can be set to enable global hotkeys to execute ChaosHelper commands.
+`highlightItemsHotkey`, `showQualityItemsHotkey`, `showJunkItemsHotkey`, `forceUpdateHotkey`, `characterCheckHotkey` and `testModeHotkey` can be set to enable global hotkeys to execute ChaosHelper commands.
 If not defined, the hotkeys are not enabled.
 Altering these settings will require that the ChaosHelper be restarted. The Re-read configuration command will not suffice.
 See "Commands and hotkeys" for more info.
@@ -287,6 +288,16 @@ If you need to set a custom value, take a screenshot of your stash tab,then open
 Make a select rectangle over the grid part of the tab, and determine the X,Y,Height,Width of the selection.
 You can test the values by typing 't' in the ChaosHelper console to execute the test pattern command.
 
+`qualityTab` specifies a tab used to dump quality gems and flasks for the recipes to create gemcutter's prisms and glassblower's baubles.
+Only gems and flasks with qualities between 1 and 19 will be considered.
+
+`qualityGemRecipeSlop` (0) and `qualityFlaskRecipeSlop` (0) specify how much slop to allow when making those recipes.
+For example, a value of 2 would allow making recipes using ingredients with a total value of 40 to 42.
+The tool will try for exactly 40% total quality first.
+
+`qualityVaalGemMaxQualityToUse` (0) specifies the maximum quality of Vaal gems to consider for the gemcutter recipe.
+For example, setting this to 10 will use Vaal gems with a qualify of up to 10 in the recipe.
+
 ## Troubleshooting
 <a name="h08" />
 
@@ -329,6 +340,13 @@ Yep. It's an odd corner case. Only one recipe set using a 2x4 weapon will fit in
 So the tool only considers 2x4 weapons based on the number of shorter weapons available.
 When there are no shorter weapons, it will say one recipe, repeatedly.
 
+**I'm running the Steam client and the tool is not detecting when I change zones.**
+
+The tool favours using the stand alone client by default.
+So if both PoE clients are installed, try starting the tool with a `steam` argument to force use of the steam client for both the client.txt file and for process detection.
+If that doesn't work, you may need to configure the `clientTxt` setting to point to the Steam copy of client.txt.
+This depends on how you installed Steam, but it it likely "%ProgramFiles(x86)%/Steam/steamapps/common/Path of Exile/logs/Client.txt".
+The `processName` setting will probably also have to be configured.
 
 ## Links
 <a name="h11" />
