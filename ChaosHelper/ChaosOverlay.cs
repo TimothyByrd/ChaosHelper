@@ -23,6 +23,8 @@ namespace ChaosHelper
         public void RunOverLay(CancellationToken cancellationToken)
         {
             _requiredProcessName = Config.RequiredProcessName;
+            if (Config.ForceSteam)
+                _requiredProcessName = "PathOfExile_x64Steam";
 
             try
             {
@@ -101,9 +103,7 @@ namespace ChaosHelper
         private System.Diagnostics.Process FindProcess()
         {
             System.Diagnostics.Process process;
-            if (Config.ForceSteam)
-                process = System.Diagnostics.Process.GetProcessesByName("PathOfExile_x64Steam").FirstOrDefault();
-            else if (!string.IsNullOrWhiteSpace(_requiredProcessName))
+            if (!string.IsNullOrWhiteSpace(_requiredProcessName))
                 process = System.Diagnostics.Process.GetProcessesByName(_requiredProcessName).FirstOrDefault();
             else
             {

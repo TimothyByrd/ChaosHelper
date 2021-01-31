@@ -731,7 +731,8 @@ namespace ChaosHelper
                         {
                             bool isTown = Config.IsTown(newArea);
                             logger.Info($"new area - {newArea} - town: {isTown} - paused: {isPaused}");
-                            overlay?.SetArea(newArea, isTown);
+                            var areaMessage = isPaused ? $"{newArea} (paused)" : newArea;
+                            overlay?.SetArea(areaMessage, isTown);
                             qualityItems = null;
                             highlightQualityToSell = false;
                         }

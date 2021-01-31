@@ -1,6 +1,8 @@
 # ChaosHelper
 
-This tool speeds up the completion of chaos recipes in Path of Exile.
+This tool eases the completion of chaos recipes in Path of Exile.
+
+![](./sample1.png?raw=true)
 
 It was inspired by a similar tool promoted by Path Of Matth,
 except this tool does not manipulate the PoE game client in any way.

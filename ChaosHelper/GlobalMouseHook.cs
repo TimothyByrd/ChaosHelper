@@ -83,8 +83,8 @@ namespace ChaosHelper
         const int HC_ACTION = 0;
         const int WH_MOUSE_LL = 14;
         //const uint WM_MOUSEMOVE = 0x200;
-        //const uint WM_LBUTTONDOWN = 0x201;
-        const uint WM_LBUTTONUP = 0x202;
+        const uint WM_LBUTTONDOWN = 0x201;
+        //const uint WM_LBUTTONUP = 0x202;
         //const uint WM_LBUTTONDBLCLK = 0x203;
         //const uint WM_RBUTTONDOWN = 0x204;
         //const uint WM_RBUTTONUP = 0x205;
@@ -144,7 +144,7 @@ namespace ChaosHelper
                 if (nCode == HC_ACTION)  // MSDN docs specify that both LL keybd & mouse hook should return in this case.
                 {
                     var wparamTyped = wParam.ToInt32();
-                    if (wparamTyped == WM_LBUTTONUP)
+                    if (wparamTyped == WM_LBUTTONDOWN)
                     {
                         object o = Marshal.PtrToStructure(lParam, typeof(MSLLHOOKSTRUCT));
                         MSLLHOOKSTRUCT p = (MSLLHOOKSTRUCT)o;

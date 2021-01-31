@@ -34,6 +34,7 @@ namespace ChaosHelper
         private double _squareHeight;
         private double _qualitySquareWidth;
         private double _qualitySquareHeight;
+        private int _targetWindowHeight;
         private string _areaName;
         private bool _inATown = true; // assume we start in a town
 
@@ -97,11 +98,12 @@ namespace ChaosHelper
 
             _font = OverlayWindow.Graphics.CreateFont("Arial", 20);
 
+            _targetWindowHeight = TargetWindow.Height;
             if (_autoDetermineStashRect)
             {
-                var x = 22.0f / 1440.0f * TargetWindow.Height;
-                var y = 170.0f / 1440.0f * TargetWindow.Height;
-                var size = 844.0f / 1440.0f * TargetWindow.Height;
+                var x = 22.0f / 1440.0f * _targetWindowHeight;
+                var y = 170.0f / 1440.0f * _targetWindowHeight;
+                var size = 844.0f / 1440.0f * _targetWindowHeight;
 
                 y += Config.StashPageVerticalOffset;
 
@@ -384,7 +386,7 @@ namespace ChaosHelper
 
         private void ShowTextLines()
         {
-            var h = TargetWindow?.Height ?? -1;
+            var h = _targetWindowHeight;
             if (h < 0)
                 return;
 
@@ -488,10 +490,10 @@ namespace ChaosHelper
             {
                 Rect = new SharpDX.Mathematics.Interop.RawRectangleF
                 {
-                    Left = (float)(_stashRect.Left + _squareWidth * col),
-                    Right = (float)(_stashRect.Left + _squareWidth * (col + width)),
-                    Top = (float)(_stashRect.Top + _squareHeight * row),
-                    Bottom = (float)(_stashRect.Top + _squareHeight * (row + height)),
+                    Left = (float)(_stashRect.Left + _squareWidth * col) + 1.0f,
+                    Right = (float)(_stashRect.Left + _squareWidth * (col + width)) - 1.0f,
+                    Top = (float)(_stashRect.Top + _squareHeight * row) + 1.0f,
+                    Bottom = (float)(_stashRect.Top + _squareHeight * (row + height)) - 1.0f,
                 },
                 Stroke = 3,
                 BrushH = brushH,
@@ -510,10 +512,10 @@ namespace ChaosHelper
             {
                 Rect = new SharpDX.Mathematics.Interop.RawRectangleF
                 {
-                    Left = (float)(_stashRect.Left + _qualitySquareWidth * col),
-                    Right = (float)(_stashRect.Left + _qualitySquareWidth * (col + width)),
-                    Top = (float)(_stashRect.Top + _qualitySquareHeight * row),
-                    Bottom = (float)(_stashRect.Top + _qualitySquareHeight * (row + height)),
+                    Left = (float)(_stashRect.Left + _qualitySquareWidth * col) + 1.0f,
+                    Right = (float)(_stashRect.Left + _qualitySquareWidth * (col + width)) - 1.0f,
+                    Top = (float)(_stashRect.Top + _qualitySquareHeight * row) + 1.0f,
+                    Bottom = (float)(_stashRect.Top + _qualitySquareHeight * (row + height)) - 1.0f,
                 },
                 Stroke = 3,
                 BrushH = brushH,
