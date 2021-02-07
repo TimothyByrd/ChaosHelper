@@ -615,6 +615,11 @@ namespace ChaosHelper
                         yield return "Height = 3";
                         yield return "Width = 1";
                     }
+                    else if (c.Category == Cat.BodyArmours)
+                    {
+                        yield return "Sockets < 6";
+                    }
+
                     yield return "";
 
                     // Add in bows
@@ -624,6 +629,7 @@ namespace ChaosHelper
                         yield return "Show";
                         yield return "Class \"Bows\"";
                         yield return "Rarity Rare";
+                        yield return "Sockets < 6";
                         yield return $"SetBorderColor {Config.FilterColor}";
                         yield return $"SetTextColor {Config.FilterColor}";
                         yield return $"SetFontSize {c.FontSize}";
@@ -639,6 +645,7 @@ namespace ChaosHelper
                         yield return "Show";
                         yield return "Class \"Two Hand\" \"Staves\"";
                         yield return "Rarity Rare";
+                        yield return "Sockets < 6";
                         yield return $"SetBorderColor {Config.FilterColor}";
                         yield return $"SetTextColor {Config.FilterColor}";
                         yield return $"SetFontSize {c.FontSize}";
