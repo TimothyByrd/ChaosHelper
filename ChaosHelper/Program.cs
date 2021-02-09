@@ -56,12 +56,13 @@ namespace ChaosHelper
                 return;
 
             //var qualityItems = new ItemSet();
-            //await GetQualityTabContents(0, qualityItems);
+            //await GetQualityTabContents(Config.QualityTabIndex, qualityItems);
             //var keepGoing = true;
             //while (keepGoing)
             //{
             //    var set = qualityItems.MakeQualitySet();
             //    var items = set.GetCategory(Cat.Junk);
+            //    var qstr = string.Join(",", items.Select(x => x.Quality));
             //    keepGoing = items.Any();
             //}
 

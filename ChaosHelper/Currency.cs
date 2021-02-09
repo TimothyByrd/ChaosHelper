@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ChaosHelper
 {
@@ -64,24 +61,6 @@ namespace ChaosHelper
             return CurrencyList.Sum(x => x.Value);
         }
 
-        static double GetValueRatio(System.Text.Json.JsonElement element)
-        {
-            if (!element.TryGetProperty("value", out var valueProp))
-                return 0.0;
-
-            if (valueProp.ValueKind == System.Text.Json.JsonValueKind.Number)
-                return Math.Max(valueProp.GetDouble(), 0.0);
-
-            var s = valueProp.GetString();
-            var slash = s.IndexOf('/');
-            if (slash > 0 && double.TryParse(s.Substring(0, slash), out var num)
-                && double.TryParse(s.Substring(slash + 1), out var denom) && denom > 0)
-                return Math.Max(num / denom, 0.0);
-            if (double.TryParse(s, out var d))
-                return Math.Max(d, 0.0); ;
-            return 0.0;
-        }
-
         static public void SetArray(System.Text.Json.JsonElement.ArrayEnumerator array)
         {
             CurrencyList.Clear();
@@ -111,9 +90,7 @@ namespace ChaosHelper
             var backgroundColor = element.GetStringOrDefault("back").CheckColorString();
             if (string.IsNullOrWhiteSpace(backgroundColor)) canFilterOn = false;
 
-            var valueRatio = GetValueRatio(element);
-
-            logger.Info($"Adding currency entry for {currencyName}: des={desired}, ratio={valueRatio}");
+            logger.Info($"Adding currency entry for {currencyName} ({canFilterOn}): des={desired}");
 
             CurrencyList.Add(new Currency
             {
@@ -124,7 +101,6 @@ namespace ChaosHelper
                 BorderColor = borderColor,
                 BackGroundColor = backgroundColor,
                 CanFilterOn = canFilterOn,
-                ValueRatio = valueRatio,
                 CurrentCount = int.MaxValue,
             });
         }

@@ -9,6 +9,8 @@ namespace ChaosHelper
 {
     public class ItemSet
     {
+        //private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+
         public class ItemCounts
         {
             public int NumIded60 { get; set; }
@@ -347,20 +349,45 @@ namespace ChaosHelper
             return result;
         }
 
+        public class QualityComparer : IComparer<ItemPosition>
+        {
+            // sort largest first, but put 10, 8 and 5 at the end
+            // since they divide into 40 evenly want to use them last.
+            public int Compare(ItemPosition x, ItemPosition y)
+            {
+                var xDivs = x.Quality == 10 || x.Quality == 8 || x.Quality == 5;
+                var yDivs = y.Quality == 10 || y.Quality == 8 || y.Quality == 5;
+                if (xDivs == yDivs)
+                    return x.Quality > y.Quality ? -1 : x.Quality == y.Quality ? 0 : 1;
+                else if (xDivs)
+                    return 1;
+                else
+                    return -1;
+            }
+        }
+
         public ItemSet MakeQualitySet()
         {
             var result = new ItemSet();
-            var gems = itemsDict[Cat.Junk].Where(x => x.H == 1).OrderBy(x => -x.Quality);
+            var gems = itemsDict[Cat.Junk].Where(x => x.H == 1).OrderBy(x => x, new QualityComparer());
+            //ShowSet("gem", gems);
             var gemSet = MakeAQualitySet(gems, Config.QualityGemRecipeSlop);
             if (gemSet != null)
                 result.itemsDict[Cat.Junk].AddRange(gemSet);
-            var flasks = itemsDict[Cat.Junk].Where(x => x.H == 2).OrderBy(x => -x.Quality);
+            var flasks = itemsDict[Cat.Junk].Where(x => x.H == 2).OrderBy(x => x, new QualityComparer());
+            //ShowSet("flask", flasks);
             var flaskSet = MakeAQualitySet(flasks, Config.QualityFlaskRecipeSlop);
             if (flaskSet != null)
                 result.itemsDict[Cat.Junk].AddRange(flaskSet);
             RemoveItems(result);
             return result;
         }
+
+        //private void ShowSet(string itemType, IEnumerable<ItemPosition> items)
+        //{
+        //    var qualities = string.Join(",", items.Select(x => x.Quality));
+        //    logger.Debug($"{itemType} qualities: {qualities}");
+        //}
 
         private IEnumerable<ItemPosition> MakeAQualitySet(IEnumerable<ItemPosition> items, int allowedSlop)
         {
