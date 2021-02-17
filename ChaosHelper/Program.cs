@@ -20,6 +20,7 @@ namespace ChaosHelper
         static bool checkCharacter = false;
         static bool highlightSetsToSell = false;
         static bool highlightQualityToSell = false;
+        static bool logMatchingNames = false;
         static bool reloadConfig = false;
         static bool isPaused = false;
 
@@ -28,6 +29,7 @@ namespace ChaosHelper
         static ItemSet itemsPrevious = null;
         static ItemSet itemsCurrent = null;
         static ItemSet qualityItems = null;
+        static string currentArea = string.Empty;
 
         static void Main(string[] args)
         {
@@ -120,6 +122,14 @@ namespace ChaosHelper
                                 highlightQualityToSell = true;
                             }
                         }
+                        else if (keyInfo.Key == ConsoleKey.M)
+                        {
+                            if (Config.DumpTabDictionary.Any())
+                            {
+                                logger.Info("Looking for items with matching names in dump tabs");
+                                logMatchingNames = true;
+                            }
+                        }
                         else if (keyInfo.Key == ConsoleKey.P)
                         {
                             isPaused = !isPaused;
@@ -137,6 +147,8 @@ namespace ChaosHelper
                             logger.Info("\t'r' to reload configuration, except hotkeys");
                             if (Config.QualityTabIndex >= 0)
                                 logger.Info("\t'q' to highlight quality gems/flasks to sell");
+                            if (Config.DumpTabDictionary.Any())
+                                logger.Info("\t'm' to log items with matching names in dump tabs");
                             logger.Info("\t'p' to toggle pausing the page checks");
                         }
                         else
@@ -260,6 +272,27 @@ namespace ChaosHelper
             }
         }
 
+        private static async Task CheckForMatchingNames()
+        {
+            if (!Config.DumpTabDictionary.Any())
+            {
+                logger.Warn("cannot check for matching names - no dump tabs configured/found");
+                return;
+            }
+
+            var itemNameSet = new ItemSet();
+            var shouldDelay = false;
+            foreach (var kvp in Config.DumpTabDictionary)
+            {
+                if (shouldDelay) await Task.Delay(2000);
+                shouldDelay = true;
+                logger.Info($"checking tab '{kvp.Value}' ({kvp.Key})");
+                await GetTabContents(kvp.Key, itemNameSet);
+            }
+
+            itemNameSet.LogMatchingNames(Config.DumpTabDictionary);
+        }
+
         private static void SetOverlayStatusMessage()
         {
             string msg;
@@ -308,9 +341,10 @@ namespace ChaosHelper
                     var identified = item.GetProperty("identified").GetBoolean();
                     var ilvl = item.GetIntOrDefault("ilvl", 0);
 
+                    // only check category for rares of ilvl 60+
+                    //
                     var category = Cat.Junk;
-
-                    if (frameType == 2 && ilvl >= Config.MinIlvl && (Config.AllowIDedSets || !identified)) // only look at rares of ilvl 60+
+                    if (frameType == 2 && ilvl >= Config.MinIlvl && (Config.AllowIDedSets || !identified))
                     {
                         var iconUrl = item.GetProperty("icon").GetString();
                         foreach (var c in ItemClass.Iterator())
@@ -730,25 +764,30 @@ namespace ChaosHelper
                         if (checkCharacter || sawLoginLine && newArea != null)
                         {
                             await Config.CheckAccount(forceWebCheck: true);
-                            await Config.DetermineTabIndex(forceWebCheck: true);
+                            await Config.DetermineTabIndicies(forceWebCheck: true);
                             checkCharacter = false;
                             sawLoginLine = false;
                         }
+
+                        bool wasTown = Config.IsTown(currentArea);
 
                         if (newArea != null)
                         {
                             bool isTown = Config.IsTown(newArea);
                             logger.Info($"new area - {newArea} - town: {isTown} - paused: {isPaused}");
-                            var areaMessage = isPaused ? $"{newArea} (paused)" : newArea;
-                            overlay?.SetArea(areaMessage, isTown);
+                            var messageStatus = isPaused ? $" (paused)" : (!wasTown && isTown) ? " (to town)" : string.Empty;
+                            overlay?.SetArea($"{newArea}{messageStatus}", isTown);
                             qualityItems = null;
                             highlightQualityToSell = false;
+                            currentArea = newArea;
                         }
                         else if (forceFilterUpdate)
                             logger.Info("forcing filter update");
 
-                        if (newArea != null || forceFilterUpdate)
+                        if ((newArea != null && wasTown) || forceFilterUpdate)
                             await CheckForUpdate();
+                        else if (newArea != null)
+                            SetOverlayStatusMessage();
 
                         if (highlightSetsToSell)
                         {
@@ -769,6 +808,11 @@ namespace ChaosHelper
                             overlay?.SetitemSetToSell(qualitySet);
                             overlay?.SendKey(ConsoleKey.Q);
                             highlightQualityToSell = false;
+                        }
+                        else if (logMatchingNames)
+                        {
+                            await CheckForMatchingNames();
+                            logMatchingNames = false;
                         }
 
                         await Task.Delay(1000, token);

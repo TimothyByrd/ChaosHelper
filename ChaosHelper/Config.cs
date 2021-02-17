@@ -37,6 +37,7 @@ namespace ChaosHelper
         public static int QualityFlaskRecipeSlop { get; private set; }
         public static int QualityGemRecipeSlop { get; private set; }
         public static int QualityVaalGemMaxQualityToUse { get; private set; }
+        public static Dictionary<int, string> DumpTabDictionary { get; private set; } = new Dictionary<int, string>();
         public static bool AllowIDedSets { get; private set; }
         public static int ChaosParanoiaLevel { get; private set; }
         public static string IgnoreMaxSets { get; private set; }
@@ -269,7 +270,7 @@ namespace ChaosHelper
             }
             logger.Info($"will tail client file '{ClientFileName}'");
 
-            if (!await DetermineTabIndex())
+            if (!await DetermineTabIndicies())
                 return false;
 
             return true;
@@ -324,7 +325,7 @@ namespace ChaosHelper
             return true;
         }
 
-        public static async Task<bool> DetermineTabIndex(bool forceWebCheck = false)
+        public static async Task<bool> DetermineTabIndicies(bool forceWebCheck = false)
         {
             // see if we have configured a tab index
             //
@@ -347,6 +348,9 @@ namespace ChaosHelper
             var qualityTabNameFromConfig = rawConfig["qualityTab"];
             var checkTabNames = !string.IsNullOrWhiteSpace(tabNameFromConfig);
 
+            var dumpTabNames = rawConfig.GetStringList("dumpTabs");
+            DumpTabDictionary.Clear();
+
             try
             {
                 var stashTabListUrl = System.Uri.EscapeUriString("https://www.pathofexile.com/character-window/get-stash-items"
@@ -362,7 +366,8 @@ namespace ChaosHelper
                 {
                     return TabIndex >= 0
                         && (!lookForCurrencyTab || CurrencyTabIndex >= 0)
-                        && (!lookForQualityTab || QualityTabIndex >= 0);
+                        && (!lookForQualityTab || QualityTabIndex >= 0)
+                        && !dumpTabNames.Any();
                 }
 
                 foreach (var tab in json.GetProperty("tabs").EnumerateArray())
@@ -408,6 +413,12 @@ namespace ChaosHelper
                             QualityGemRecipeSlop -= 40;
                         QualityVaalGemMaxQualityToUse = rawConfig.GetInt("qualityVaalGemMaxQualityToUse");
                         logger.Info($"found quality tab '{name}', index = {QualityTabIndex}");
+                    }
+
+                    if (dumpTabNames.Contains(name))
+                    {
+                        DumpTabDictionary[i] = name;
+                        dumpTabNames.Remove(name);
                     }
 
                     if (Done())

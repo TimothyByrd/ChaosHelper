@@ -21,8 +21,9 @@ namespace ChaosHelper
         public bool Identified;
         public int TabIndex;
         public int Quality;
+        public string Name;
 
-        public ItemPosition(int x, int y, int h, int w, int ilvl, bool identified, int tabIndex, int quality)
+        public ItemPosition(int x, int y, int h, int w, int ilvl, bool identified, string name, int tabIndex, int quality)
         {
             X = x;
             Y = y;
@@ -32,6 +33,7 @@ namespace ChaosHelper
             Identified = identified;
             TabIndex = tabIndex;
             Quality = quality;
+            Name = name;
         }
 
         public static int Compare(ItemPosition ip1, ItemPosition ip2)

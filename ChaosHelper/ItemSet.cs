@@ -9,7 +9,7 @@ namespace ChaosHelper
 {
     public class ItemSet
     {
-        //private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+        private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
         public class ItemCounts
         {
@@ -167,9 +167,9 @@ namespace ChaosHelper
                 e.GetProperty("w").GetInt32(),
                 e.GetProperty("ilvl").GetInt32(),
                 e.GetProperty("identified").GetBoolean(),
+                e.GetProperty("name").GetString(),
                 tabIndex,
-                quality
-                ));
+                quality));
         }
 
         public ItemSet GetSetToSell(bool allowIdentified, int chaosParanoiaLevel)
@@ -424,6 +424,33 @@ namespace ChaosHelper
             //
             return MakeAQualitySetRecurse(items.Skip(1), minNeeded, allowedSlop);
         }
+
+        public void LogMatchingNames(Dictionary<int, string> dumpTabDict)
+        {
+            string DumpTabName(int tabIndex)
+            {
+                return dumpTabDict.ContainsKey(tabIndex) ? dumpTabDict[tabIndex] : "<unknown>";
+            }
+
+            var nameDict = new Dictionary<string, ItemPosition>();
+            foreach (var c in ItemClass.Iterator())
+            {
+                foreach (var item in itemsDict[c.Category])
+                {
+                    if (string.IsNullOrWhiteSpace(item.Name)) continue;
+                    if (!nameDict.ContainsKey(item.Name))
+                        nameDict[item.Name] = item;
+                    else
+                    {
+                        var otherItem = nameDict[item.Name];
+                        var tab1 = DumpTabName(item.TabIndex);
+                        var tab2 = DumpTabName(otherItem.TabIndex);
+                        logger.Info($"name match: tab '{tab1}' at {item.X},{item.Y}, '{tab2}' at {otherItem.X},{otherItem.Y} - {item.Name}");
+                        nameDict.Remove(item.Name);
+                    }
+                }
+            }
+        }
     }
 
     public class ChaosSlotOptimizer
@@ -561,19 +588,16 @@ namespace ChaosHelper
 
             // take ilvl 75+ items first, if possible.
             // rings can't mix IDed and un-IDed.
-            if (!mustBe60)
-            {
-                list.AddRange(sourceList.Where(x => x.Identified == ided && x.iLvl >= 75).Take(wanted));
-            }
-            if (list.Count < wanted)
-            {
-                var want = wanted - list.Count;
+            var want = mustBe60 ? 1 : wanted;
+            list.AddRange(sourceList.Where(x => x.Identified == ided && x.iLvl >= 75).Take(want));
+
+            want = wanted - list.Count;
+            if (want > 0)
                 list.AddRange(sourceList.Where(x => x.Identified == ided && x.iLvl < 75).Take(want));
-            }
+
             if (list.Count < wanted )
-            {
                 logger.Error($"Wanted {numSets} sets for {Category}, but only got {list.Count / 2}, mustBe60:{mustBe60}, ided:{ided}");
-            }
+
             destination.GetCategory(Category).AddRange(list);
         }
     }
