@@ -119,6 +119,7 @@ namespace ChaosHelper
                 if (Enum.TryParse(valueStr, true, out System.Windows.Forms.Keys key)
                     && Enum.IsDefined(typeof(System.Windows.Forms.Keys), key))
                 {
+
                     return new HotKeyBinding
                     {
                         Key = key,

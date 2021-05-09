@@ -396,7 +396,7 @@ namespace ChaosHelper
             if (!string.IsNullOrWhiteSpace(_statusMessage))
                 OverlayWindow.Graphics.DrawText(_statusMessage, _font, _atMaxSets ? _goldBrush : _whiteBrush, 50, h - 60);
             else
-                OverlayWindow.Graphics.DrawText("Change zones or force an update to initialize", _font, _redBrush, 50, h - 60);
+                OverlayWindow.Graphics.DrawText("Change zones or force an update to initialize", _font, _goldBrush, 50, h - 60);
 
             if (!string.IsNullOrWhiteSpace(_areaName))
                 OverlayWindow.Graphics.DrawText(_areaName, _font, _whiteBrush, 50, h - 90);

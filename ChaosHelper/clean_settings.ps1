@@ -41,7 +41,7 @@ $text = $text -replace '"character"\s*:\s*"[^"]*"', "`"character`": `"`""
 $text = $text -replace '"tabName"\s*:\s*"[^"]*"', "`"tabName`": `"`""
 $text = $text -replace '"tabIndex"\s*:[^,]+,', "`"tabIndex`": -1,"
 $text = $text -replace '"isQuadTab"\s*:[^,]+,', "`"isQuadTab`": true,"
-$text = $text -replace '"manualMode"\s*:[^,]+,', "`"manualMode`": false,"
+$text = $text -replace '"testMode"\s*:[^,]+,', "`"testMode`": `"Normal`","
 
 $text = $text -replace '"clientTxt"\s*:\s*"[^"]*"', "`"clientTxt`": `"`""
 $text = $text -replace '"processName"\s*:\s*"[^"]*"', "`"processName`": `"`""

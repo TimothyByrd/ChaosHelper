@@ -14,6 +14,17 @@ namespace ChaosHelper
     {
         private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         private static RawJsonConfiguration rawConfig;
+        private static string exePath;
+
+        public enum TestModeEnum
+        {
+            /// <summary>Get data from stash tabs via PoE site as normal.</summary>
+            Normal,
+            /// <summary>Get data from stash tabs by copying json to clipboard.</summary>
+            Manual,
+            /// <summary>Get data from saved data files.</summary>
+            Playback,
+        }
 
         public static HttpClient HttpClient { get; private set; }
 
@@ -58,7 +69,7 @@ namespace ChaosHelper
         public static string RequiredProcessName { get; private set; }
         public static System.Drawing.Rectangle StashPageXYWH { get; private set; }
         public static int StashPageVerticalOffset { get; private set; }
-        public static bool ManualMode { get; private set; }
+        public static TestModeEnum TestMode { get; private set; }
 
         public static bool IsTown(string newArea)
         {
@@ -121,7 +132,7 @@ namespace ChaosHelper
 
         public static async Task<bool> ReadConfigFile()
         {
-            string exePath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            exePath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
             var configFile = Path.Combine(exePath, "./settings.jsonc");
             if (!File.Exists(configFile))
             {
@@ -164,7 +175,12 @@ namespace ChaosHelper
             HttpClient = new HttpClient(handler);
             HttpClient.DefaultRequestHeaders.UserAgent.Add(new System.Net.Http.Headers.ProductInfoHeaderValue("ChaosHelper", "1.0"));
 
-            ManualMode = rawConfig.GetBoolean("manualMode", false);
+            var testModeStr = rawConfig["testMode"];
+            if (Enum.TryParse<TestModeEnum>(testModeStr, out var testMode)
+                && Enum.IsDefined(typeof(TestModeEnum), testMode))
+                TestMode = testMode;
+            else
+                TestMode = TestModeEnum.Normal;
 
             if (!await CheckAccount())
                 return false;
@@ -185,12 +201,23 @@ namespace ChaosHelper
 
             Currency.SetArray(rawConfig.GetArray("currency"));
 
-            HighlightItemsHotkey = rawConfig.GetHotKey("highlightItemsHotkey");
-            ShowQualityItemsHotkey = rawConfig.GetHotKey("showQualityItemsHotkey");
-            ShowJunkItemsHotkey = rawConfig.GetHotKey("showJunkItemsHotkey");
-            ForceUpdateHotkey = rawConfig.GetHotKey("forceUpdateHotkey");
-            CharacterCheckHotkey = rawConfig.GetHotKey("characterCheckHotkey");
-            TestModeHotkey = rawConfig.GetHotKey("testModeHotkey");
+            HotKeyBinding GetHotKey(string s)
+            {
+                var result = rawConfig.GetHotKey(s);
+                if (result != null)
+                {
+                    logger.Info($"hot key '{s}' is '{rawConfig[s]}'");
+                }
+                return result;
+            }
+
+            HighlightItemsHotkey = GetHotKey("highlightItemsHotkey");
+            ShowQualityItemsHotkey = GetHotKey("showQualityItemsHotkey");
+            ShowJunkItemsHotkey = GetHotKey("showJunkItemsHotkey");
+            ForceUpdateHotkey = GetHotKey("forceUpdateHotkey");
+            CharacterCheckHotkey = GetHotKey("characterCheckHotkey");
+            TestModeHotkey = GetHotKey("testModeHotkey");
+
             ShouldHookMouseEvents = rawConfig.GetBoolean("hookMouseEvents", false);
             RequiredProcessName = rawConfig["processName"];
             StashPageXYWH = rawConfig.GetRectangle("stashPageXYWH");
@@ -247,6 +274,20 @@ namespace ChaosHelper
             {
                 logger.Error("ERROR: template file and filter file must have different names");
                 return false;
+            }
+
+            var itemModFile = Path.Combine(exePath, "./itemMods.csv");
+            if (File.Exists(itemModFile))
+            {
+                ItemMod.ReadItemModFile(itemModFile);
+                logger.Info($"item mod file - there are {ItemMod.PossibleMods.Count} mods");
+            }
+
+            var itemRuleFile = Path.Combine(exePath, "./itemRules.csv");
+            if (File.Exists(itemRuleFile))
+            {
+                ItemRule.ReadRuleFile(itemRuleFile);
+                logger.Info($"item rule file - there are {ItemRule.Rules.Count} rules");
             }
 
             var clientTxtBase = rawConfig["clientTxt"];
@@ -350,12 +391,13 @@ namespace ChaosHelper
 
             var dumpTabNames = rawConfig.GetStringList("dumpTabs");
             DumpTabDictionary.Clear();
+            logger.Info($"dumpTabs has {dumpTabNames.Count} entries");
 
             try
             {
                 var stashTabListUrl = System.Uri.EscapeUriString("https://www.pathofexile.com/character-window/get-stash-items"
                     + $"?league={League}&tabs=1&accountName={Account}");
-                JsonElement json = await GetJsonForUrl(stashTabListUrl);
+                JsonElement json = await GetJsonForUrl(stashTabListUrl, -1);
 
                 var lookForCurrencyTab = Currency.CurrencyList.Any();
                 var lookForQualityTab = !string.IsNullOrWhiteSpace(qualityTabNameFromConfig);
@@ -437,13 +479,41 @@ namespace ChaosHelper
             return true;
         }
 
-        public static async Task<JsonElement> GetJsonForUrl(string theUrl)
+        public static async Task<JsonElement> GetJsonForUrl(string theUrl, int tabIndex)
         {
-            if (!ManualMode)
+            var fileName = Path.Combine(exePath, $"./{tabIndex}.jsonc");
+            if (TestMode == TestModeEnum.Playback && tabIndex > 0 && File.Exists(fileName))
+            {
+                var options = new JsonSerializerOptions
+                {
+                    AllowTrailingCommas = true,
+                    ReadCommentHandling = JsonCommentHandling.Skip,
+                };
+                try
+                {
+                    return JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(fileName), options);
+                }
+                catch (Exception ex)
+                {
+                    logger.Error(ex, $"Reading save tab data '{tabIndex}.jsonc'");
+                }
+            }
+
+            if (TestMode != TestModeEnum.Manual)
             {
                 try
                 {
-                    return await HttpClient.GetFromJsonAsync<JsonElement>(theUrl);
+                    var result = await HttpClient.GetFromJsonAsync<JsonElement>(theUrl);
+                    if (tabIndex > 0)
+                    {
+                        var options = new JsonSerializerOptions
+                        {
+                            WriteIndented = true,
+                        };
+                        var jsonString = JsonSerializer.Serialize(result, options);
+                        File.WriteAllText(fileName, jsonString);
+                    }
+                    return result;
                 }
                 catch (Exception ex)
                 {

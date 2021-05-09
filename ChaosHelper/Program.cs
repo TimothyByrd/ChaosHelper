@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -22,6 +23,7 @@ namespace ChaosHelper
         static bool highlightQualityToSell = false;
         static bool logMatchingNames = false;
         static bool reloadConfig = false;
+        static bool itemStatsFromClipboard = false;
         static bool isPaused = false;
 
         static ChaosOverlay overlay;
@@ -35,6 +37,10 @@ namespace ChaosHelper
         {
             try
             {
+                //ItemRule.RuleEntry.ShowMatch("ES>=150");
+                //ItemRule.RuleEntry.ShowMatch("ES*0.5>=150");
+                //ItemRule.RuleEntry.ShowMatch("LvlCold*85+DotCold*3.7+SpellPctCold>=100");
+
                 Config.ForceSteam = args.Length > 0 && string.Equals(args[0], "steam", StringComparison.OrdinalIgnoreCase);
 
                 Console.Title = "ChaosHelper.exe";
@@ -57,6 +63,7 @@ namespace ChaosHelper
             if (!await Config.ReadConfigFile())
                 return;
 
+#if DEBUG
             //var qualityItems = new ItemSet();
             //await GetQualityTabContents(Config.QualityTabIndex, qualityItems);
             //var keepGoing = true;
@@ -67,6 +74,10 @@ namespace ChaosHelper
             //    var qstr = string.Join(",", items.Select(x => x.Quality));
             //    keepGoing = items.Any();
             //}
+
+            //await CheckDumpTabs();
+            //return;
+#endif
 
             // Define the cancellation token.
             CancellationTokenSource source = new CancellationTokenSource();
@@ -122,11 +133,11 @@ namespace ChaosHelper
                                 highlightQualityToSell = true;
                             }
                         }
-                        else if (keyInfo.Key == ConsoleKey.M)
+                        else if (keyInfo.Key == ConsoleKey.D)
                         {
                             if (Config.DumpTabDictionary.Any())
                             {
-                                logger.Info("Looking for items with matching names in dump tabs");
+                                logger.Info("Checking items in dump tabs");
                                 logMatchingNames = true;
                             }
                         }
@@ -134,6 +145,11 @@ namespace ChaosHelper
                         {
                             isPaused = !isPaused;
                             logger.Info($"Setting isPaused to {isPaused}");
+                        }
+                        else if (keyInfo.Key == ConsoleKey.S)
+                        {
+                            itemStatsFromClipboard = true;
+                            logger.Info($"Check item stats from clipboard");
                         }
                         else if (keyInfo.KeyChar == '?')
                         {
@@ -148,7 +164,7 @@ namespace ChaosHelper
                             if (Config.QualityTabIndex >= 0)
                                 logger.Info("\t'q' to highlight quality gems/flasks to sell");
                             if (Config.DumpTabDictionary.Any())
-                                logger.Info("\t'm' to log items with matching names in dump tabs");
+                                logger.Info("\t'd' to check dump tabs for interesting items");
                             logger.Info("\t'p' to toggle pausing the page checks");
                         }
                         else
@@ -272,25 +288,37 @@ namespace ChaosHelper
             }
         }
 
-        private static async Task CheckForMatchingNames()
+        private static async Task CheckDumpTabs()
         {
             if (!Config.DumpTabDictionary.Any())
             {
-                logger.Warn("cannot check for matching names - no dump tabs configured/found");
+                logger.Warn("cannot check dump tabs - not configured/found");
                 return;
             }
 
             var itemNameSet = new ItemSet();
             var shouldDelay = false;
+            var emptyTabsSoFar = 0;
             foreach (var kvp in Config.DumpTabDictionary)
             {
-                if (shouldDelay) await Task.Delay(2000);
-                shouldDelay = true;
+                if (shouldDelay) await Task.Delay(1000);
+                shouldDelay = Config.TestMode != Config.TestModeEnum.Playback;
                 logger.Info($"checking tab '{kvp.Value}' ({kvp.Key})");
-                await GetTabContents(kvp.Key, itemNameSet);
+                var itemsInThisTab = await GetTabContents(kvp.Key, itemNameSet, true);
+                if (itemsInThisTab == 0) ++emptyTabsSoFar;
+                if (emptyTabsSoFar > 1) break;
             }
 
+            itemNameSet.CheckMods(Config.DumpTabDictionary);
             itemNameSet.LogMatchingNames(Config.DumpTabDictionary);
+            logger.Info("done checking dump tabs");
+        }
+
+        private static async Task CheckItemStatsFromClipboard()
+        {
+            var itemStats = new ItemStats(Cat.Junk, null);
+            await itemStats.CheckFromClipboard();
+            itemStats.DumpValues();
         }
 
         private static void SetOverlayStatusMessage()
@@ -322,19 +350,21 @@ namespace ChaosHelper
         // 8 prophecy
         // 9 relic
 
-        private static async Task GetTabContents(int tabIndex, ItemSet items)
+        private static async Task<int> GetTabContents(int tabIndex, ItemSet items, bool forceIncludeIded = false)
         {
+            var count = 0;
+
             try
             {
                 if (tabIndex < 0)
                 {
                     logger.Error("ERROR: stash tab index not set");
-                    return;
+                    return 0;
                 }
 
                 var stashTabUrl = System.Uri.EscapeUriString("https://www.pathofexile.com/character-window/get-stash-items"
                     + $"?league={Config.League}&tabIndex={tabIndex}&accountName={Config.Account}");
-                var json = await Config.GetJsonForUrl(stashTabUrl);
+                var json = await Config.GetJsonForUrl(stashTabUrl, tabIndex);
                 foreach (var item in json.GetProperty("items").EnumerateArray())
                 {
                     var frameType = item.GetIntOrDefault("frameType", 0);
@@ -344,7 +374,7 @@ namespace ChaosHelper
                     // only check category for rares of ilvl 60+
                     //
                     var category = Cat.Junk;
-                    if (frameType == 2 && ilvl >= Config.MinIlvl && (Config.AllowIDedSets || !identified))
+                    if (frameType == 2 && ilvl >= Config.MinIlvl && (Config.AllowIDedSets || !identified || forceIncludeIded))
                     {
                         var iconUrl = item.GetProperty("icon").GetString();
                         foreach (var c in ItemClass.Iterator())
@@ -364,14 +394,18 @@ namespace ChaosHelper
                     }
 
                     items.Add(category, item, tabIndex);
+                    ++count;
                 }
 
                 items.Sort();
+
             }
             catch (Exception ex)
             {
                 logger.Error(ex, $"HTTP error getting tab contents: {ex.Message}");
             }
+
+            return count;
         }
 
         private static async Task GetQualityTabContents(int tabIndex, ItemSet items)
@@ -388,7 +422,7 @@ namespace ChaosHelper
 #if true
                 var stashTabUrl = System.Uri.EscapeUriString("https://www.pathofexile.com/character-window/get-stash-items"
                     + $"?league={Config.League}&tabIndex={tabIndex}&accountName={Config.Account}");
-                var json = await Config.GetJsonForUrl(stashTabUrl);
+                var json = await Config.GetJsonForUrl(stashTabUrl, tabIndex);
 #else
                 await Task.Yield();
                 var text = File.ReadAllText("D:/code/ChaosHelper/quality.json");
@@ -474,7 +508,7 @@ namespace ChaosHelper
 
                 var stashTabUrl = System.Uri.EscapeUriString("https://www.pathofexile.com/character-window/get-stash-items"
                     + $"?league={Config.League}&tabIndex={Config.CurrencyTabIndex}&accountName={Config.Account}");
-                var json = await Config.GetJsonForUrl(stashTabUrl);
+                var json = await Config.GetJsonForUrl(stashTabUrl, Config.CurrencyTabIndex);
                 foreach (var item in json.GetProperty("items").EnumerateArray())
                 {
                     var stackSize = item.GetIntOrDefault("stackSize", 0);
@@ -519,7 +553,7 @@ namespace ChaosHelper
 
         private static async Task GetInventoryContents(ItemSet items)
         {
-            if (Config.ManualMode)
+            if (Config.TestMode != Config.TestModeEnum.Normal)
                 return;
 
             if (string.IsNullOrWhiteSpace(Config.Character))
@@ -595,7 +629,7 @@ namespace ChaosHelper
                     league = league.Substring(4);
 
                 var poeNinjaUrl = System.Uri.EscapeUriString($"https://poe.ninja/api/data/currencyoverview?league={league}&type=Currency");
-                var json = await Config.GetJsonForUrl(poeNinjaUrl);
+                var json = await Config.GetJsonForUrl(poeNinjaUrl, -1);
                 foreach (var item in json.GetProperty("lines").EnumerateArray())
                 {
                     var currencyTypeName = item.GetProperty("currencyTypeName").GetString();
@@ -774,9 +808,9 @@ namespace ChaosHelper
                         if (newArea != null)
                         {
                             bool isTown = Config.IsTown(newArea);
-                            logger.Info($"new area - {newArea} - town: {isTown} - paused: {isPaused}");
-                            var messageStatus = isPaused ? $" (paused)" : (!wasTown && isTown) ? " (to town)" : string.Empty;
-                            overlay?.SetArea($"{newArea}{messageStatus}", isTown);
+                            var status = isPaused ? " (paused)" : !isTown ? string.Empty : !wasTown ? " (to town)" : " (town)";
+                            logger.Info($"new area - {newArea}{status}");
+                            overlay?.SetArea($"{newArea}{status}", isTown);
                             qualityItems = null;
                             highlightQualityToSell = false;
                             currentArea = newArea;
@@ -811,8 +845,13 @@ namespace ChaosHelper
                         }
                         else if (logMatchingNames)
                         {
-                            await CheckForMatchingNames();
+                            await CheckDumpTabs();
                             logMatchingNames = false;
+                        }
+                        else if (itemStatsFromClipboard)
+                        {
+                            await CheckItemStatsFromClipboard();
+                            itemStatsFromClipboard = false;
                         }
 
                         await Task.Delay(1000, token);

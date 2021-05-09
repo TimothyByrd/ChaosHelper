@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 
-using Overlay.NET.Common;
-
 namespace ChaosHelper
 {
     public class ItemSet
@@ -168,8 +166,10 @@ namespace ChaosHelper
                 e.GetProperty("ilvl").GetInt32(),
                 e.GetProperty("identified").GetBoolean(),
                 e.GetProperty("name").GetString(),
+                e.GetProperty("baseType").GetString(),
                 tabIndex,
-                quality));
+                quality,
+                e));
         }
 
         public ItemSet GetSetToSell(bool allowIdentified, int chaosParanoiaLevel)
@@ -449,6 +449,32 @@ namespace ChaosHelper
                         nameDict.Remove(item.Name);
                     }
                 }
+            }
+        }
+
+        public void CheckMods(Dictionary<int, string> dumpTabDict)
+        {
+            string DumpTabName(int tabIndex)
+            {
+                return dumpTabDict.ContainsKey(tabIndex) ? dumpTabDict[tabIndex] : "<unknown>";
+            }
+
+            var interestingItems = new SortedDictionary<string, ItemStats>();
+            foreach (var c in ItemClass.Iterator())
+            foreach (var item in itemsDict[c.Category])
+            {
+                var itemStats = new ItemStats(c.Category, item.BaseType);
+                itemStats.CheckMods(item);
+                var message = itemStats.GetValueMessage();
+                if (message == null) continue;
+                var tab = DumpTabName(item.TabIndex);
+                interestingItems.Add($"interesting item: tab '{tab}' at {item.X},{item.Y} - {item.Name} - {message}", itemStats);
+            }
+
+            foreach (var kv in interestingItems)
+            {
+                logger.Info(kv.Key);
+                kv.Value.DumpValues();
             }
         }
     }

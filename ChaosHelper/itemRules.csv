@@ -1,0 +1,25 @@
+# rules for interesting items
+
+High ES,BodyArmours,PropES>=400
+High ES,Helmets,PropES>=150
+High Evasion,BodyArmours,PropEva>=1000
+High Armour,BodyArmours,PropArm>=1000
+
+Res Boots,Boots,MoveSpeed>=25,TotRes>=70
+Vortex Weapon,OneHandWeapons,LvlCold*85+DotCold*3.7+SpellPctCold>=100
+Dot Cold,OneHandWeapons,DotCold>=40
+Dot Fire,OneHandWeapons,DotFile>=40
+Dot Chaos,OneHandWeapons,DotChaos>=40
+
+# all the recommendations from https://odealo.com/articles/holy-flame-totem-hierophant-templar-build
+HFT Helmet,Helmets,MaxLife>=80,TotRes>=75
+HFT Sceptre,OneHandWeapons,SpellPctFire>=60,CritChanceSpell>=70,AddFireSpell>=40,PhysAsFire>=20
+HFT Shield,Shields,SpellPctFire>=30,CritChanceSpell>=80,MaxLife>=80
+HFT Armour,BodyArmours,MaxLife>=110
+HFT Boots,Boots,MoveSpeed>=25,TotRes>=75,MaxLife>=70
+HFT Gloves,Gloves,TotRes>=75,MaxLife>=90
+HFT Belts,Belts,TotRes>=80,MaxLife>=100
+HFT Amulet,Amulets,MaxLife>=60,CritMult>=30
+HFT Rings,Rings,TotRes>=80,MaxLife>=60
+HFT Jewels,Jewels,PctLife>=5,SpellPctFire>=5,CritMult>=5
+HFT Jewels,Jewels,MaxLife>=25,AddFireSpell>=5,CritMult>=5

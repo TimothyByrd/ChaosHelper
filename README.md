@@ -237,8 +237,8 @@ I suggest leaving `league`, `character`, `tabName`, `tabIndex` and `isQuadTab` a
 This will cause to the tool to auto-determine the values, which is good when there are multiple leagues available.
 In particular, `tabIndex` is difficult, because the same tab can change from league to league and can depend on if there are Remove-only tabs visible.
 
-`manualMode` (false) turns on a manual mode in case GGG blocks non-site access to the inventory information due to server overload.
-When manual mode is enabled, the console window will show a URL to open in your browser (the URL should already be copiued to your clipboard).
+`testMode` (Normal) Can set to `Manual` in case GGG blocks non-site access to the inventory information due to server overload.
+When manual mode is enabled, the console window will show a URL to open in your browser (the URL should already be copied to your clipboard).
 The page should open as a JSON document. Select the entire document and copy to your clipboard. At that point, the tool should continue.
 
 `clientTxt` defines where to find the PoE client.txt log file, which the tool uses to track zone changes.

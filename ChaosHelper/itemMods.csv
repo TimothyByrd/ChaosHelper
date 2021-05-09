@@ -1,0 +1,173 @@
+# put the affix in Column A and the tags you want it to have in following columns.
+#
+# tags can have multipliers
+# for example, the added strength entry might be:
+#
+# +1 to Strength,AddStr,MaxLife*0.5
+#
+# so if an item has a "+23 to Strength" mod,
+# then the AddStr tag will get 23 points and the MaxLife tag will get 11.5 points
+# (this tool doesn't round down like the game would)
+#
+# a multiplier of zero means to count the mod as 1 no matter the value
+# so all the Nothing*0 tags mean to just count the number of Nothing tags an item has. 
+
++1% to Chaos Resistance,ResChaos,TotRes
++1% to Cold and Chaos Resistances,ResCold,ResChaos,TotRes*2
++1% to Cold and Lightning Resistances,ResCold,ResLight,TotRes*2
++1% to Cold Resistance,ResCold,TotRes
++1% to Fire and Chaos Resistances,ResFire,ResChaos,TotRes*2
++1% to Fire and Cold Resistances,ResFire,ResCold,TotRes*2
++1% to Fire and Lightning Resistances,ResFire,ResLight,TotRes*2
++1% to Fire Resistance,ResFire,TotRes
++1% to Lightning and Chaos Resistances,ResLight,ResChaos,TotRes*2
++1% to Lightning Resistance,ResLight,TotRes
++1% to All Elemental Resistances,ResAll,ResCold,ResFire,ResLight,TotRes*3
+
++1 to Maximum Life,MaxLife
+1% increased Maximum Life,PctLife
+1% increased Movement Speed,MoveSpeed
+
++1 to Dexterity,AddDex,TotAttr
++1 to Strength,AddStr,TotAttr,MaxLife*0.5
++1 to Intelligence,AddInt,TotAttr
++1 to All Attributes,AddDex,AddStr,AddInt,TotAttr*3,MaxLife*0.5
++1 to Strength and Dexterity,AddStr,AddDex,TotAttr*2,MaxLife*0.5
++1 to Strength and Intelligence,AddStr,AddInt,TotAttr*2,MaxLife*0.5
++1 to Dexterity and Intelligence,AddDex,AddInt,TotAttr*2
+
+1% increased Chaos Damage,DamPctChaos,SpellPctChaos
+1% increased Cold Damage,DamPctCold,SpellPctCold
+1% increased Fire Damage,DamPctFire,SpellPctFire
+1% increased Lightning Damage,DamPctLight,SpellPctLight
+1% increased Physical Damage,DamPctPhys
+1% increased Global Physical Damage,DamPctPhys
+1% increased Damage,DamPctAll,DamPctChaos,DamPctCold,DamPctFire,DamPctLight,DamPctPhys
+1% increased Spell Damage,SpellPct,SpellPctChaos,SpellPctCold,SpellPctFire,SpellPctLight
+
++1% to Chaos Damage over Time Multiplier,DotChaos
++1% to Cold Damage over Time Multiplier,DotCold
++1% to Fire Damage over Time Multiplier,DotFire
++1% to Physical Damage over Time Multiplier,DotPhys
++1% to Damage over Time Multiplier,DotAll,DotChaos,DotCold,DotFire,DotPhys
+
++1 to Level of all Chaos Spell Skill Gems,LvlChaos
++1 to Level of all Cold Spell Skill Gems,LvlCold
++1 to Level of all Fire Spell Skill Gems,LvlFire
++1 to Level of all Lightning Spell Skill Gems,LvlLight
++1 to Level of all Physical Spell Skill Gems,LvlPhys
++1 to Level of all Spell Skill Gems,LvlSpell,LvlChaos,LvlCold,LvlFire,LvlLight,LvlPhys
+
+1% increased Critical Strike Chance for Spells,CritChanceSpell
+1% increased Global Critical Strike Chance,CritChanceSpell
++1% to Global Critical Strike Multiplier,CritMult
+
+Adds 1 to 1 Cold Damage to Spells,AddColdSpell
+Adds 1 to 1 Fire Damage to Spells,AddFireSpell
+Adds 1 to 1 Lightning Damage to Spells,AddLightSpell
+
+Gain 1% of Physical Damage as Extra Fire Damage,PhysAsFire
+Gain 1% of Cold Damage as Extra Chaos Damage,Nothing*0
+Gain 1% of Fire Damage as Extra Chaos Damage,Nothing*0
+Gain 1% of Non-Chaos Damage as extra Chaos Damage,Nothing*0
+Gain 1% of Physical Damage as Extra Chaos Damage,Nothing*0
+Gain 1% of Physical Damage as Extra Cold Damage,Nothing*0
+Gain 1% of Physical Damage as Extra Lightning Damage,Nothing*0
+
++1 Life gained for each Enemy hit by Attacks,Nothing*0
++1 Life gained on Kill,Nothing*0
++1 Life gained when you Block,Nothing*0
++1 Mana gained for each Enemy hit by Attacks,Nothing*0
++1 Mana gained on Kill,Nothing*0
++1 Mana gained when you Block,Nothing*0
++1 to Accuracy Rating,Nothing*0
++1 to Armour,Nothing*0
++1 to Energy Shield,Nothing*0
++1 to Evasion Rating,Nothing*0
++1 to Level of Socketed AoE Gems,Nothing*0
++1 to Level of Socketed Aura Gems,Nothing*0
++1 to Level of Socketed Duration Gems,Nothing*0
++1 to Level of Socketed Gems,Nothing*0
++1 to Level of Socketed Lightning Gems,Nothing*0
++1 to Level of Socketed Melee Gems,Nothing*0
++1 to Level of Socketed Minion Gems,Nothing*0
++1 to Level of Socketed Trap or Mine Gems,Nothing*0
++1 to maximum Energy Shield,Nothing*0
++1 to maximum Mana,Nothing*0
++1 to Minimum Power Charges,Nothing*0
++1% Chance to Block Attack Damage while wielding a Staff,Nothing*0
++1% Chance to Block Projectile Attack Damage,Nothing*0
++1% Chance to Block Spell Damage while wielding a Staff,Nothing*0
++1% Chance to Block,Nothing*0
+1% additional Physical Damage Reduction while stationary,Nothing*0
+1% additional Physical Damage Reduction,Nothing*0
+1% chance to Avoid being Stunned,Nothing*0
+1% chance to Avoid Elemental Ailments,Nothing*0
+1% Chance to Block Attack Damage,Nothing*0
+1% Chance to Block Spell Damage,Nothing*0
+1% chance to deal Double Damage,Nothing*0
+1% chance to Dodge Attack Hits,Nothing*0
+1% chance to Dodge Spell Hits,Nothing*0
+1% chance to Freeze,Nothing*0
+1% chance to gain a Power Charge on Kill,Nothing*0
+1% chance to Ignite,Nothing*0
+1% chance to Poison on Hit,Nothing*0
+1% chance to Shock,Nothing*0
+1% increased Area Damage,Nothing*0
+1% increased Armour and Energy Shield,Nothing*0
+1% increased Armour and Evasion,Nothing*0
+1% increased Armour,Nothing*0
+1% increased Attack Damage,Nothing*0
+1% increased Attack Speed,Nothing*0
+1% increased Block Recovery,Nothing*0
+1% increased Burning Damage,Nothing*0
+1% increased Cast Speed,Nothing*0
+1% increased Critical Strike Chance,Nothing*0
+1% increased Damage with Bleeding,Nothing*0
+1% increased Damage with Poison,Nothing*0
+1% increased Dexterity,Nothing*0
+1% increased Elemental Damage with Attack Skills,Nothing*0
+1% increased Elemental Damage,Nothing*0
+1% increased Energy Shield,Nothing*0
+1% increased Evasion and Energy Shield,Nothing*0
+1% increased Evasion Rating,Nothing*0
+1% increased Flask Charges gained,Nothing*0
+1% increased Flask Effect Duration,Nothing*0
+1% increased Flask Life Recovery rate,Nothing*0
+1% increased Flask Mana Recovery rate,Nothing*0
+1% increased Global Accuracy Rating,Nothing*0
+1% increased Intelligence,Nothing*0
+1% increased Light Radius,Nothing*0
+1% increased Mana Regeneration Rate,Nothing*0
+1% increased Projectile Speed,Nothing*0
+1% increased Rarity of Items found,Nothing*0
+1% increased Strength,Nothing*0
+1% increased Stun and Block Recovery,Nothing*0
+1% increased Stun Duration on Enemies,Nothing*0
+1% of Physical Attack Damage Leeched as Life,Nothing*0
+1% of Physical Attack Damage Leeched as Mana,Nothing*0
+1% reduced Attribute Requirements,Nothing*0
+1% reduced Chaos Damage taken,Nothing*0
+1% reduced Enemy Stun Threshold,Nothing*0
+1% reduced Flask Charges used,Nothing*0
+Adds 1 to 1 Cold Damage to Attacks,Nothing*0
+Adds 1 to 1 Cold Damage,Nothing*0
+Adds 1 to 1 Fire Damage to Attacks,Nothing*0
+Adds 1 to 1 Fire Damage,Nothing*0
+Adds 1 to 1 Lightning Damage to Attacks,Nothing*0
+Adds 1 to 1 Lightning Damage,Nothing*0
+Adds 1 to 1 Physical Damage to Attacks,Nothing*0
+Adds 1 to 1 Physical Damage,Nothing*0
+Attacks have 1% chance to cause Bleeding,Nothing*0
+Chaos Skills have 1% increased Skill Effect Duration,Nothing*0
+Determination has 1% increased Aura Effect,Nothing*0
+Earthshatter deals 1% increased Damage,Nothing*0,LabEnchant
+Grants Level 1 Pride Skill,Nothing*0
+Has 1 Socket,Nothing*0
+Minions have +1% to all Elemental Resistances,Nothing*0
+Reflects 1 Physical Damage to Melee Attackers,Nothing*0
+Regenerate 1 Life per second,Nothing*0
+Regenerate 1 Mana per second,Nothing*0
+Regenerate 1% of Energy Shield per second,Nothing*0
+Regenerate 1% of Life per second,Nothing*0
+Resolute Technique,Nothing*0

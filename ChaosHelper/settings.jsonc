@@ -27,7 +27,7 @@
         "0xffffff", // armour/weapons
         "0xffff00", // helmets/gloves/boots
         "0x00ff00", // belts
-        "0x6060ff", // rings/amulets
+        "0x6060ff" // rings/amulets
     ],
 
     // These set global hotkeys
@@ -48,18 +48,19 @@
     "tabName": "",
     "tabIndex": -1,
     "isQuadTab": true,
-    "manualMode": false,
+    "testMode": "Normal",
 
     "clientTxt": "", // see README.md - need to set if both steam and regular clients are installed
     "processName": "", // see README.md
-    
+
     // translate this if you use the PoE client in a language other than English
     "areaEnteredPattern": "] : You have entered ",
 
     // add your hideout here
     // these are zones with a stash and merchant, so we don't accidentally obscure the UI in combat
     // comment out the whole thing to allow the stash overlay anywhere
-    "townZones": [ 
+    // if this list has entries, will optimize to not hit the site then the previous wasn't a town zone
+    "townZones": [
 //        "Vast Plains Hideout",
 //        "Lioneye's Watch",
 //        "The Forest Encampment",
@@ -70,6 +71,7 @@
 //        "Oriath Docks",
 //        "Oriath",
 //        "Karui Shores",
+//        "The Rogue Harbour"
 //        // "Azurite Mine",
 //        // "The Menagerie",
 //        // "Tane's Laboratory",
@@ -111,6 +113,8 @@
     "qualityFlaskRecipeSlop": 0,
     "qualityGemRecipeSlop": 0,
     "qualityVaalGemMaxQualityToUse": 0,
+
+    // "dumpTabs": [ "dump", "dump2", ], // if you want to configure dump tab scanning, set your dump tabs here
 
     // this is to figure out the place on the screen for the stash tab to highlight items
     // use [ 0, 0, 0, 0 ] to auto determine

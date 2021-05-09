@@ -22,8 +22,10 @@ namespace ChaosHelper
         public int TabIndex;
         public int Quality;
         public string Name;
+        public object JsonElement;
+        public string BaseType;
 
-        public ItemPosition(int x, int y, int h, int w, int ilvl, bool identified, string name, int tabIndex, int quality)
+        public ItemPosition(int x, int y, int h, int w, int ilvl, bool identified, string name, string baseType, int tabIndex, int quality, object jsonElement)
         {
             X = x;
             Y = y;
@@ -31,9 +33,11 @@ namespace ChaosHelper
             W = w;
             iLvl = ilvl;
             Identified = identified;
+            Name = name;
+            BaseType = baseType;
             TabIndex = tabIndex;
             Quality = quality;
-            Name = name;
+            JsonElement = jsonElement;
         }
 
         public static int Compare(ItemPosition ip1, ItemPosition ip2)
@@ -135,6 +139,19 @@ public static class Helpers
                 return value.GetInt32();
             }
             return defaultValue;
+        }
+
+        /// <summary>
+        /// Gets the specified JSON property value as an array
+        /// </summary>
+        /// <param name="element">The element holding the property.</param>
+        /// <param name="valueName">The name of the property to find.</param>
+        /// <returns>An array enumerator</returns>
+        public static System.Text.Json.JsonElement.ArrayEnumerator GetArray(this System.Text.Json.JsonElement element, string valueName)
+        {
+            if (element.TryGetProperty(valueName, out var value) && value.ValueKind == System.Text.Json.JsonValueKind.Array)
+                return value.EnumerateArray();
+            return default;
         }
 
         /// <summary>
