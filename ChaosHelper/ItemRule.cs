@@ -45,8 +45,8 @@ namespace ChaosHelper
 
             var result = new ItemRule
             {
-                Name = splits[0],
-                ItemClass = splits[1],
+                Name = splits[0].Trim(),
+                ItemClass = splits[1].Trim(),
             };
 
             foreach (var s in splits.Skip(2))
@@ -136,7 +136,15 @@ namespace ChaosHelper
                 var sum = 0.0;
                 foreach (var entry in sumItems)
                 {
-                    sum += (stats[entry.Tag] * entry.Multiplier);
+                    var value = stats[entry.Tag];
+                    if (value == 0 && entry.Tag.Contains("_frac", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var baseTag = entry.Tag.Substring(0, entry.Tag.IndexOf("_frac", StringComparison.OrdinalIgnoreCase));
+                        var (baseVal, fractured) = stats.GetTag(baseTag);
+                        if (fractured)
+                            value = baseVal;
+                    }
+                    sum += (value * entry.Multiplier);
                 }
 
                 return compare == ">" && sum > target || compare == ">=" && sum >= target;

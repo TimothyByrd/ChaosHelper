@@ -1,25 +1,42 @@
 # rules for interesting items
 
-High ES,BodyArmours,PropES>=400
-High ES,Helmets,PropES>=150
-High Evasion,BodyArmours,PropEva>=1000
-High Armour,BodyArmours,PropArm>=1000
+High ES, BodyArmours, PropES >= 500
+High ES, Helmets, PropES >= 150
+High ES, Gloves, PropES >= 100
+High Evasion, BodyArmours, PropEva >= 1500
+High Armour, BodyArmours, PropArm >= 1100
 
-Res Boots,Boots,MoveSpeed>=25,TotRes>=70
-Vortex Weapon,OneHandWeapons,LvlCold*85+DotCold*3.7+SpellPctCold>=100
-Dot Cold,OneHandWeapons,DotCold>=40
-Dot Fire,OneHandWeapons,DotFile>=40
-Dot Chaos,OneHandWeapons,DotChaos>=40
+Res Boots, Boots, MoveSpeed >= 25, TotRes >= 70
+Res Shield, Shields, TotRes >= 80, MaxLife >= 80
+Res Glove, Gloves, TotRes >= 80, MaxLife >= 70
+Res Helmet, Gloves, TotRes >= 80, MaxLife >= 90
+Res Armour, BodyArmours, TotRes >= 80, MaxLife >= 110
+
+Frac MS, Boots, MoveSpeed_fractured >= 25
+
+Res Belt, Belts, TotRes >= 80, MaxLife >= 100
+Stat Amulet, Amulets, TotRes >= 40, MaxLife >= 50, AddDex >= 24, AddStr >= 11
+
+ES Shield,  Shields, TotRes >= 80, PropES >= 100
+
+Vortex Weapon, OneHandWeapons, LvlCold*85+DotCold*3.7+SpellPctCold >= 100
+Dot Cold, OneHandWeapons, DotCold >= 40
+Dot Fire, OneHandWeapons, DotFile >= 40
+Dot Chaos, OneHandWeapons, DotChaos >= 40
+ES Rings, Rings, TotRes >= 80, AddES >= 25
+ES Amulets, Amulets, TotRes >= 80, AddES >= 25
+Life Rings,  Rings, TotRes >= 80, MaxLife >= 60
+Life Amulets, Amulets, TotRes >= 80, MaxLife >= 60
 
 # all the recommendations from https://odealo.com/articles/holy-flame-totem-hierophant-templar-build
-HFT Helmet,Helmets,MaxLife>=80,TotRes>=75
-HFT Sceptre,OneHandWeapons,SpellPctFire>=60,CritChanceSpell>=70,AddFireSpell>=40,PhysAsFire>=20
-HFT Shield,Shields,SpellPctFire>=30,CritChanceSpell>=80,MaxLife>=80
-HFT Armour,BodyArmours,MaxLife>=110
-HFT Boots,Boots,MoveSpeed>=25,TotRes>=75,MaxLife>=70
-HFT Gloves,Gloves,TotRes>=75,MaxLife>=90
-HFT Belts,Belts,TotRes>=80,MaxLife>=100
-HFT Amulet,Amulets,MaxLife>=60,CritMult>=30
-HFT Rings,Rings,TotRes>=80,MaxLife>=60
-HFT Jewels,Jewels,PctLife>=5,SpellPctFire>=5,CritMult>=5
-HFT Jewels,Jewels,MaxLife>=25,AddFireSpell>=5,CritMult>=5
+HFT Helmet, Helmets, MaxLife >= 80, TotRes >= 75
+HFT Sceptre, OneHandWeapons, SpellPctFire >= 60, CritChanceSpell >= 70, AddFireSpell >= 40, PhysAsFire >= 20
+HFT Shield, Shields, SpellPctFire >= 30, CritChanceSpell >= 80, MaxLife >= 80
+HFT Armour, BodyArmours, MaxLife >= 110
+HFT Boots, Boots, MoveSpeed >= 25, TotRes >= 75, MaxLife >= 70
+HFT Gloves, Gloves, TotRes >= 75, MaxLife >= 90
+HFT Belt, Belts, TotRes >= 80, MaxLife >= 100
+HFT Amulet, Amulets, MaxLife >= 60, CritMult >= 30
+HFT Ring, Rings, TotRes >= 80, MaxLife >= 60
+HFT Jewel, Jewels, PctLife >= 5, SpellPctFire >= 5, CritMult >= 5
+HFT Jewel, Jewels, MaxLife >= 25, AddFireSpell >= 5, CritMult >= 5

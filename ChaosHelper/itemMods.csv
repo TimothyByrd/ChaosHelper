@@ -42,6 +42,7 @@
 1% increased Lightning Damage,DamPctLight,SpellPctLight
 1% increased Physical Damage,DamPctPhys
 1% increased Global Physical Damage,DamPctPhys
+1% increased Elemental Damage,SpellPct,SpellPctCold,SpellPctFire,SpellPctLight
 1% increased Damage,DamPctAll,DamPctChaos,DamPctCold,DamPctFire,DamPctLight,DamPctPhys
 1% increased Spell Damage,SpellPct,SpellPctChaos,SpellPctCold,SpellPctFire,SpellPctLight
 
@@ -74,6 +75,11 @@ Gain 1% of Physical Damage as Extra Chaos Damage,Nothing*0
 Gain 1% of Physical Damage as Extra Cold Damage,Nothing*0
 Gain 1% of Physical Damage as Extra Lightning Damage,Nothing*0
 
++1 to maximum Armour,AddArm
++1 to maximum Energy Shield,AddES
++1 to maximum Evasion Rating,AddEva
++1 to maximum Mana,AddMana
+
 +1 Life gained for each Enemy hit by Attacks,Nothing*0
 +1 Life gained on Kill,Nothing*0
 +1 Life gained when you Block,Nothing*0
@@ -92,8 +98,6 @@ Gain 1% of Physical Damage as Extra Lightning Damage,Nothing*0
 +1 to Level of Socketed Melee Gems,Nothing*0
 +1 to Level of Socketed Minion Gems,Nothing*0
 +1 to Level of Socketed Trap or Mine Gems,Nothing*0
-+1 to maximum Energy Shield,Nothing*0
-+1 to maximum Mana,Nothing*0
 +1 to Minimum Power Charges,Nothing*0
 +1% Chance to Block Attack Damage while wielding a Staff,Nothing*0
 +1% Chance to Block Projectile Attack Damage,Nothing*0
@@ -127,7 +131,6 @@ Gain 1% of Physical Damage as Extra Lightning Damage,Nothing*0
 1% increased Damage with Poison,Nothing*0
 1% increased Dexterity,Nothing*0
 1% increased Elemental Damage with Attack Skills,Nothing*0
-1% increased Elemental Damage,Nothing*0
 1% increased Energy Shield,Nothing*0
 1% increased Evasion and Energy Shield,Nothing*0
 1% increased Evasion Rating,Nothing*0

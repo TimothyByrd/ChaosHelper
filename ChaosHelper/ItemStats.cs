@@ -178,13 +178,24 @@ namespace ChaosHelper
             }
 
             var splits = text.Split(lineSplits, StringSplitOptions.RemoveEmptyEntries);
-            foreach (var line in splits)
+            var seenDash = false;
+            foreach (var split in splits)
             {
+                var fractured = split.Contains("(fractured)");
+                var line = split.Replace("(implicit)", "").Replace("(crafted)", "").Replace("(fractured)", "").Trim();
                 if (line.StartsWith("Item Class:", StringComparison.OrdinalIgnoreCase))
                     ItemClass = line.Substring(11).Trim();
                 else if (line.StartsWith("Item Level:", StringComparison.OrdinalIgnoreCase))
                     AddToTag("ilvl", int.Parse(line.Substring(11).Trim()));
-                CheckMod(line, false);
+                else if (line.StartsWith("-"))
+                {
+                    seenDash = true;
+                    continue;
+                }
+                else if (!seenDash || line.Contains(":"))
+                    continue;
+                else
+                    CheckMod(line, fractured);
             }
         }
 

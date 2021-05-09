@@ -85,7 +85,7 @@ namespace ChaosHelper
 
             var keyboardTask = Task.Run(async () =>
             {
-                await Task.Delay(2000);
+                await Task.Delay(1500);
                 logger.Info("Press 'Escape' to exit, '?' for help");
                 while (!token.IsCancellationRequested)
                 {
@@ -165,6 +165,7 @@ namespace ChaosHelper
                                 logger.Info("\t'q' to highlight quality gems/flasks to sell");
                             if (Config.DumpTabDictionary.Any())
                                 logger.Info("\t'd' to check dump tabs for interesting items");
+                            logger.Info("\t's' to check an item copied on the clipboard");
                             logger.Info("\t'p' to toggle pausing the page checks");
                         }
                         else
@@ -301,7 +302,7 @@ namespace ChaosHelper
             var emptyTabsSoFar = 0;
             foreach (var kvp in Config.DumpTabDictionary)
             {
-                if (shouldDelay) await Task.Delay(1000);
+                if (shouldDelay) await Task.Delay(500);
                 shouldDelay = Config.TestMode != Config.TestModeEnum.Playback;
                 logger.Info($"checking tab '{kvp.Value}' ({kvp.Key})");
                 var itemsInThisTab = await GetTabContents(kvp.Key, itemNameSet, true);
