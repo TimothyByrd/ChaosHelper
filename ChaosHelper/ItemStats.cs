@@ -149,9 +149,11 @@ namespace ChaosHelper
                 var iconPath = json.GetStringOrDefault("icon");
                 if (iconPath.Contains("Shields"))
                     ItemClass = "Shields";
+                else if (iconPath.Contains("Jewels"))
+                    ItemClass = "Jewels";
             }
 
-            if (frameType != 2 /*rare*/ || !identified) return;
+            if ((frameType != 2 /*rare*/ && frameType != 1 /*magic*/) || !identified) return;
 
             foreach (var modCat in modCats)
             {
@@ -184,7 +186,11 @@ namespace ChaosHelper
                 var fractured = split.Contains("(fractured)");
                 var line = split.Replace("(implicit)", "").Replace("(crafted)", "").Replace("(fractured)", "").Trim();
                 if (line.StartsWith("Item Class:", StringComparison.OrdinalIgnoreCase))
+                {
                     ItemClass = line.Substring(11).Trim();
+                    if (string.Equals(ItemClass, "Jewel", StringComparison.OrdinalIgnoreCase))
+                        ItemClass = "Jewels";
+                }
                 else if (line.StartsWith("Item Level:", StringComparison.OrdinalIgnoreCase))
                     AddToTag("ilvl", int.Parse(line.Substring(11).Trim()));
                 else if (line.StartsWith("-"))

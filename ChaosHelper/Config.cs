@@ -16,13 +16,15 @@ namespace ChaosHelper
         private static RawJsonConfiguration rawConfig;
         private static string exePath;
 
-        public enum TestModeEnum
+        public enum StashReading
         {
-            /// <summary>Get data from stash tabs via PoE site as normal.</summary>
+            /// <summary>Get stash tab data from PoE site.</summary>
             Normal,
-            /// <summary>Get data from stash tabs by copying json to clipboard.</summary>
+            /// <summary>Get stash tab data from PoE site, and save to files.</summary>
+            Record,
+            /// <summary>Get stash tab data by copying json to clipboard.</summary>
             Manual,
-            /// <summary>Get data from saved data files.</summary>
+            /// <summary>Get stash tab data from saved data files.</summary>
             Playback,
         }
 
@@ -64,12 +66,12 @@ namespace ChaosHelper
         public static HotKeyBinding ShowJunkItemsHotkey { get; private set; }
         public static HotKeyBinding ForceUpdateHotkey { get; private set; }
         public static HotKeyBinding CharacterCheckHotkey { get; private set; }
-        public static HotKeyBinding TestModeHotkey { get; private set; }
+        public static HotKeyBinding TestPatternHotkey { get; private set; }
         public static bool ShouldHookMouseEvents { get; private set; }
         public static string RequiredProcessName { get; private set; }
         public static System.Drawing.Rectangle StashPageXYWH { get; private set; }
         public static int StashPageVerticalOffset { get; private set; }
-        public static TestModeEnum TestMode { get; private set; }
+        public static StashReading StashReadMode { get; private set; }
 
         public static bool IsTown(string newArea)
         {
@@ -85,7 +87,7 @@ namespace ChaosHelper
                 || ShowJunkItemsHotkey != null
                 || ForceUpdateHotkey != null
                 || CharacterCheckHotkey != null
-                || TestModeHotkey != null;
+                || TestPatternHotkey != null;
             return haveAHotKey;
         }
 
@@ -119,12 +121,12 @@ namespace ChaosHelper
             return HotKeyMatches(CharacterCheckHotkey, e);
         }
 
-        public static bool IsTestModeHotkey(ConsoleHotKey.HotKeyEventArgs e)
+        public static bool IsTestPatternHotkey(ConsoleHotKey.HotKeyEventArgs e)
         {
-            return HotKeyMatches(TestModeHotkey, e);
+            return HotKeyMatches(TestPatternHotkey, e);
         }
 
-        public static bool LimitIlvl(ItemClass c)
+        public static bool LimitIlvl(ItemClassForFilter c)
         {
             var limitIlvl = MaxIlvl > 60 && MaxIlvl < 100 && IgnoreMaxIlvl.IndexOf(c.CategoryStr, StringComparison.OrdinalIgnoreCase) < 0;
             return limitIlvl;
@@ -175,12 +177,12 @@ namespace ChaosHelper
             HttpClient = new HttpClient(handler);
             HttpClient.DefaultRequestHeaders.UserAgent.Add(new System.Net.Http.Headers.ProductInfoHeaderValue("ChaosHelper", "1.0"));
 
-            var testModeStr = rawConfig["testMode"];
-            if (Enum.TryParse<TestModeEnum>(testModeStr, out var testMode)
-                && Enum.IsDefined(typeof(TestModeEnum), testMode))
-                TestMode = testMode;
+            var stashReadModeStr = rawConfig["stashReadMode"];
+            if (Enum.TryParse<StashReading>(stashReadModeStr, out var stashReadMode)
+                && Enum.IsDefined(typeof(StashReading), stashReadMode))
+                StashReadMode = stashReadMode;
             else
-                TestMode = TestModeEnum.Normal;
+                StashReadMode = StashReading.Normal;
 
             if (!await CheckAccount())
                 return false;
@@ -216,7 +218,7 @@ namespace ChaosHelper
             ShowJunkItemsHotkey = GetHotKey("showJunkItemsHotkey");
             ForceUpdateHotkey = GetHotKey("forceUpdateHotkey");
             CharacterCheckHotkey = GetHotKey("characterCheckHotkey");
-            TestModeHotkey = GetHotKey("testModeHotkey");
+            TestPatternHotkey = GetHotKey("testPatternHotkey");
 
             ShouldHookMouseEvents = rawConfig.GetBoolean("hookMouseEvents", false);
             RequiredProcessName = rawConfig["processName"];
@@ -481,8 +483,8 @@ namespace ChaosHelper
 
         public static async Task<JsonElement> GetJsonForUrl(string theUrl, int tabIndex)
         {
-            var fileName = Path.Combine(exePath, $"./{tabIndex}.jsonc");
-            if (TestMode == TestModeEnum.Playback && tabIndex > 0 && File.Exists(fileName))
+            var fileName = Path.Combine(exePath, $"./{tabIndex}.json");
+            if (StashReadMode == StashReading.Playback && tabIndex > 0 && File.Exists(fileName))
             {
                 var options = new JsonSerializerOptions
                 {
@@ -495,16 +497,16 @@ namespace ChaosHelper
                 }
                 catch (Exception ex)
                 {
-                    logger.Error(ex, $"Reading save tab data '{tabIndex}.jsonc'");
+                    logger.Error(ex, $"Reading save tab data '{tabIndex}.json'");
                 }
             }
 
-            if (TestMode != TestModeEnum.Manual)
+            if (StashReadMode != StashReading.Manual)
             {
                 try
                 {
                     var result = await HttpClient.GetFromJsonAsync<JsonElement>(theUrl);
-                    if (tabIndex > 0)
+                    if (tabIndex > 0 && StashReadMode == StashReading.Record)
                     {
                         var options = new JsonSerializerOptions
                         {

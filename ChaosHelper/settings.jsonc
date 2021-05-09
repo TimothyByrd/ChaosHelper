@@ -39,7 +39,7 @@
     "showJunkItemsHotkey": "!J", // hotkey to toggle highlight of non chaos items in your stash tab
     "forceUpdateHotkey": "!F", // hotkey to force the filter to be updated - generally not needed
     //"characterCheckHotkey": "!C", // hotkey to recheck your character and league
-    //"testModeHotkey": "!T", // hotkey to toggle a test pattern to verify the stash window size
+    //"testPatternHotkey": "!T", // hotkey to toggle a test pattern to verify the stash window size
     "hookMouseEvents": true, // see README.md
 
     // leave these all blank to auto-determine
@@ -48,7 +48,7 @@
     "tabName": "",
     "tabIndex": -1,
     "isQuadTab": true,
-    "testMode": "Normal",
+    "stashReadMode": "Normal",
 
     "clientTxt": "", // see README.md - need to set if both steam and regular clients are installed
     "processName": "", // see README.md
@@ -71,7 +71,7 @@
 //        "Oriath Docks",
 //        "Oriath",
 //        "Karui Shores",
-//        "The Rogue Harbour"
+//        "The Rogue Harbour",
 //        // "Azurite Mine",
 //        // "The Menagerie",
 //        // "Tane's Laboratory",

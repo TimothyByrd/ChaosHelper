@@ -154,19 +154,19 @@ namespace ChaosHelper
                         else if (keyInfo.KeyChar == '?')
                         {
                             logger.Info("\t'?' for this help");
+                            logger.Info("\t'p' to toggle pausing the page checks");
                             logger.Info("\t'h' to highlight a set of items to sell");
+                            if (Config.QualityTabIndex >= 0)
+                                logger.Info("\t'q' to highlight quality gems/flasks to sell");
                             logger.Info("\t'j' to highlight junk items in the stash tab");
                             logger.Info("\t'f' to force a filter update");
                             logger.Info("\t'c' to switch characters");
                             logger.Info("\t't' to toggle stash test mode (to make sure the rectangle is good)");
-                            logger.Info("\t'z' to list contents of currency stash tab (with prices from poe ninja)");
                             logger.Info("\t'r' to reload configuration, except hotkeys");
-                            if (Config.QualityTabIndex >= 0)
-                                logger.Info("\t'q' to highlight quality gems/flasks to sell");
+                            logger.Info("\t'z' to list contents of currency stash tab (with prices from poe ninja)");
                             if (Config.DumpTabDictionary.Any())
                                 logger.Info("\t'd' to check dump tabs for interesting items");
                             logger.Info("\t's' to check an item copied on the clipboard");
-                            logger.Info("\t'p' to toggle pausing the page checks");
                         }
                         else
                             overlay?.SendKey(keyInfo.Key);
@@ -212,7 +212,7 @@ namespace ChaosHelper
                         MaybeRegister(Config.ShowJunkItemsHotkey);
                         MaybeRegister(Config.ForceUpdateHotkey);
                         MaybeRegister(Config.CharacterCheckHotkey);
-                        MaybeRegister(Config.TestModeHotkey);
+                        MaybeRegister(Config.TestPatternHotkey);
                         HotKeyManager.HotKeyPressed += new EventHandler<HotKeyEventArgs>(HotKeyManager_HotKeyPressed);
                     }
 
@@ -253,7 +253,7 @@ namespace ChaosHelper
                 logger.Info("Rechecking character and league");
                 checkCharacter = true;
             }
-            else if (Config.IsTestModeHotkey(e))
+            else if (Config.IsTestPatternHotkey(e))
                 overlay?.SendKey(ConsoleKey.T);
         }
 
@@ -303,7 +303,7 @@ namespace ChaosHelper
             foreach (var kvp in Config.DumpTabDictionary)
             {
                 if (shouldDelay) await Task.Delay(500);
-                shouldDelay = Config.TestMode != Config.TestModeEnum.Playback;
+                shouldDelay = Config.StashReadMode != Config.StashReading.Playback;
                 logger.Info($"checking tab '{kvp.Value}' ({kvp.Key})");
                 var itemsInThisTab = await GetTabContents(kvp.Key, itemNameSet, true);
                 if (itemsInThisTab == 0) ++emptyTabsSoFar;
@@ -378,7 +378,7 @@ namespace ChaosHelper
                     if (frameType == 2 && ilvl >= Config.MinIlvl && (Config.AllowIDedSets || !identified || forceIncludeIded))
                     {
                         var iconUrl = item.GetProperty("icon").GetString();
-                        foreach (var c in ItemClass.Iterator())
+                        foreach (var c in ItemClassForFilter.Iterator())
                         {
                             if (iconUrl.Contains(c.CategoryStr))
                             {
@@ -554,7 +554,7 @@ namespace ChaosHelper
 
         private static async Task GetInventoryContents(ItemSet items)
         {
-            if (Config.TestMode != Config.TestModeEnum.Normal)
+            if (Config.StashReadMode != Config.StashReading.Normal && Config.StashReadMode != Config.StashReading.Record)
                 return;
 
             if (string.IsNullOrWhiteSpace(Config.Character))
@@ -592,7 +592,7 @@ namespace ChaosHelper
                     var category = Cat.Junk;
 
                     var iconUrl = item.GetProperty("icon").GetString();
-                    foreach (var c in ItemClass.Iterator())
+                    foreach (var c in ItemClassForFilter.Iterator())
                     {
                         if (iconUrl.Contains(c.CategoryStr))
                         {
@@ -660,7 +660,7 @@ namespace ChaosHelper
                 yield return "# Begin ChaosHelper generated section";
                 yield return "";
 
-                foreach (var c in ItemClass.Iterator())
+                foreach (var c in ItemClassForFilter.Iterator())
                 {
                     if (c.Skip || !items.ShouldShow(c.Category))
                         continue;

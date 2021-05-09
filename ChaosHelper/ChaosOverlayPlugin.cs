@@ -456,7 +456,7 @@ namespace ChaosHelper
         private void FillItemsToDraw(ItemSet itemSet)
         {
             _itemsToDraw.Clear();
-            foreach (var c in ItemClass.Iterator())
+            foreach (var c in ItemClassForFilter.Iterator())
             {
                 if (!_highlightBrushDict.ContainsKey(c.Category))
                     continue;

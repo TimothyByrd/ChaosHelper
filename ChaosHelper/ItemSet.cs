@@ -28,7 +28,7 @@ namespace ChaosHelper
 
         public ItemSet()
         {
-            foreach (var c in ItemClass.Iterator())
+            foreach (var c in ItemClassForFilter.Iterator())
             {
                 itemsDict[c.Category] = new List<ItemPosition>();
                 countsDict[c.Category] = new ItemCounts();
@@ -37,7 +37,7 @@ namespace ChaosHelper
 
         public void RefreshCounts()
         {
-            foreach (var c in ItemClass.Iterator())
+            foreach (var c in ItemClassForFilter.Iterator())
             {
                 countsDict[c.Category] = Counts(c.Category);
             }
@@ -45,7 +45,7 @@ namespace ChaosHelper
 
         public void Sort()
         {
-            foreach (var c in ItemClass.Iterator())
+            foreach (var c in ItemClassForFilter.Iterator())
             {
                 itemsDict[c.Category].Sort(ItemPosition.Compare);
             }
@@ -55,7 +55,7 @@ namespace ChaosHelper
         {
             var msg = "";
             var sep = string.Empty;
-            foreach (var c in ItemClass.Iterator())
+            foreach (var c in ItemClassForFilter.Iterator())
             {
                 var counts = countsDict[c.Category];
                 if (counts.Total > 0)
@@ -95,7 +95,7 @@ namespace ChaosHelper
 
         public void CalculateClassesToShow(int maxSets, string ignoreMaxSets)
         {
-            foreach (var c in ItemClass.Iterator())
+            foreach (var c in ItemClassForFilter.Iterator())
             {
                 if (c.Skip)
                     continue;
@@ -197,7 +197,7 @@ namespace ChaosHelper
         {
             if (itemsDict.Any(x => x.Value.Any(y => y.TabIndex < 0)))
             {
-                foreach (var c in ItemClass.Iterator())
+                foreach (var c in ItemClassForFilter.Iterator())
                 {
                     itemsDict[c.Category] = itemsDict[c.Category].Where(z => z.TabIndex >= 0).ToList();
                 }
@@ -214,7 +214,7 @@ namespace ChaosHelper
         {
             // Determine how many complete sets we can make.
             var possible = int.MaxValue;
-            foreach (var c in ItemClass.Iterator())
+            foreach (var c in ItemClassForFilter.Iterator())
             {
                 if (c.Category == Cat.Junk || c.Category == Cat.TwoHandWeapons)
                     continue;
@@ -242,7 +242,7 @@ namespace ChaosHelper
 
         private void RemoveItems(ItemSet itemsToRemove)
         {
-            foreach (var c in ItemClass.Iterator())
+            foreach (var c in ItemClassForFilter.Iterator())
             {
                 itemsDict[c.Category] = itemsDict[c.Category].Except(itemsToRemove.itemsDict[c.Category]).ToList();
             }
@@ -433,7 +433,7 @@ namespace ChaosHelper
             }
 
             var nameDict = new Dictionary<string, ItemPosition>();
-            foreach (var c in ItemClass.Iterator())
+            foreach (var c in ItemClassForFilter.Iterator())
             {
                 foreach (var item in itemsDict[c.Category])
                 {
@@ -460,7 +460,7 @@ namespace ChaosHelper
             }
 
             var interestingItems = new SortedDictionary<string, ItemStats>();
-            foreach (var c in ItemClass.Iterator())
+            foreach (var c in ItemClassForFilter.Iterator())
             foreach (var item in itemsDict[c.Category])
             {
                 var itemStats = new ItemStats(c.Category, item.BaseType);

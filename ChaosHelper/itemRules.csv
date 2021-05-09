@@ -1,10 +1,14 @@
 # rules for interesting items
+# each line is a rule name, the item class for the rule, and then a set of terms the item must match to pass the rule.
 
 High ES, BodyArmours, PropES >= 500
 High ES, Helmets, PropES >= 150
 High ES, Gloves, PropES >= 100
 High Evasion, BodyArmours, PropEva >= 1500
 High Armour, BodyArmours, PropArm >= 1100
+
+High Phys, OneHandWeapons, DamPctPhys >= 150
+High Phys, TwoHandWeapons, DamPctPhys >= 150
 
 Res Boots, Boots, MoveSpeed >= 25, TotRes >= 70
 Res Shield, Shields, TotRes >= 80, MaxLife >= 80
@@ -13,13 +17,17 @@ Res Helmet, Gloves, TotRes >= 80, MaxLife >= 90
 Res Armour, BodyArmours, TotRes >= 80, MaxLife >= 110
 
 Frac MS, Boots, MoveSpeed_fractured >= 25
+Frac Phys, OneHandWeapons, DamPctPhys_fractured >= 100
+Frac Phys, TwoHandWeapons, DamPctPhys_fractured >= 100
+
+Life Jewel, Jewels, PctLife >= 7
 
 Res Belt, Belts, TotRes >= 80, MaxLife >= 100
 Stat Amulet, Amulets, TotRes >= 40, MaxLife >= 50, AddDex >= 24, AddStr >= 11
 
 ES Shield,  Shields, TotRes >= 80, PropES >= 100
 
-Vortex Weapon, OneHandWeapons, LvlCold*85+DotCold*3.7+SpellPctCold >= 100
+Vortex Weapon, OneHandWeapons, GemLvlCold*85 + DotCold*3.7 + SpellPctCold >= 100
 Dot Cold, OneHandWeapons, DotCold >= 40
 Dot Fire, OneHandWeapons, DotFile >= 40
 Dot Chaos, OneHandWeapons, DotChaos >= 40
