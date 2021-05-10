@@ -187,7 +187,9 @@ namespace ChaosHelper
 
             // get initial counts
             itemsCurrent = new ItemSet();
+            await Task.Delay(500);
             await GetTabContents(Config.TabIndex, itemsCurrent);
+            await Task.Delay(500);
             await GetCurrencyTabContents();
             itemsCurrent.RefreshCounts();
             itemsCurrent.CalculateClassesToShow(Config.MaxSets, Config.IgnoreMaxSets);
@@ -265,9 +267,13 @@ namespace ChaosHelper
             itemsPrevious = itemsCurrent;
             itemsCurrent = new ItemSet();
             await GetTabContents(Config.TabIndex, itemsCurrent);
+            await Task.Delay(500);
             await GetCurrencyTabContents();
             if (Config.IncludeInventoryOnForce && forceFilterUpdate)
+            {
+                await Task.Delay(500);
                 await GetInventoryContents(itemsCurrent);
+            }
             itemsCurrent.RefreshCounts();
             itemsCurrent.CalculateClassesToShow(Config.MaxSets, Config.IgnoreMaxSets);
 
@@ -647,12 +653,27 @@ namespace ChaosHelper
         static IEnumerable<string> NewFilterContents(ItemSet items)
         {
             var numMarkerlinesFound = 0;
+
+            if (!Config.FilterMarkerChecked)
+            {
+                Config.PutFilterLineAtTop = !File.ReadAllLines(Config.TemplateFileName)
+                    .Any(line => line.StartsWith("#") && line.Contains(Config.FilterMarker, StringComparison.OrdinalIgnoreCase));
+                Config.FilterMarkerChecked = true;
+                if (Config.PutFilterLineAtTop)
+                    logger.Warn("filter marker not found - putting section after first comment line in file");
+            }
+
+            var forceGeneratedSection = Config.PutFilterLineAtTop;
+
             foreach (var line in File.ReadAllLines(Config.TemplateFileName))
             {
                 yield return line;
 
-                if (!line.StartsWith("#") || !line.Contains(Config.FilterMarker, StringComparison.OrdinalIgnoreCase))
+                if (!line.StartsWith("#")
+                    || (!forceGeneratedSection && !line.Contains(Config.FilterMarker, StringComparison.OrdinalIgnoreCase)))
                     continue;
+
+                forceGeneratedSection = false;
 
                 ++numMarkerlinesFound;
 

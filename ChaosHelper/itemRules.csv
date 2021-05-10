@@ -12,7 +12,7 @@ High Phys, TwoHandWeapons, DamPctPhys >= 150
 
 Res Boots, Boots, MoveSpeed >= 25, TotRes >= 70
 Res Shield, Shields, TotRes >= 80, MaxLife >= 80
-Res Glove, Gloves, TotRes >= 80, MaxLife >= 70
+Res Glove, Gloves, TotRes >= 80, MaxLife >= 60
 Res Helmet, Gloves, TotRes >= 80, MaxLife >= 90
 Res Armour, BodyArmours, TotRes >= 80, MaxLife >= 110
 

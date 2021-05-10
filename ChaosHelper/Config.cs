@@ -35,7 +35,6 @@ namespace ChaosHelper
         public static string Character { get; private set; }
         public static string TemplateFileName { get; private set; }
         public static string FilterFileName { get; private set; }
-        public static bool ForceSteam { get; set; }
         public static string ClientFileName { get; private set; }
         public static string FilterUpdateSound { get; private set; }
         public static float FilterUpdateVolume { get; private set; }
@@ -44,8 +43,6 @@ namespace ChaosHelper
         public static int MinIlvl { get; private set; }
         public static int TabIndex { get; private set; }
         public static bool IsQuadTab { get; private set; }
-        public static int CurrencyTabIndex { get; set; } = -1;
-        public static int QualityTabIndex { get; set; } = -1;
         public static bool QualityIsQuadTab { get; private set; }
         public static int QualityFlaskRecipeSlop { get; private set; }
         public static int QualityGemRecipeSlop { get; private set; }
@@ -72,6 +69,11 @@ namespace ChaosHelper
         public static System.Drawing.Rectangle StashPageXYWH { get; private set; }
         public static int StashPageVerticalOffset { get; private set; }
         public static StashReading StashReadMode { get; private set; }
+        public static bool ForceSteam { get; set; }
+        public static int CurrencyTabIndex { get; set; } = -1;
+        public static int QualityTabIndex { get; set; } = -1;
+        public static bool FilterMarkerChecked { get; set; }
+        public static bool PutFilterLineAtTop { get; set; }
 
         public static bool IsTown(string newArea)
         {
@@ -242,7 +244,7 @@ namespace ChaosHelper
 
             FilterMarker = rawConfig["filterMarker"];
             if (string.IsNullOrWhiteSpace(FilterMarker))
-                FilterMarker = "section displays 20% quality rares";
+                FilterMarker = "Override 270";
             logger.Info($"filterMarker is '{FilterMarker}'");
 
             var poeDocDir = Environment.ExpandEnvironmentVariables($"%USERPROFILE%\\Documents\\My Games\\Path of Exile\\");
@@ -315,6 +317,9 @@ namespace ChaosHelper
 
             if (!await DetermineTabIndicies())
                 return false;
+
+            FilterMarkerChecked = false;
+            PutFilterLineAtTop = false;
 
             return true;
         }

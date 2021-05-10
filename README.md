@@ -155,10 +155,11 @@ By default, the tool looks for a line containing the text "section displays 20% 
 For Neversink filters, this seems to put the chaos recipe section in a good place.
 
 **NOTE:** Make sure the text specified in `filterMarker` only occurs once in the filter template, at the place you want the chaos recipe code to go.
-For example, when using a Neversink filter it would be tempting to use something like "[[3100]] OVERRIDE AREA 2" as the `filterMarker'.
+For example, when using a Neversink filter in 3.14 it would be tempting to use something like "[[2300]] Endgame - Rare - Gear - T4 - rest" as the `filterMarker'.
 However that text occurs *twice* in the filter - once in the place we want the code and once in the table of contents at the top of the file.
 So using that text would cause the chaos recipe code to be inserted in the filter in both places.
-This would probably not be what you want, for example, it would override the normal hightlight for rare 6-socket armor.
+This would probably not be what you want, for example, it would override the normal highlight for rare 6-socket armor.
+As of 3.14, "Override 270" seems to look like a reasonable marker.
 
 ## Security
 <a name="h06" />
@@ -283,7 +284,7 @@ Translate this if you use the PoE client in a language other than English.
 __`townZones`__ defines the areas that are considered to be "towns".
 The commands noted as "town only" - highlight items, show junk items and test pattern - will only work when the tool thinks you are in a town zone.
 If no town zones are defined, then the tool will treat every area as a town zone.
-If you want protection from accidentally pressing one of the hightlight hotkeys while in combat, then uncomment the list of zones, and add you hideout to the list.
+If you want protection from accidentally pressing one of the highlight hotkeys while in combat, then uncomment the list of zones, and add you hideout to the list.
     
 __`currency`__ This array allows specifying minimum desired amounts for currencies and to put code in the loot filter to display them then the currency tab contains less than those amounts.
 This lets you run a stricter loot filter, but show certain currencies when the supply in your currency tab runs low. 
