@@ -443,9 +443,11 @@ namespace ChaosHelper
                     else
                     {
                         var otherItem = nameDict[item.Name];
-                        var tab1 = DumpTabName(item.TabIndex);
-                        var tab2 = DumpTabName(otherItem.TabIndex);
-                        logger.Info($"name match: tab '{tab1}' at {item.X},{item.Y}, '{tab2}' at {otherItem.X},{otherItem.Y} - {item.Name}");
+                        var item1 = item.TabIndex < otherItem.TabIndex ? item : otherItem;
+                        var item2 = item.TabIndex < otherItem.TabIndex ? otherItem : item;
+                        var tab1 = DumpTabName(item1.TabIndex);
+                        var tab2 = DumpTabName(item2.TabIndex);
+                        logger.Info($"name match: tab '{tab1}' at {item1.X},{item1.Y}, '{tab2}' at {item2.X},{item2.Y} - {item.Name}");
                         nameDict.Remove(item.Name);
                     }
                 }
@@ -468,12 +470,12 @@ namespace ChaosHelper
                 var message = itemStats.GetValueMessage();
                 if (message == null) continue;
                 var tab = DumpTabName(item.TabIndex);
-                interestingItems.Add($"interesting item: tab '{tab}' at {item.X},{item.Y} - {item.Name} - {message}", itemStats);
+                interestingItems.Add($"{item.TabIndex:D4}interesting item: tab '{tab}' at {item.X},{item.Y} - {item.Name} - {message}", itemStats);
             }
 
             foreach (var kv in interestingItems)
             {
-                logger.Info(kv.Key);
+                logger.Info(kv.Key.Substring(4));
                 kv.Value.DumpValues();
             }
         }

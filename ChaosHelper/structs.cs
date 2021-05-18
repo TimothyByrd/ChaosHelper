@@ -70,21 +70,25 @@ namespace ChaosHelper
 
     public enum BaseClass
     {
-        BodyArmours,
-        Helmets,
-        Gloves,
-        Boots,
-        OneHandWeapons,
-        TwoHandWeapons,
-        Shields,
-        Belts,
+        Any,
         Amulets,
-        Rings,
+        Belts,
+        BodyArmours,
+        Boots,
+        Gloves,
+        Helmets,
         Jewels,
-
-        Other,
+        OneHandWeapons,
+        Quivers,
+        Rings,
+        Shields,
+        TwoHandWeapons,
+        Flask,
+        Gems,
+        Currency,
+        Divination,
+        Map,
     }
-
 
     public struct ItemClassForFilter
     {
@@ -227,6 +231,53 @@ public static class Helpers
                     return System.Drawing.Color.FromArgb(int.Parse(nums[0]), int.Parse(nums[1]), int.Parse(nums[2])).ToArgb();
             }
             return -1;
+        }
+
+        private static readonly Dictionary<Cat, BaseClass> catClassDict = new Dictionary<Cat, BaseClass>
+        {
+            { Cat.BodyArmours, BaseClass.BodyArmours },
+            { Cat.Helmets, BaseClass.Helmets },
+            { Cat.Gloves, BaseClass.Gloves },
+            { Cat.Boots, BaseClass.Boots },
+            { Cat.OneHandWeapons, BaseClass.OneHandWeapons },
+            { Cat.TwoHandWeapons, BaseClass.TwoHandWeapons },
+            { Cat.Belts, BaseClass.Belts },
+            { Cat.Amulets, BaseClass.Amulets },
+            { Cat.Rings, BaseClass.Rings },
+            { Cat.Junk, BaseClass.Any },
+        };
+
+        public static BaseClass ToBaseClass(this Cat c)
+        {
+            return catClassDict[c];
+        }
+
+        public static BaseClass ToBaseClass(this string s)
+        {
+            if (Enum.TryParse<BaseClass>(s, true, out var baseClass)
+                && Enum.IsDefined(typeof(BaseClass), baseClass))
+                return baseClass;
+            return BaseClass.Any;
+        }
+
+        public static BaseClass JsonToBaseClass(this System.Text.Json.JsonElement json)
+        {
+            var iconPath = json.GetStringOrDefault("icon");
+            foreach (BaseClass b in Enum.GetValues(typeof(BaseClass)))
+            {
+                if (iconPath.Contains($"/{b}/"))
+                {
+                    return b;
+                }
+            }
+            var baseType = json.GetStringOrDefault("baseType");
+            if (baseType.Contains(" Flask", StringComparison.OrdinalIgnoreCase))
+                return BaseClass.Flask;
+            if (baseType.Contains(" Map", StringComparison.OrdinalIgnoreCase))
+                return BaseClass.Map;
+
+
+            return BaseClass.Any;
         }
     }
 }

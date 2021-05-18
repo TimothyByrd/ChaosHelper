@@ -10,10 +10,10 @@ namespace ChaosHelper
     public class ItemMod
     {
         private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
-        private static readonly char[] modTagSplits = "\t;,".ToCharArray();
+        private static readonly char[] modTagSplits = "\t;".ToCharArray();
 
         public static readonly List<ItemMod> PossibleMods = new List<ItemMod>();
-        
+
         public Regex Regex { get; private set; }
         public int NumVars { get; private set; }
         public List<TagEntry> Tags { get; private set; } = new List<TagEntry>();
@@ -31,7 +31,10 @@ namespace ChaosHelper
             if (NumVars == 1)
                 return (true, v1);
 
-            if (NumVars == 2)
+            if (NumVars == 2
+                || NumVars == 4
+                && string.Equals(match.Groups["v1"].Value, match.Groups["v3"].Value)
+                && string.Equals(match.Groups["v2"].Value, match.Groups["v4"].Value))
             {
                 var v2 = double.Parse(match.Groups["v2"].Value);
                 return (true, (v1 + v2) / 2);
@@ -77,7 +80,7 @@ namespace ChaosHelper
             if (string.IsNullOrWhiteSpace(rawStr))
                 return (null, 0);
 
-            var escaped = Regex.Escape(rawStr.Trim());
+           var escaped = Regex.Escape(rawStr.Replace("\\n", "\n").Trim());
 
             var counter = 0;
             string NextValueGroup(Match match)

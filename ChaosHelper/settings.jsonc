@@ -94,8 +94,8 @@
         { "c": "Orb of Horizons", "desired": 0, "fontSize": 45, "text": "0 0 0 255", "border": "0 0 0 200", "back": "61 156 136 255" },
         { "c": "Regal Orb", "desired": 0, "fontSize": 45, "text": "0 0 0 255", "border": "0 0 0 200", "back": "61 156 136 255" },
         { "c": "Perandus Coin", "desired": 0, "fontSize": 40, "text": "255 178 135 255", "border": "255 178 135 135", "back": "0 0 0 255" },
-        { "c": "Scroll of Wisdom", "desired": 0, "fontSize": 36, "text": "170 158 130 220", "border": "100 50 30 255", "back": "0 0 0 255" },
-        { "c": "Portal Scroll", "desired": 0, "fontSize": 36, "text": "170 158 130 220", "border": "30 50 100 255", "back": "0 0 0 255" },
+        { "c": "Scroll of Wisdom", "desired": 0, "fontSize": 37, "text": "170 158 130 220", "border": "100 50 30 255", "back": "0 0 0 255" },
+        { "c": "Portal Scroll", "desired": 0, "fontSize": 37, "text": "170 158 130 220", "border": "30 50 100 255", "back": "0 0 0 255" },
 
         { "c": "Imbued Catalyst", "desired": 0, "fontSize": 45, "text": "0 0 0 255", "border": "0 0 0 200", "back": "61 156 136 255" },
         { "c": "Intrinsic Catalyst", "desired": 0, "fontSize": 45, "text": "0 0 0 255", "border": "0 0 0 200", "back": "61 156 136 255" },

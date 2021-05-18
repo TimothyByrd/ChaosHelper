@@ -46,7 +46,7 @@ namespace ChaosHelper
             public bool Fractured;
         }
 
-        readonly Dictionary<string, TagValue> tagValues = new Dictionary<string, TagValue>();
+        readonly SortedDictionary<string, TagValue> tagValues = new SortedDictionary<string, TagValue>();
 
         public (double, bool) GetTag(string tag)
         {
@@ -61,7 +61,7 @@ namespace ChaosHelper
         {
             get { return V(s); }
         }
-    
+
         double V(string tag)
         {
             var lower = tag.ToLower();
@@ -100,17 +100,17 @@ namespace ChaosHelper
             }
 
             if (!found)
-                logger.Warn($"*** unknown mod '{s}'");
+                logger.Warn($"*** unknown mod: {s}");
         }
 
         public Cat Cat { get; set; }
-        public string ItemClass { get; set; }
+        public BaseClass BaseClass { get; set; }
         public string BaseType { get; set; }
 
         public ItemStats(Cat cat, string baseType)
         {
             Cat = cat;
-            ItemClass = Cat.ToString();
+            BaseClass = Cat.ToBaseClass();
             BaseType = baseType;
         }
 
@@ -144,13 +144,9 @@ namespace ChaosHelper
 
             AddToTag("ilvl", item.iLvl);
 
-            if (Cat == Cat.Junk)
+            if (BaseClass == BaseClass.Any)
             {
-                var iconPath = json.GetStringOrDefault("icon");
-                if (iconPath.Contains("Shields"))
-                    ItemClass = "Shields";
-                else if (iconPath.Contains("Jewels"))
-                    ItemClass = "Jewels";
+                BaseClass = json.JsonToBaseClass();
             }
 
             if ((frameType != 2 /*rare*/ && frameType != 1 /*magic*/) || !identified) return;
@@ -162,6 +158,14 @@ namespace ChaosHelper
                 while (theArray.MoveNext())
                     CheckMod(theArray.Current.GetString(), fractured);
 
+            }
+
+            var veiledArray = json.GetArray("veiledMods");
+            while (veiledArray.MoveNext())
+            {
+                AddToTag("Veiled", 1);
+                // Technically Prefix01 vs, Suffix03 should tell us something.
+                AddToTag(veiledArray.Current.GetString(), 1);
             }
 
             CheckProperties(json);
@@ -187,9 +191,11 @@ namespace ChaosHelper
                 var line = split.Replace("(implicit)", "").Replace("(crafted)", "").Replace("(fractured)", "").Trim();
                 if (line.StartsWith("Item Class:", StringComparison.OrdinalIgnoreCase))
                 {
-                    ItemClass = line.Substring(11).Trim();
-                    if (string.Equals(ItemClass, "Jewel", StringComparison.OrdinalIgnoreCase))
-                        ItemClass = "Jewels";
+                    var classStr = line.Substring(11).Trim();
+                    if (string.Equals(classStr, "Jewel", StringComparison.OrdinalIgnoreCase))
+                        BaseClass = BaseClass.Jewels;
+                    else
+                        BaseClass = classStr.ToBaseClass();
                 }
                 else if (line.StartsWith("Item Level:", StringComparison.OrdinalIgnoreCase))
                     AddToTag("ilvl", int.Parse(line.Substring(11).Trim()));
@@ -208,8 +214,7 @@ namespace ChaosHelper
         public void DumpValues()
         {
             Console.WriteLine();
-            if (!string.IsNullOrEmpty(ItemClass))
-                Console.WriteLine($"class = {ItemClass}");
+            Console.WriteLine($"class = {BaseClass}");
             if (!string.IsNullOrEmpty(BaseType))
                 Console.WriteLine($"base = {BaseType}");
             foreach (var tagValue in tagValues.Values)
@@ -256,7 +261,7 @@ namespace ChaosHelper
         //   "type": 18
         // }
         // ],
-        // 
+        //
 
         void CheckProperties(JsonElement item)
         {
@@ -266,13 +271,15 @@ namespace ChaosHelper
             foreach (var prop in props.EnumerateArray())
             {
                 var propType = prop.GetIntOrDefault("type", -1);
-                if (propType == -1 && first)
+                if (BaseClass == BaseClass.Any)
                 {
-                    var itemClass = prop.GetStringOrDefault("name");
-                    if (!string.IsNullOrEmpty(itemClass))
-                        ItemClass = itemClass;
+                    if (propType == -1 && first)
+                    {
+                        var itemClass = prop.GetStringOrDefault("name");
+                        if (!string.IsNullOrEmpty(itemClass))
+                            BaseClass = itemClass.ToBaseClass();
+                    }
                 }
-
                 first = false;
 
                 if (!propDict.ContainsKey(propType))

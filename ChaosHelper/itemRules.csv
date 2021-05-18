@@ -1,33 +1,44 @@
 # rules for interesting items
-# each line is a rule name, the item class for the rule, and then a set of terms the item must match to pass the rule.
+# each line is a rule name, the item class for the rule,
+# and then a set of terms the item must match to pass the rule.
+
+Vortex Weapon, OneHandWeapons, GemLvlCold*85 + DotCold*3.7 + SpellPctCold >= 135
+
+Minion, Helmets, GemLvlMinion >= 2, MaxLife + TotRes >= 100
 
 High ES, BodyArmours, PropES >= 500
-High ES, Helmets, PropES >= 150
+High ES, Shields, PropES >= 200
+High ES, Helmets, PropES >= 180
 High ES, Gloves, PropES >= 100
-High Evasion, BodyArmours, PropEva >= 1500
-High Armour, BodyArmours, PropArm >= 1100
+High ES, Boots, MoveSpeed >= 25, PropES >= 100
+High Evasion, BodyArmours, PropEva >= 1800
+High Armour, BodyArmours, PropArm >= 1800
 
 High Phys, OneHandWeapons, DamPctPhys >= 150
 High Phys, TwoHandWeapons, DamPctPhys >= 150
 
-Res Boots, Boots, MoveSpeed >= 25, TotRes >= 70
-Res Shield, Shields, TotRes >= 80, MaxLife >= 80
-Res Glove, Gloves, TotRes >= 80, MaxLife >= 60
-Res Helmet, Gloves, TotRes >= 80, MaxLife >= 90
+ES Shield,  Shields, TotRes >= 80, PropES >= 100
+
 Res Armour, BodyArmours, TotRes >= 80, MaxLife >= 110
+Res Shield, Shields, TotRes >= 80, MaxLife >= 80
+Res Helmet, Helmets, TotRes >= 80, MaxLife >= 75
+Res Glove, Gloves, TotRes >= 80, MaxLife >= 60
+Res Boots, Boots, MoveSpeed >= 25, TotRes >= 70
+Res Belt, Belts, TotRes >= 80, MaxLife >= 100
 
 Frac MS, Boots, MoveSpeed_fractured >= 25
 Frac Phys, OneHandWeapons, DamPctPhys_fractured >= 100
 Frac Phys, TwoHandWeapons, DamPctPhys_fractured >= 100
 
+Veiled, Any, Veiled >= 1
+
+Gem Level, Any, GemLvl >= 3
+
 Life Jewel, Jewels, PctLife >= 7
 
-Res Belt, Belts, TotRes >= 80, MaxLife >= 100
 Stat Amulet, Amulets, TotRes >= 40, MaxLife >= 50, AddDex >= 24, AddStr >= 11
 
-ES Shield,  Shields, TotRes >= 80, PropES >= 100
 
-Vortex Weapon, OneHandWeapons, GemLvlCold*85 + DotCold*3.7 + SpellPctCold >= 100
 Dot Cold, OneHandWeapons, DotCold >= 40
 Dot Fire, OneHandWeapons, DotFile >= 40
 Dot Chaos, OneHandWeapons, DotChaos >= 40
@@ -40,7 +51,7 @@ Life Amulets, Amulets, TotRes >= 80, MaxLife >= 60
 HFT Helmet, Helmets, MaxLife >= 80, TotRes >= 75
 HFT Sceptre, OneHandWeapons, SpellPctFire >= 60, CritChanceSpell >= 70, AddFireSpell >= 40, PhysAsFire >= 20
 HFT Shield, Shields, SpellPctFire >= 30, CritChanceSpell >= 80, MaxLife >= 80
-HFT Armour, BodyArmours, MaxLife >= 110
+#HFT Armour, BodyArmours, MaxLife >= 110
 HFT Boots, Boots, MoveSpeed >= 25, TotRes >= 75, MaxLife >= 70
 HFT Gloves, Gloves, TotRes >= 75, MaxLife >= 90
 HFT Belt, Belts, TotRes >= 80, MaxLife >= 100

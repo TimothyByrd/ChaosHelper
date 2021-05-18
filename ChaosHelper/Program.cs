@@ -310,7 +310,7 @@ namespace ChaosHelper
             {
                 if (shouldDelay) await Task.Delay(500);
                 shouldDelay = Config.StashReadMode != Config.StashReading.Playback;
-                logger.Info($"checking tab '{kvp.Value}' ({kvp.Key})");
+                logger.Info($"retrieving tab '{kvp.Value}' ({kvp.Key})");
                 var itemsInThisTab = await GetTabContents(kvp.Key, itemNameSet, true);
                 if (itemsInThisTab == 0) ++emptyTabsSoFar;
                 if (emptyTabsSoFar > 1) break;
@@ -357,7 +357,7 @@ namespace ChaosHelper
         // 8 prophecy
         // 9 relic
 
-        private static async Task<int> GetTabContents(int tabIndex, ItemSet items, bool forceIncludeIded = false)
+        private static async Task<int> GetTabContents(int tabIndex, ItemSet items, bool includeForDump = false)
         {
             var count = 0;
 
@@ -380,8 +380,11 @@ namespace ChaosHelper
 
                     // only check category for rares of ilvl 60+
                     //
+                    var getCat = (includeForDump && identified && (frameType == 1 || frameType == 2))
+                        || (!includeForDump && frameType == 2 && ilvl >= Config.MinIlvl && (Config.AllowIDedSets || !identified));
+
                     var category = Cat.Junk;
-                    if (frameType == 2 && ilvl >= Config.MinIlvl && (Config.AllowIDedSets || !identified || forceIncludeIded))
+                    if (getCat)
                     {
                         var iconUrl = item.GetProperty("icon").GetString();
                         foreach (var c in ItemClassForFilter.Iterator())
@@ -389,7 +392,7 @@ namespace ChaosHelper
                             if (iconUrl.Contains(c.CategoryStr))
                             {
                                 category = c.Category;
-                                if (c.Category == Cat.OneHandWeapons)
+                                if (!includeForDump && c.Category == Cat.OneHandWeapons)
                                 {
                                     if (item.GetIntOrDefault("w", 999) > 1
                                         || item.GetIntOrDefault("h", 999) > 3)
@@ -669,7 +672,7 @@ namespace ChaosHelper
             {
                 yield return line;
 
-                if (!line.StartsWith("#")
+                if (!line.Trim().StartsWith("#")
                     || (!forceGeneratedSection && !line.Contains(Config.FilterMarker, StringComparison.OrdinalIgnoreCase)))
                     continue;
 
@@ -771,8 +774,24 @@ namespace ChaosHelper
 
                 yield return "# End ChaosHelper generated section";
                 yield return "";
-            }
 
+                if (!string.IsNullOrEmpty(Config.FilterInsertFile))
+                {
+                    yield return "";
+                    yield return "# Begin ChaosHelper filter_insert section";
+                    yield return "";
+
+                    foreach (var insertLine in File.ReadAllLines(Config.FilterInsertFile))
+                    {
+                        yield return insertLine;
+                    }
+
+                    yield return "";
+                    yield return "# End ChaosHelper filter_insert section";
+                    yield return "";
+                }
+            }
+    
             if (numMarkerlinesFound == 0)
             {
                 logger.Warn("WARNING: marker not found in filter template - chaos recipe items will not be highlighted");

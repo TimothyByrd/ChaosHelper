@@ -74,6 +74,7 @@ namespace ChaosHelper
         public static int QualityTabIndex { get; set; } = -1;
         public static bool FilterMarkerChecked { get; set; }
         public static bool PutFilterLineAtTop { get; set; }
+        public static string FilterInsertFile { get; private set; }
 
         public static bool IsTown(string newArea)
         {
@@ -158,6 +159,10 @@ namespace ChaosHelper
             var filterUpdateVolumeInt = rawConfig.GetInt("soundFileVolume", 50).Clamp(0, 100);
             FilterUpdateVolume = filterUpdateVolumeInt / 100.0f;
 
+            FilterInsertFile = Path.Combine(exePath, "./filter_insert.txt");
+            if (!File.Exists(FilterInsertFile))
+                FilterInsertFile = null;
+
             Account = rawConfig["account"];
             if (string.IsNullOrWhiteSpace(Account))
             {
@@ -180,7 +185,7 @@ namespace ChaosHelper
             HttpClient.DefaultRequestHeaders.UserAgent.Add(new System.Net.Http.Headers.ProductInfoHeaderValue("ChaosHelper", "1.0"));
 
             var stashReadModeStr = rawConfig["stashReadMode"];
-            if (Enum.TryParse<StashReading>(stashReadModeStr, out var stashReadMode)
+            if (Enum.TryParse<StashReading>(stashReadModeStr, true, out var stashReadMode)
                 && Enum.IsDefined(typeof(StashReading), stashReadMode))
                 StashReadMode = stashReadMode;
             else

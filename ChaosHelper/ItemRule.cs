@@ -14,7 +14,7 @@ namespace ChaosHelper
         public static readonly List<ItemRule> Rules = new List<ItemRule>();
 
         public string Name { get; private set; }
-        public string ItemClass { get; private set; }
+        public BaseClass BaseClass { get; private set; }
         private readonly List<RuleEntry> entries = new List<RuleEntry>();
 
         private static readonly char[] ruleLineSplits = "\t;,".ToCharArray();
@@ -46,7 +46,7 @@ namespace ChaosHelper
             var result = new ItemRule
             {
                 Name = splits[0].Trim(),
-                ItemClass = splits[1].Trim(),
+                BaseClass = splits[1].Trim().ToBaseClass(),
             };
 
             foreach (var s in splits.Skip(2))
@@ -60,11 +60,9 @@ namespace ChaosHelper
 
         public bool Matches(ItemStats stats)
         {
-            if (!string.Equals(ItemClass, stats.ItemClass, StringComparison.OrdinalIgnoreCase))
-                return false;
-
-            return entries.All(x => x.Matches(stats));
-
+            if (BaseClass == stats.BaseClass || BaseClass == BaseClass.Any)
+                return entries.All(x => x.Matches(stats));
+            return false;
         }
 
         public class RuleEntry
