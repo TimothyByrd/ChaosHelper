@@ -16,6 +16,8 @@ namespace ChaosHelper
         public static TagEntry FromString(string s)
         {
             var splits = s.Split(tagValSplit, StringSplitOptions.RemoveEmptyEntries);
+            if (splits.Length >= 1 && string.Equals(splits[0], "Junk"))
+                return new TagEntry { Tag = "Junk", Multiplier = 0, };
             if (splits.Length == 1)
                 return new TagEntry { Tag = splits[0], Multiplier = 1.0, };
             if (splits.Length == 2 && double.TryParse(splits[1], out var m))

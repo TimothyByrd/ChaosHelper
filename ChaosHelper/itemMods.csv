@@ -10,7 +10,9 @@
 # (this tool doesn't round down like the game would)
 #
 # a multiplier of zero means to count the mod as 1 no matter the value
-# so all the Nothing*0 tags mean to just count the number of Nothing tags an item has. 
+# having no tag is interpreted as Junk*0
+#
+# mods are checked in order, so if there are duplicates in this file, only the first will match
 
 +1% to Chaos Resistance; ResChaos; TotRes
 +1% to Cold and Chaos Resistances; ResCold; ResChaos; TotRes*2
@@ -82,14 +84,6 @@ Adds 1 to 1 Cold Damage to Spells; AddColdSpell
 Adds 1 to 1 Fire Damage to Spells; AddFireSpell
 Adds 1 to 1 Lightning Damage to Spells; AddLightSpell
 
-Gain 1% of Physical Damage as Extra Fire Damage; PhysAsFire
-Gain 1% of Cold Damage as Extra Chaos Damage; Nothing*0
-Gain 1% of Fire Damage as Extra Chaos Damage; Nothing*0
-Gain 1% of Non-Chaos Damage as extra Chaos Damage; Nothing*0
-Gain 1% of Physical Damage as Extra Chaos Damage; Nothing*0
-Gain 1% of Physical Damage as Extra Cold Damage; Nothing*0
-Gain 1% of Physical Damage as Extra Lightning Damage; Nothing*0
-
 +1 to maximum Armour; AddArm
 +1 to maximum Energy Shield; AddES
 +1 to maximum Evasion Rating; AddEva
@@ -101,229 +95,334 @@ Minions have 1% increased Attack Speed; Minion
 Minions have 1% increased Cast Speed; Minion
 Minions have 1% increased maximum Life; Minion
 
-+1 Life gained for each Enemy hit by Attacks; Nothing*0
-+1 Life gained for each Enemy hit by your Attacks; Nothing*0
-+1 Life gained on Kill; Nothing*0
-+1 Life gained when you Block; Nothing*0
-+1 Mana gained for each Enemy hit by Attacks; Nothing*0
-+1 Mana gained on Kill; Nothing*0
-+1 Mana gained when you Block; Nothing*0
-+1 to Accuracy Rating; Nothing*0
-+1 to Armour; Nothing*0
-+1 to Energy Shield; Nothing*0
-+1 to Evasion Rating; Nothing*0
-+1 to maximum number of Raised Zombies; Nothing*0
-+1 to maximum number of Skeletons; Nothing*0
-+1 to Melee Strike Range; Nothing*0
-+1 to Minimum Power Charges; Nothing*0
-+1% Chance to Block Attack Damage while holding a Shield; Nothing*0
-+1% Chance to Block Attack Damage while wielding a Staff; Nothing*0
-+1% Chance to Block Projectile Attack Damage; Nothing*0
-+1% Chance to Block Spell Damage while Dual Wielding; Nothing*0
-+1% Chance to Block Spell Damage while holding a Shield; Nothing*0
-+1% Chance to Block Spell Damage while wielding a Staff; Nothing*0
-+1% Chance to Block; Nothing*0
-+1% to Critical Strike Multiplier for Spells; Nothing*0
-+1% to Critical Strike Multiplier with Bows; Nothing*0
-+1% to Critical Strike Multiplier with Fire Skills; Nothing*0
-+1% to Damage over Time Multiplier for Bleeding; Nothing*0
-1 to 1 Added Cold Damage with Wand Attacks; Nothing*0
-1 to 1 Added Lightning Damage with Wand Attacks; Nothing*0
-1% additional Physical Damage Reduction while stationary; Nothing*0
-1% additional Physical Damage Reduction; Nothing*0
-1% chance to Avoid being Chilled; Nothing*0
-1% chance to Avoid being Frozen; Nothing*0
-1% chance to Avoid being Stunned; Nothing*0
-1% chance to Avoid Elemental Ailments; Nothing*0
-1% Chance to Block Attack Damage; Nothing*0
-1% Chance to Block Spell Damage; Nothing*0
-1% chance to cause Bleeding on Hit; Nothing*0
-1% chance to Chill Attackers for 1 seconds on Block; Nothing*0
-1% chance to deal Double Damage; Nothing*0
-1% chance to Dodge Attack Hits; Nothing*0
-1% chance to Dodge Spell Hits; Nothing*0
-1% chance to double Stun Duration; Nothing*0
-1% chance to Freeze; Nothing*0
-1% chance to gain a Power Charge on Kill; Nothing*0
-1% chance to Ignite; Nothing*0
-1% chance to Knock Enemies Back on hit; Nothing*0
-1% chance to Maim on Hit; Nothing*0
-1% chance to Poison on Hit; Nothing*0
-1% chance to Shock; Nothing*0
-1% faster start of Energy Shield Recharge; Nothing*0
-1% increased Area Damage; Nothing*0
-1% increased Area of Effect; Nothing*0
-1% increased Armour and Energy Shield; Nothing*0
-1% increased Armour and Evasion; Nothing*0
-1% increased Armour; Nothing*0
-1% increased Attack and Cast Speed; Nothing*0
-1% increased Attack Critical Strike Chance while Dual Wielding; Nothing*0
-1% increased Attack Damage while holding a Shield; Nothing*0
-1% increased Attack Damage; Nothing*0
-1% increased Attack Speed while holding a Shield; Nothing*0
-1% increased Attack Speed with Maces or Sceptres; Nothing*0
-1% increased Attack Speed; Nothing*0
-1% increased Bleeding Duration; Nothing*0
-1% increased Block Recovery; Nothing*0
-1% increased Burning Damage; Nothing*0
-1% increased Cast Speed while holding a Shield; Nothing*0
-1% increased Cast Speed with Cold Skills; Nothing*0
-1% increased Cast Speed; Nothing*0
-1% increased Critical Strike Chance with Cold Skills; Nothing*0
-1% increased Critical Strike Chance with One Handed Melee Weapons; Nothing*0
-1% increased Critical Strike Chance; Nothing*0
-1% increased Damage over Time; Nothing*0
-1% increased Damage with Axes; Nothing*0
-1% increased Damage with Bleeding; Nothing*0
-1% increased Damage with Daggers; Nothing*0
-1% increased Damage with One Handed Weapons; Nothing*0
-1% increased Damage with Poison; Nothing*0
-1% increased Damage with Staves; Nothing*0
-1% increased Damage with Swords; Nothing*0
-1% increased Dexterity; Nothing*0
-1% increased Effect of Fortify on you while Focussed; Nothing*0
-1% increased Effect of Lightning Ailments; Nothing*0
-1% increased Elemental Damage if you've dealt a Critical Strike Recently; Nothing*0
-1% increased Elemental Damage with Attack Skills; Nothing*0
-1% increased Energy Shield Recharge Rate; Nothing*0
-1% increased Energy Shield; Nothing*0
-1% increased Evasion and Energy Shield; Nothing*0
-1% increased Evasion Rating; Nothing*0
-1% increased Fire Trap Burning Damage; Nothing*0
-1% increased Flask Charges gained; Nothing*0
-1% increased Flask Effect Duration; Nothing*0
-1% increased Flask Life Recovery rate; Nothing*0
-1% increased Flask Mana Recovery rate; Nothing*0
-1% increased Global Accuracy Rating; Nothing*0
-1% increased Herald of Ash Damage; Nothing*0
-1% increased Ignite Duration on Enemies; Nothing*0
-1% increased Intelligence; Nothing*0
-1% increased Light Radius; Nothing*0
-1% increased Mana Regeneration Rate; Nothing*0
-1% increased maximum Energy Shield; Nothing*0
-1% increased Melee Critical Strike Chance; Nothing*0
-1% increased Melee Damage; Nothing*0
-1% increased Mine Throwing Speed; Nothing*0
-1% increased Poison Duration; Nothing*0
-1% increased Projectile Attack Damage; Nothing*0
-1% increased Projectile Damage; Nothing*0
-1% increased Projectile Speed; Nothing*0
-1% increased Rarity of Items found; Nothing*0
-1% increased Shock Duration on Enemies; Nothing*0
-1% increased Spell Damage while holding a Shield; Nothing*0
-1% increased Strength; Nothing*0
-1% increased Stun and Block Recovery; Nothing*0
-1% increased Stun Duration on Enemies; Nothing*0
-1% increased Totem Damage; Nothing*0
-1% increased Totem Life; Nothing*0
-1% increased Trap Throwing Speed; Nothing*0
-1% of Physical Attack Damage Leeched as Life; Nothing*0
-1% of Physical Attack Damage Leeched as Mana; Nothing*0
-1% of Physical Damage is taken from Mana before Life; Nothing*0
-1% reduced Attribute Requirements; Nothing*0
-1% reduced Chaos Damage taken; Nothing*0
-1% reduced Enemy Stun Threshold; Nothing*0
-1% reduced Flask Charges used; Nothing*0
-1% reduced Mana Cost of Skills; Nothing*0
-Adds 1 to 1 Cold Damage against Chilled or Frozen Enemies; Nothing*0
-Adds 1 to 1 Cold Damage to Attacks; Nothing*0
-Adds 1 to 1 Cold Damage; Nothing*0
-Adds 1 to 1 Fire Damage to Attacks; Nothing*0
-Adds 1 to 1 Fire Damage; Nothing*0
-Adds 1 to 1 Lightning Damage to Attacks; Nothing*0
-Adds 1 to 1 Lightning Damage; Nothing*0
-Adds 1 to 1 Physical Damage to Attacks; Nothing*0
-Adds 1 to 1 Physical Damage; Nothing*0
-Ancestral Protector Totem grants 1% increased Attack Speed while Active; Nothing*0
-Area is inhabited by 1 additional Rogue Exiles; Nothing*0
-Arrows Pierce an additional Target; Nothing*0
-Attacks have 1% chance to cause Bleeding; Nothing*0
-Bow Attacks fire an additional Arrow; Nothing*0
-Chaos Skills have 1% increased Skill Effect Duration; Nothing*0
-Damage Penetrates 1% Elemental Resistances; Nothing*0
-Determination has 1% increased Aura Effect; Nothing*0
-Determination has 1% reduced Reservation; Nothing*0
-Earthshatter deals 1% increased Damage; Nothing*0; LabEnchant
-Elemental Hit deals 1% increased Damage; Nothing*0
-Focus has 1% increased Cooldown Recovery Rate; Nothing*0
-Gain 1% of Lightning Damage as Extra Chaos Damage; Nothing*0
-Grants Level 1 Pride Skill; Nothing*0
-Has 1 Abyssal Socket; Nothing*0
-Has 1 Socket; Nothing*0
-Reflects 1 Physical Damage to Melee Attackers; Nothing*0
-Regenerate 1 Life per second; Nothing*0
-Regenerate 1 Mana per second; Nothing*0
-Regenerate 1% of Energy Shield per second; Nothing*0
-Regenerate 1% of Life per second; Nothing*0
-Resolute Technique; Nothing*0
-Sigil of Power's Buff also grants 1% increased Critical Strike Chance per Stage; Nothing*0
-Skills fire an additional Projectile; Nothing*0
-Socketed Gems are Supported by Level 1 Inspiration; Nothing*0
-Trigger Socketed Spells when you Focus, with a 1 second Cooldown; Nothing*0
-You cannot be Hindered; Nothing*0
+1% faster start of Energy Shield Recharge; ESRecoverStart
+1% increased Energy Shield Recharge Rate; ESRecoverRate
+1% increased Energy Shield; PctES
 
-1% chance on opening a Chest to not generate Alert Level; Nothing*0
-1% chance to Avoid being Interrupted; Nothing*0
-1% chance to not generate Alert Level on opening a Chest using Agility; Nothing*0
-1% chance to not generate Alert Level on opening a Chest using Brute Force; Nothing*0
-1% chance to not generate Alert Level on opening a Chest using Counter-Thaumaturgy; Nothing*0
-1% chance to not generate Alert Level on opening a Chest using Deception; Nothing*0
-1% chance to not generate Alert Level on opening a Chest using Demolition; Nothing*0
-1% chance to not generate Alert Level on opening a Chest using Engineering; Nothing*0
-1% chance to not generate Alert Level on opening a Chest using Lockpicking; Nothing*0
-1% chance to not generate Alert Level on opening a Chest using Perception; Nothing*0
-1% chance to not generate Alert Level on opening a Chest using Trap Disarmament; Nothing*0
+Gain 1% of Physical Damage as Extra Fire Damage; PhysAsFire
+Gain 1% of Cold Damage as Extra Chaos Damage
+Gain 1% of Fire Damage as Extra Chaos Damage
+Gain 1% of Non-Chaos Damage as extra Chaos Damage
+Gain 1% of Physical Damage as Extra Chaos Damage
+Gain 1% of Physical Damage as Extra Cold Damage
+Gain 1% of Physical Damage as Extra Lightning Damage
 
-1% increased Job Experience gain; Nothing*0
-1% increased Agility Experience gained; Nothing*0
-1% increased Brute Force Experience gained; Nothing*0
-1% increased Counter-Thaumaturgy Experience gained; Nothing*0
-1% increased Deception Experience gained; Nothing*0
-1% increased Demolition Experience gained; Nothing*0
-1% increased Engineering Experience gained; Nothing*0
-1% increased Lockpicking Experience gained; Nothing*0
-1% increased Perception Experience gained; Nothing*0
-1% increased Trap Disarmament Experience gained; Nothing*0
+# heist mods
 
-1% increased Job speed; Nothing*0
-1% increased Agility speed; Nothing*0
-1% increased Brute Force speed; Nothing*0
-1% increased Counter-Thaumaturgy speed; Nothing*0
-1% increased Deception speed; Nothing*0
-1% increased Demolition speed; Nothing*0
-1% increased Engineering speed; Nothing*0
-1% increased Lockpicking speed; Nothing*0
-1% increased Perception speed; Nothing*0
-1% increased Trap Disarmament speed; Nothing*0
+1% chance on opening a Chest to not generate Alert Level
+1% chance to Avoid being Interrupted
+1% chance to not generate Alert Level on opening a Chest using Agility
+1% chance to not generate Alert Level on opening a Chest using Brute Force
+1% chance to not generate Alert Level on opening a Chest using Counter-Thaumaturgy
+1% chance to not generate Alert Level on opening a Chest using Deception
+1% chance to not generate Alert Level on opening a Chest using Demolition
+1% chance to not generate Alert Level on opening a Chest using Engineering
+1% chance to not generate Alert Level on opening a Chest using Lockpicking
+1% chance to not generate Alert Level on opening a Chest using Perception
+1% chance to not generate Alert Level on opening a Chest using Trap Disarmament
 
-1% reduced Hiring Fee; Nothing*0
-1% reduced Hiring Fee for Agility Jobs; Nothing*0
-1% reduced Hiring Fee for Brute Force Jobs; Nothing*0
-1% reduced Hiring Fee for Counter-Thaumaturgy Jobs; Nothing*0
-1% reduced Hiring Fee for Deception Jobs; Nothing*0
-1% reduced Hiring Fee for Demolition Jobs; Nothing*0
-1% reduced Hiring Fee for Engineering Jobs; Nothing*0
-1% reduced Hiring Fee for Lockpicking Jobs; Nothing*0
-1% reduced Hiring Fee for Perception Jobs; Nothing*0
-1% reduced Hiring Fee for Trap Disarmament Jobs; Nothing*0
+1% increased Job Experience gain
+1% increased Agility Experience gained
+1% increased Brute Force Experience gained
+1% increased Counter-Thaumaturgy Experience gained
+1% increased Deception Experience gained
+1% increased Demolition Experience gained
+1% increased Engineering Experience gained
+1% increased Lockpicking Experience gained
+1% increased Perception Experience gained
+1% increased Trap Disarmament Experience gained
 
-1 to 1 added Cold Damage\nPlayers and their Minions have 1 to 1 added Cold Damage; Nothing*0
-1 to 1 added Fire Damage\nPlayers and their Minions have 1 to 1 added Fire Damage; Nothing*0
-1 to 1 added Lightning Damage\nPlayers and their Minions have 1 to 1 added Lightning Damage; Nothing*0
-1 to 1 added Physical Damage\nPlayers and their Minions have 1 to 1 added Physical Damage; Nothing*0
-1% increased Rarity of Items dropped in Heists; Nothing*0
-1% increased time before Lockdown; Nothing*0
-1% reduced raising of Alert Level from opening Chests; Nothing*0
-1% reduced raising of Alert Level; Nothing*0
-1% reduced Travel Fee; Nothing*0
-Grants Level 1 Grace Skill; Nothing*0
-Grants Level 1 Haste Skill; Nothing*0
-Grants Level 1 Hatred Skill; Nothing*0
-Heist Chests have a 1% chance to Duplicate contained Basic Currency; Nothing*0
-Heist Chests have a 1% chance to Duplicate contained Divination Cards; Nothing*0
-Heist Chests have a 1% chance to Duplicate contained Jewels; Nothing*0
-Heist Chests have a 1% chance to Duplicate contained Map Fragments; Nothing*0
-Heist Chests have a 1% chance to Duplicate contained Maps; Nothing*0
-Players have 1% increased Flask Charges gained; Nothing*0
-The Ring's Cut reduced by 1%; Nothing*0
-+1 to Character Level; Nothing*0
+1% increased Job speed
+1% increased Agility speed
+1% increased Brute Force speed
+1% increased Counter-Thaumaturgy speed
+1% increased Deception speed
+1% increased Demolition speed
+1% increased Engineering speed
+1% increased Lockpicking speed
+1% increased Perception speed
+1% increased Trap Disarmament speed
+
+1% reduced Hiring Fee
+1% reduced Hiring Fee for Agility Jobs
+1% reduced Hiring Fee for Brute Force Jobs
+1% reduced Hiring Fee for Counter-Thaumaturgy Jobs
+1% reduced Hiring Fee for Deception Jobs
+1% reduced Hiring Fee for Demolition Jobs
+1% reduced Hiring Fee for Engineering Jobs
+1% reduced Hiring Fee for Lockpicking Jobs
+1% reduced Hiring Fee for Perception Jobs
+1% reduced Hiring Fee for Trap Disarmament Jobs
+
+1 to 1 added Cold Damage\nPlayers and their Minions have 1 to 1 added Cold Damage
+1 to 1 added Fire Damage\nPlayers and their Minions have 1 to 1 added Fire Damage
+1 to 1 added Lightning Damage\nPlayers and their Minions have 1 to 1 added Lightning Damage
+1 to 1 added Physical Damage\nPlayers and their Minions have 1 to 1 added Physical Damage
+1% increased Rarity of Items dropped in Heists
+1% increased time before Lockdown
+1% reduced Job speed
+1% reduced raising of Alert Level from opening Chests
+1% reduced raising of Alert Level
+1% reduced Travel Fee
+Grants Level 1 Grace Skill
+Grants Level 1 Haste Skill
+Grants Level 1 Hatred Skill
+Heist Chests have a 1% chance to Duplicate contained Basic Currency
+Heist Chests have a 1% chance to Duplicate contained Divination Cards
+Heist Chests have a 1% chance to Duplicate contained Jewels
+Heist Chests have a 1% chance to Duplicate contained Map Fragments
+Heist Chests have a 1% chance to Duplicate contained Maps
+Players gain 1% reduced Flask Charges
+Players have 1% increased Flask Charges gained
+Players have 1% less Evasion per 1% Alert Level
+Players gain 1% reduced Flask Charges per 1% Alert Level
+Reward Room Monsters deal 1% increased Damage
+Reward Rooms have 1% increased Monsters
+The Ring's Cut reduced by 1%
++1 to Character Level
+
+# junk mods
+
++1 Life gained for each Enemy hit by Attacks
++1 Life gained for each Enemy hit by your Attacks
++1 Life gained on Kill
++1 Life gained when you Block
++1 Mana gained for each Enemy hit by Attacks
++1 Mana gained for each Enemy hit by your Attacks
++1 Mana gained on Kill
++1 Mana gained when you Block
++1 to Accuracy Rating
++1 to Armour
++1 to Armour and Evasion Rating
++1 to Energy Shield
++1 to Evasion Rating
++1 to Level of Socketed Warcry Gems
++1 to maximum number of Raised Zombies
++1 to maximum number of Skeletons
++1 to Melee Strike Range
++1 to Minimum Endurance Charges
++1 to Minimum Power Charges
++1% Chance to Block
++1% Chance to Block Attack Damage while Dual Wielding
++1% Chance to Block Attack Damage while holding a Shield
++1% Chance to Block Attack Damage while wielding a Staff
++1% Chance to Block Projectile Attack Damage
++1% Chance to Block Spell Damage while Dual Wielding
++1% Chance to Block Spell Damage while holding a Shield
++1% Chance to Block Spell Damage while wielding a Staff
++1% Monster Chaos Resistance
++1% Monster Elemental Resistance
++1% to Critical Strike Multiplier for Spells
++1% to Critical Strike Multiplier with Bows
++1% to Critical Strike Multiplier with Cold Skills
++1% to Critical Strike Multiplier with Elemental Skills
++1% to Critical Strike Multiplier with Fire Skills
++1% to Damage over Time Multiplier for Bleeding
++1% to Damage over Time Multiplier with Attack Skills
++1% to Melee Critical Strike Multiplier
++1% to Quality
++1% to Quality of Socketed Cold Gems
+1 Added Passive Skills are Jewel Sockets
+1 to 1 Added Cold Damage with Bow Attacks
+1 to 1 Added Cold Damage with Wand Attacks
+1 to 1 Added Fire Damage with Bow Attacks
+1 to 1 Added Lightning Damage with Wand Attacks
+1 to 1 Added Physical Damage with Bow Attacks
+1 to 1 Added Spell Fire Damage while wielding a Two Handed Weapon
+1% additional Physical Damage Reduction
+1% additional Physical Damage Reduction while stationary
+1% chance to Avoid being Chilled
+1% chance to Avoid being Frozen
+1% chance to Avoid being Shocked
+1% chance to Avoid being Stunned
+1% chance to Avoid Elemental Ailments
+1% chance to Blind Enemies on hit
+1% Chance to Block Attack Damage
+1% Chance to Block Spell Damage
+1% chance to cause Bleeding on Hit
+1% chance to Chill Attackers for 1 seconds on Block
+1% chance to deal Double Damage
+1% chance to Dodge Attack Hits
+1% chance to Dodge Spell Hits
+1% chance to double Stun Duration
+1% chance to Freeze
+1% chance to gain a Power Charge on Kill
+1% chance to gain an Endurance Charge on Kill
+1% chance to Ignite
+1% chance to Knock Enemies Back on hit
+1% chance to Maim on Hit
+1% chance to Poison on Hit
+1% chance to Shock
+1% Global chance to Blind Enemies on hit
+1% increased Area Damage
+1% increased Area of Effect
+1% increased Armour
+1% increased Armour and Energy Shield
+1% increased Armour and Evasion
+1% increased Attack and Cast Speed
+1% increased Attack Critical Strike Chance while Dual Wielding
+1% increased Attack Damage
+1% increased Attack Damage while Dual Wielding
+1% increased Attack Damage while holding a Shield
+1% increased Attack Speed
+1% increased Attack Speed while a Rare or Unique Enemy is Nearby
+1% increased Attack Speed while Dual Wielding
+1% increased Attack Speed while holding a Shield
+1% increased Attack Speed with Axes
+1% increased Attack Speed with Bows
+1% increased Attack Speed with Maces or Sceptres
+1% increased Attack Speed with One Handed Melee Weapons
+1% increased Attack Speed with Swords
+1% increased Attack Speed with Two Handed Melee Weapons
+1% increased Bleeding Duration
+1% increased Block Recovery
+1% increased Burning Damage
+1% increased Cast Speed
+1% increased Cast Speed while Dual Wielding
+1% increased Cast Speed while holding a Shield
+1% increased Cast Speed with Cold Skills
+1% increased Cast Speed with Fire Skills
+1% increased Cast Speed with Lightning Skills
+1% increased Cooldown Recovery Rate for throwing Traps
+1% increased Critical Strike Chance
+1% increased Critical Strike Chance with Bows
+1% increased Critical Strike Chance with Cold Skills
+1% increased Critical Strike Chance with Elemental Skills
+1% increased Critical Strike Chance with One Handed Melee Weapons
+1% increased Critical Strike Chance with Two Handed Melee Weapons
+1% increased Damage over Time
+1% increased Damage per Endurance Charge
+1% increased Damage with Axes
+1% increased Damage with Bleeding
+1% increased Damage with Daggers
+1% increased Damage with Maces or Sceptres
+1% increased Damage with One Handed Weapons
+1% increased Damage with Poison
+1% increased Damage with Staves
+1% increased Damage with Swords
+1% increased Damage with Two Handed Weapons
+1% increased Damage with Wands
+1% increased Dexterity
+1% increased Effect of Fortify on you while Focussed
+1% increased Effect of Lightning Ailments
+1% increased Effect of Non-Damaging Ailments
+1% increased Elemental Damage if you've dealt a Critical Strike Recently
+1% increased Elemental Damage with Attack Skills
+1% increased Evasion and Energy Shield
+1% increased Evasion Rating
+1% increased Fire Trap Burning Damage
+1% increased Flask Charges gained
+1% increased Flask Effect Duration
+1% increased Flask Life Recovery rate
+1% increased Flask Mana Recovery rate
+1% increased Global Accuracy Rating
+1% increased Global Defences
+1% increased Herald of Ash Damage
+1% increased Ignite Duration on Enemies
+1% increased Intelligence
+1% increased Light Radius
+1% increased Mana Regeneration Rate
+1% increased maximum Energy Shield
+1% increased maximum Mana
+1% increased Melee Critical Strike Chance
+1% increased Melee Damage
+1% increased Mine Throwing Speed
+1% increased Poison Duration
+1% increased Projectile Attack Damage
+1% increased Projectile Damage
+1% increased Projectile Speed
+1% increased Rarity of Items found
+1% increased Shock Duration on Enemies
+1% increased Spell Damage while holding a Shield
+1% increased Spell Damage while wielding a Staff
+1% increased Strength
+1% increased Stun and Block Recovery
+1% increased Stun Duration on Enemies
+1% increased Totem Damage
+1% increased Totem Life
+1% increased Trap Duration
+1% increased Trap Throwing Speed
+1% more Magic Monsters
+1% more Monster Life
+1% of Burning Arrow Physical Damage gained as Extra Fire Damage
+1% of Evasion Rating is Regenerated as Life per second while Focussed
+1% of Fire Damage Leeched as Life
+1% of Physical Attack Damage Leeched as Life
+1% of Physical Attack Damage Leeched as Mana
+1% of Physical Damage from Hits taken as Cold Damage
+1% of Physical Damage is taken from Mana before Life
+1% reduced Attribute Requirements
+1% reduced Chaos Damage taken
+1% reduced Enemy Stun Threshold
+1% reduced Flask Charges used
+1% reduced Mana Cost of Skills
+Added Small Passive Skills also grant: +1 to Armour
+Added Small Passive Skills also grant: +1 to Strength
+Added Small Passive Skills also grant: 1% increased Attack and Cast Speed with Fire Skills
+Added Small Passive Skills grant: +1% to Cold Resistance
+Added Small Passive Skills grant: 1% increased Fire Damage
+Adds 1 Passive Skills
+Adds 1 to 1 Chaos Damage if you've dealt a Critical Strike Recently
+Adds 1 to 1 Cold Damage
+Adds 1 to 1 Cold Damage against Chilled or Frozen Enemies
+Adds 1 to 1 Cold Damage to Attacks
+Adds 1 to 1 Fire Damage
+Adds 1 to 1 Fire Damage if you've dealt a Critical Strike Recently
+Adds 1 to 1 Fire Damage to Attacks
+Adds 1 to 1 Lightning Damage
+Adds 1 to 1 Lightning Damage to Attacks
+Adds 1 to 1 Physical Damage
+Adds 1 to 1 Physical Damage to Attacks
+Allocates Arsonist
+Allocates Deep Breaths
+Allocates Disciple of the Forbidden
+Allocates Insightfulness
+Allocates Righteous Army
+Allocates True Strike
+Allocates Will of Blades
+Ancestral Protector Totem grants 1% increased Attack Speed while Active
+Area has patches of Shocked Ground which increase Damage taken by 1%
+Area is inhabited by 1 additional Rogue Exiles
+Arrows Pierce an additional Target
+Attacks have 1% chance to cause Bleeding
+Attacks with this Weapon Penetrate 1% Cold Resistance
+Attacks with this Weapon Penetrate 1% Fire Resistance
+Bow Attacks fire an additional Arrow
+Can roll Minion Modifiers
+Cannot be Chilled
+Chaos Skills have 1% increased Skill Effect Duration
+Corrupted Blood cannot be inflicted on you
+Damage Penetrates 1% Cold Resistance
+Damage Penetrates 1% Elemental Resistances
+Damage Penetrates 1% Lightning Resistance
+Determination has 1% increased Aura Effect
+Determination has 1% reduced Reservation
+Earthshatter deals 1% increased Damage; LabEnchant
+Elemental Hit deals 1% increased Damage
+Focus has 1% increased Cooldown Recovery Rate
+Gain 1% of Lightning Damage as Extra Chaos Damage
+Grants Level 1 Pride Skill
+Has 1 Abyssal Socket
+Has 1 Socket
+Magic Monster Packs each have a Bloodline Mod
+Minions deal 1 to 1 additional Lightning Damage
+Minions have 1% chance to Taunt on Hit with Attacks
+Minions have 1% increased Movement Speed
+Monsters fire 1 additional Projectiles
+Monsters have 1% increased Area of Effect
+Overwhelm 1% Physical Damage Reduction
+Recover 1% of Life on Kill
+Reflects 1 Physical Damage to Melee Attackers
+Regenerate 1 Energy Shield per second while a Rare or Unique Enemy is Nearby
+Regenerate 1 Life per second
+Regenerate 1 Mana per second
+Regenerate 1% of Energy Shield per second
+Regenerate 1% of Life per second
+Resolute Technique
+Sigil of Power's Buff also grants 1% increased Critical Strike Chance per Stage
+Skills fire an additional Projectile
+Socketed Gems are Supported by Level 1 Inspiration
+Socketed Gems are Supported by Level 1 Lifetap
+Trigger Socketed Spells when you Focus, with a 1 second Cooldown
+When you Kill a Rare Monster, 1% chance to gain one of its Modifiers for 1 seconds
+You cannot be Hindered

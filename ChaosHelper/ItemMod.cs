@@ -49,7 +49,7 @@ namespace ChaosHelper
             modFileLine = modFileLine.Trim();
             if (modFileLine.StartsWith("#")) return null;
             var splits = modFileLine.Split(modTagSplits, StringSplitOptions.RemoveEmptyEntries);
-            if (splits.Length < 2)
+            if (splits.Length < 1)
             {
                 logger.Warn($"Invalid mod line '{modFileLine}'");
                 return null;
@@ -72,6 +72,9 @@ namespace ChaosHelper
                 if (tagItem != null)
                     result.Tags.Add(tagItem);
             }
+            if (!result.Tags.Any())
+                result.Tags.Add(new TagEntry { Tag = "Junk", Multiplier = 0 });
+
             return result;
         }
 

@@ -66,6 +66,7 @@ namespace ChaosHelper
             CurrencyList.Clear();
             while (array.MoveNext())
                 Add(array.Current);
+            logger.Info($"currency: {CurrencyList.Count} entries");
         }
 
         static public void Add(System.Text.Json.JsonElement element)
@@ -90,7 +91,7 @@ namespace ChaosHelper
             var backgroundColor = element.GetStringOrDefault("back").CheckColorString();
             if (string.IsNullOrWhiteSpace(backgroundColor)) canFilterOn = false;
 
-            logger.Info($"Adding currency entry for {currencyName} ({canFilterOn}): des={desired}");
+            //logger.Info($"Adding currency entry for {currencyName} ({canFilterOn}): des={desired}");
 
             CurrencyList.Add(new Currency
             {

@@ -2,12 +2,12 @@
 # each line is a rule name, the item class for the rule,
 # and then a set of terms the item must match to pass the rule.
 
-Vortex Weapon, OneHandWeapons, GemLvlCold*85 + DotCold*3.7 + SpellPctCold >= 135
+Vortex Weapon, OneHandWeapons, GemLvlCold*85 + DotCold*3.7 + SpellPctCold >= 150
 
-Minion, Helmets, GemLvlMinion >= 2, MaxLife + TotRes >= 100
+Minion, Helmets, GemLvlMinion >= 2, MaxLife + TotRes >= 90
 
 High ES, BodyArmours, PropES >= 500
-High ES, Shields, PropES >= 200
+High ES, Shields, PropES >= 250
 High ES, Helmets, PropES >= 180
 High ES, Gloves, PropES >= 100
 High ES, Boots, MoveSpeed >= 25, PropES >= 100
@@ -35,9 +35,9 @@ Veiled, Any, Veiled >= 1
 Gem Level, Any, GemLvl >= 3
 
 Life Jewel, Jewels, PctLife >= 7
+ES Jewel, Jewels, ESRecoverStart + ESRecoverRate + PctES >= 10
 
 Stat Amulet, Amulets, TotRes >= 40, MaxLife >= 50, AddDex >= 24, AddStr >= 11
-
 
 Dot Cold, OneHandWeapons, DotCold >= 40
 Dot Fire, OneHandWeapons, DotFile >= 40

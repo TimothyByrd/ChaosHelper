@@ -305,15 +305,12 @@ namespace ChaosHelper
 
             var itemNameSet = new ItemSet();
             var shouldDelay = false;
-            var emptyTabsSoFar = 0;
             foreach (var kvp in Config.DumpTabDictionary)
             {
-                if (shouldDelay) await Task.Delay(500);
+                if (shouldDelay) await Task.Delay(300);
                 shouldDelay = Config.StashReadMode != Config.StashReading.Playback;
                 logger.Info($"retrieving tab '{kvp.Value}' ({kvp.Key})");
                 var itemsInThisTab = await GetTabContents(kvp.Key, itemNameSet, true);
-                if (itemsInThisTab == 0) ++emptyTabsSoFar;
-                if (emptyTabsSoFar > 1) break;
             }
 
             itemNameSet.CheckMods(Config.DumpTabDictionary);
