@@ -11,10 +11,13 @@ namespace ChaosHelper
     {
         private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
-        public static readonly List<ItemRule> Rules = new List<ItemRule>();
+        public static List<ItemRule> Rules { get; private set; } = new List<ItemRule>();
+        public static bool HaveDynamic;
 
         public string Name { get; private set; }
         public BaseClass BaseClass { get; private set; }
+        public bool IsDynamic { get; private set; }
+        
         private readonly List<RuleEntry> entries = new List<RuleEntry>();
 
         private static readonly char[] ruleLineSplits = "\t;,".ToCharArray();
@@ -28,6 +31,7 @@ namespace ChaosHelper
                 if (rule != null)
                     Rules.Add(rule);
             }
+            HaveDynamic = Rules.Any(x => x.IsDynamic);
         }
 
         public static ItemRule FromString(string ruleFileLine)
@@ -55,6 +59,9 @@ namespace ChaosHelper
                 if (ruleEntry != null)
                     result.entries.Add(ruleEntry);
             }
+
+            result.IsDynamic = result.entries.Any(x => x.isDynamic);
+            
             return result;
         }
 
@@ -63,6 +70,14 @@ namespace ChaosHelper
             if (BaseClass == stats.BaseClass || BaseClass == BaseClass.Any)
                 return entries.All(x => x.Matches(stats));
             return false;
+        }
+
+        public void UpdateDynamic(ItemStats stats)
+        {
+            foreach (var entry in entries.Where(x => x.isDynamic))
+            {
+                entry.UpdateDynamic(stats);
+            }
         }
 
         public class RuleEntry
@@ -75,8 +90,8 @@ namespace ChaosHelper
                 (?: (?<plus> \+)
                     (?<term2> \w+(?: [:*](?: \d+\.?\d*))? )
                 )*
-                (?<op> =|>=)
-                (?<value> \d+\.?\d*)
+                (?<op> >|>=|<|<=|=|==)
+                (?: (?<value> \d+\.?\d*)|(?<dynamic> X (?: [:*](?: \d+\.?\d*))? ) )
                 $",
                 RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
 
@@ -99,6 +114,9 @@ namespace ChaosHelper
 
             public string compare;
             public double target;
+            public bool isDynamic;
+            public double dynamicFactor;
+
             private readonly List<TagEntry> sumItems = new List<TagEntry>();
 
             public static RuleEntry FromString(string s)
@@ -112,9 +130,18 @@ namespace ChaosHelper
 
                 var result = new RuleEntry
                 {
-                    target = double.Parse(m.Groups["value"].Value),
                     compare = m.Groups["op"].Value,
+                    isDynamic = m.Groups["dynamic"].Success,
+                    dynamicFactor = 1.0,
                 };
+
+                if (!result.isDynamic)
+                    result.target = double.Parse(m.Groups["value"].Value);
+                else
+                {
+                    var dynValue = m.Groups["dynamic"].Value;
+                    result.dynamicFactor = dynValue.Length > 2 ? double.Parse(dynValue.Substring(2)) : 1.0;
+                }
 
                 var entry = TagEntry.FromString(m.Groups["term"].Value);
                 if (entry != null)
@@ -131,6 +158,22 @@ namespace ChaosHelper
 
             public bool Matches(ItemStats stats)
             {
+                double sum = GetSum(stats);
+
+                switch (compare)
+                {
+                case ">": return sum > target;
+                default:
+                case ">=": return sum >= target;
+                case "<": return sum < target;
+                case "<=": return sum <= target;
+                case "==": return sum == target;
+                case "=": return sum == target;
+                }
+            }
+
+            private double GetSum(ItemStats stats)
+            {
                 var sum = 0.0;
                 foreach (var entry in sumItems)
                 {
@@ -145,7 +188,13 @@ namespace ChaosHelper
                     sum += (value * entry.Multiplier);
                 }
 
-                return compare == ">" && sum > target || compare == ">=" && sum >= target;
+                return sum;
+            }
+
+            public void UpdateDynamic(ItemStats stats)
+            {
+                double sum = GetSum(stats);
+                target = sum * dynamicFactor;
             }
         }
     }

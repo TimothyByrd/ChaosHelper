@@ -252,6 +252,12 @@ public static class Helpers
             return catClassDict[c];
         }
 
+        public static Cat ToCat(this BaseClass b)
+        {
+            var kvp = catClassDict.FirstOrDefault(x => x.Value == b);
+            return kvp.Value == b ? kvp.Key : Cat.Junk;
+        }
+
         public static BaseClass ToBaseClass(this string s)
         {
             if (Enum.TryParse<BaseClass>(s, true, out var baseClass)

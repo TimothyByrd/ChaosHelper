@@ -52,7 +52,6 @@ namespace ChaosHelper
         public static int ChaosParanoiaLevel { get; private set; }
         public static string IgnoreMaxSets { get; private set; }
         public static string IgnoreMaxIlvl { get; private set; }
-        public static bool IncludeInventoryOnForce { get; private set; }
         public static List<string> TownZones { get; private set; }
         public static List<int> HighlightColors { get; private set; }
         public static string FilterColor { get; private set; }
@@ -201,7 +200,6 @@ namespace ChaosHelper
             ChaosParanoiaLevel = rawConfig.GetInt("chaosParanoiaLevel", 0);
             IgnoreMaxSets = rawConfig["ignoreMaxSets"];
             IgnoreMaxIlvl = rawConfig["ignoreMaxIlvl"];
-            IncludeInventoryOnForce = rawConfig.GetBoolean("includeInventoryOnForce", false);
             TownZones = rawConfig.GetStringList("townZones");
 
             AreaEnteredPattern = rawConfig["areaEnteredPattern "];

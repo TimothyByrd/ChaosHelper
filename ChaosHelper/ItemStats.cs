@@ -139,8 +139,8 @@ namespace ChaosHelper
         public void CheckMods(ItemPosition item)
         {
             var json = (JsonElement)item.JsonElement;
-            var frameType = json.GetIntOrDefault("frameType", 0);
-            var identified = json.GetProperty("identified").GetBoolean();
+            //var frameType = json.GetIntOrDefault("frameType", 0);
+            //var identified = json.GetProperty("identified").GetBoolean();
 
             AddToTag("ilvl", item.iLvl);
 
@@ -149,7 +149,7 @@ namespace ChaosHelper
                 BaseClass = json.JsonToBaseClass();
             }
 
-            if ((frameType != 2 /*rare*/ && frameType != 1 /*magic*/) || !identified) return;
+            //if ((frameType != 2 /*rare*/ && frameType != 1 /*magic*/) || !identified) return;
 
             foreach (var modCat in modCats)
             {
@@ -157,7 +157,6 @@ namespace ChaosHelper
                 var theArray = json.GetArray(modCat);
                 while (theArray.MoveNext())
                     CheckMod(theArray.Current.GetString(), fractured);
-
             }
 
             var veiledArray = json.GetArray("veiledMods");
@@ -225,7 +224,7 @@ namespace ChaosHelper
             if (string.IsNullOrWhiteSpace(msg))
                 Console.WriteLine("not interesting");
             else
-                Console.WriteLine($"{GetValueMessage()}");
+                Console.WriteLine(msg);
             Console.WriteLine();
         }
 

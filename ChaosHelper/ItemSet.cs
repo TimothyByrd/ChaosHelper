@@ -463,21 +463,96 @@ namespace ChaosHelper
 
             var interestingItems = new SortedDictionary<string, ItemStats>();
             foreach (var c in ItemClassForFilter.Iterator())
-            foreach (var item in itemsDict[c.Category])
-            {
-                var itemStats = new ItemStats(c.Category, item.BaseType);
-                itemStats.CheckMods(item);
-                var message = itemStats.GetValueMessage();
-                if (message == null) continue;
-                var tab = DumpTabName(item.TabIndex);
-                interestingItems.Add($"{item.TabIndex:D4}interesting item: tab '{tab}' at {item.X},{item.Y} - {item.Name} - {message}", itemStats);
-            }
+                foreach (var item in itemsDict[c.Category])
+                {
+                    var itemStats = new ItemStats(c.Category, item.BaseType);
+                    itemStats.CheckMods(item);
+                    var message = itemStats.GetValueMessage();
+                    if (message == null) continue;
+                    var tab = DumpTabName(item.TabIndex);
+                    interestingItems.Add($"{item.TabIndex:D4}interesting item: tab '{tab}' at {item.X},{item.Y} - {item.Name} - {message}", itemStats);
+                }
 
             foreach (var kv in interestingItems)
             {
                 logger.Info(kv.Key.Substring(4));
                 kv.Value.DumpValues();
             }
+        }
+
+        private static readonly Dictionary<BaseClass, string> equippedSlotDict = new Dictionary<BaseClass, string>
+        {
+            { BaseClass.BodyArmours, "BodyArmour" },
+            { BaseClass.Helmets, "Helm" },
+            { BaseClass.Gloves, "Gloves" },
+            { BaseClass.Boots, "Boots" },
+            { BaseClass.OneHandWeapons, "Weapon" },
+            { BaseClass.TwoHandWeapons, "Weapon" },
+            { BaseClass.Belts, "Belt" },
+            { BaseClass.Amulets, "Amulet" },
+            { BaseClass.Rings, "Ring" }, // or Ring2
+            { BaseClass.Shields, "Offhand" },
+        };
+
+        public void UpdateDynamicRules()
+        {
+            foreach (var rule in ItemRule.Rules.Where(x => x.IsDynamic))
+            {
+                if (!equippedSlotDict.ContainsKey(rule.BaseClass))
+                {
+                    logger.Warn($"dynamic rule '{rule.Name}' wants '{rule.BaseClass}'");
+                    continue;
+                }
+
+                // find the correct equipped item.
+                //
+                var itemStats = FindItemForRule(rule);
+                if (itemStats == null)
+                {
+                    logger.Warn($"could not find equipped item '{rule.BaseClass}' for dynamic rule '{rule.Name}'");
+                    continue;
+                }
+
+                // use it to update the rule
+                //
+                rule.UpdateDynamic(itemStats);
+            }
+        }
+
+        private ItemStats FindItemForRule(ItemRule rule)
+        {
+            var wantedInventoryId = equippedSlotDict[rule.BaseClass];
+            if (rule.BaseClass == BaseClass.Rings && rule.Name.Contains("2"))
+                wantedInventoryId = "Ring2";
+
+            ItemStats TryFind(Cat cat)
+            {
+                foreach (var item in itemsDict[cat])
+                {
+                    var jsonElement = (JsonElement)item.JsonElement;
+                    var inventoryId = jsonElement.GetProperty("inventoryId").GetString();
+                    if (inventoryId == wantedInventoryId)
+                    {
+                        var itemStats = new ItemStats(cat, item.BaseType);
+                        itemStats.CheckMods(item);
+                        return itemStats;
+                    }
+                }
+                return null;
+            }
+
+            var initialCat = rule.BaseClass.ToCat();
+            var result = TryFind(initialCat);
+            if (result != null)
+                return result;
+
+            foreach (var c in ItemClassForFilter.Iterator())
+            {
+                result = TryFind(c.Category);
+                if (result != null)
+                    return result;
+            }
+            return null;
         }
     }
 

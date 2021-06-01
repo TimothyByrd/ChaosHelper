@@ -269,11 +269,6 @@ namespace ChaosHelper
             await GetTabContents(Config.TabIndex, itemsCurrent);
             await Task.Delay(500);
             await GetCurrencyTabContents();
-            if (Config.IncludeInventoryOnForce && forceFilterUpdate)
-            {
-                await Task.Delay(500);
-                await GetInventoryContents(itemsCurrent);
-            }
             itemsCurrent.RefreshCounts();
             itemsCurrent.CalculateClassesToShow(Config.MaxSets, Config.IgnoreMaxSets);
 
@@ -303,18 +298,25 @@ namespace ChaosHelper
                 return;
             }
 
-            var itemNameSet = new ItemSet();
+            if (ItemRule.HaveDynamic)
+            {
+                var inventoryItems = new ItemSet();
+                await GetEquippedItems(inventoryItems);
+                inventoryItems.UpdateDynamicRules();
+            }
+
+            var dumpTabItems = new ItemSet();
             var shouldDelay = false;
             foreach (var kvp in Config.DumpTabDictionary)
             {
                 if (shouldDelay) await Task.Delay(300);
                 shouldDelay = Config.StashReadMode != Config.StashReading.Playback;
                 logger.Info($"retrieving tab '{kvp.Value}' ({kvp.Key})");
-                var itemsInThisTab = await GetTabContents(kvp.Key, itemNameSet, true);
+                var itemsInThisTab = await GetTabContents(kvp.Key, dumpTabItems, true);
             }
 
-            itemNameSet.CheckMods(Config.DumpTabDictionary);
-            itemNameSet.LogMatchingNames(Config.DumpTabDictionary);
+            dumpTabItems.CheckMods(Config.DumpTabDictionary);
+            dumpTabItems.LogMatchingNames(Config.DumpTabDictionary);
             logger.Info("done checking dump tabs");
         }
 
@@ -558,7 +560,7 @@ namespace ChaosHelper
             }
         }
 
-        private static async Task GetInventoryContents(ItemSet items)
+        private static async Task GetEquippedItems(ItemSet items)
         {
             if (Config.StashReadMode != Config.StashReading.Normal && Config.StashReadMode != Config.StashReading.Record)
                 return;
@@ -568,14 +570,17 @@ namespace ChaosHelper
                 logger.Error($"Error: No character name, cannot get inventory");
                 return;
             }
+
             try
             {
+                // for some reason, this is a form POST, not a GET
+                //
                 var formContent = new FormUrlEncodedContent(new[]
                 {
-                new KeyValuePair<string, string>("accountName", Config.Account),
-                new KeyValuePair<string, string>("realm", "pc"),
-                new KeyValuePair<string, string>("character", Config.Character),
-            });
+                    new KeyValuePair<string, string>("accountName", Config.Account),
+                    new KeyValuePair<string, string>("realm", "pc"),
+                    new KeyValuePair<string, string>("character", Config.Character),
+                });
                 var inventoryUrl = "https://www.pathofexile.com/character-window/get-items";
                 var response = await Config.HttpClient.PostAsync(inventoryUrl, formContent);
                 response.EnsureSuccessStatusCode();
@@ -585,30 +590,15 @@ namespace ChaosHelper
                 foreach (var item in json.GetProperty("items").EnumerateArray())
                 {
                     var inventoryId = item.GetProperty("inventoryId").GetString();
-                    if (inventoryId != "MainInventory")
-                        continue; // skip equipped items
-
-                    var frameType = item.GetIntOrDefault("frameType", 0);
-                    var identified = item.GetProperty("identified").GetBoolean();
-                    var ilvl = item.GetIntOrDefault("ilvl", 0);
-
-                    if (identified || frameType != 2 || ilvl < Config.MinIlvl)
-                        continue; // only look at un-IDed rares of ilvl 60+
+                    if (inventoryId == "MainInventory") continue; // only want equipped items
 
                     var category = Cat.Junk;
-
                     var iconUrl = item.GetProperty("icon").GetString();
                     foreach (var c in ItemClassForFilter.Iterator())
                     {
                         if (iconUrl.Contains(c.CategoryStr))
                         {
                             category = c.Category;
-                            if (c.Category == Cat.OneHandWeapons)
-                            {
-                                if (item.GetIntOrDefault("w", 999) > 1
-                                    || item.GetIntOrDefault("h", 999) > 3)
-                                    category = Cat.Junk;
-                            }
                             break;
                         }
                     }

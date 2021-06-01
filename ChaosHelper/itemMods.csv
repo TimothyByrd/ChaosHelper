@@ -226,6 +226,7 @@ The Ring's Cut reduced by 1%
 1 to 1 Added Cold Damage with Bow Attacks
 1 to 1 Added Cold Damage with Wand Attacks
 1 to 1 Added Fire Damage with Bow Attacks
+1 to 1 Added Lightning Damage with Bow Attacks
 1 to 1 Added Lightning Damage with Wand Attacks
 1 to 1 Added Physical Damage with Bow Attacks
 1 to 1 Added Spell Fire Damage while wielding a Two Handed Weapon
@@ -243,11 +244,14 @@ The Ring's Cut reduced by 1%
 1% chance to Chill Attackers for 1 seconds on Block
 1% chance to deal Double Damage
 1% chance to Dodge Attack Hits
+1% Chance to Dodge Attack Hits if you've taken a Critical Strike Recently
 1% chance to Dodge Spell Hits
 1% chance to double Stun Duration
 1% chance to Freeze
+1% chance to Freeze, Shock and Ignite
 1% chance to gain a Power Charge on Kill
 1% chance to gain an Endurance Charge on Kill
+1% chance to gain Onslaught for 1 seconds on Kill
 1% chance to Ignite
 1% chance to Knock Enemies Back on hit
 1% chance to Maim on Hit
@@ -369,16 +373,20 @@ Adds 1 to 1 Cold Damage to Attacks
 Adds 1 to 1 Fire Damage
 Adds 1 to 1 Fire Damage if you've dealt a Critical Strike Recently
 Adds 1 to 1 Fire Damage to Attacks
+Adds 1 to 1 Fire Damage to Attacks with this Weapon per 1 Strength
 Adds 1 to 1 Lightning Damage
 Adds 1 to 1 Lightning Damage to Attacks
 Adds 1 to 1 Physical Damage
 Adds 1 to 1 Physical Damage to Attacks
 Allocates Arsonist
+Allocates Aspect of Stone
 Allocates Deep Breaths
 Allocates Disciple of the Forbidden
 Allocates Insightfulness
+Allocates Redemption
 Allocates Righteous Army
 Allocates True Strike
+Allocates Vitality Extraction
 Allocates Will of Blades
 Ancestral Protector Totem grants 1% increased Attack Speed while Active
 Area has patches of Shocked Ground which increase Damage taken by 1%
@@ -424,5 +432,6 @@ Skills fire an additional Projectile
 Socketed Gems are Supported by Level 1 Inspiration
 Socketed Gems are Supported by Level 1 Lifetap
 Trigger Socketed Spells when you Focus, with a 1 second Cooldown
+Trigger Word of the Grave when your Skills or Minions Kill
 When you Kill a Rare Monster, 1% chance to gain one of its Modifiers for 1 seconds
 You cannot be Hindered

@@ -1,3 +1,8 @@
+Dynamic, Helmets, TotRes + MaxLife > X, MaxLife > X * 0.9, TotRes > X * 0.9
+Dynamic, Gloves, TotRes + MaxLife > X, MaxLife > X * 0.9, TotRes > X * 0.9
+Dynamic, Boots, MoveSpeed >= 25, TotRes + MaxLife > X, MaxLife > X * 0.9, TotRes > X * 0.9
+Dynamic, Belts, TotRes + MaxLife > X, MaxLife > X * 0.9, TotRes > X * 0.9
+
 # rules for interesting items
 # each line is a rule name, the item class for the rule,
 # and then a set of terms the item must match to pass the rule.

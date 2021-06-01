@@ -220,10 +220,6 @@ For example, if the stash contains one ilvl 74 glove and one ilvl 74 helmet and 
 - A value of 2 will also cause unidentified ilvl 75+ items to be favored over identified ilvl 60-74 items in IDed recipes.
 This will tend to cause hoarding of identified ilvl 60-74 items in teh stash tab.
 
-__`includeInventoryOnForce`__ (false) will cause items in the character's inventory to be included when a force update command is executed.
-It ought to be useful for when a Keepers of the Trove pack gives you all the gloves you need,
-but it depends on your inventory on the website having been updated, and there's a bit of a lag for that.
-
 __`ignoreMaxSets`__ causes the specified item classes to ignore the `maxSets` setting.
 For example, setting `ignoreMaxSets` to "Rings,Amulets,Belts" when `maxSets` is 12,
 will cause the filter to keep highlighting rings, amulets and belts even when there are 12 or more of them in the stash tab.
