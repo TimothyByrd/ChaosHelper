@@ -300,6 +300,7 @@ namespace ChaosHelper
 
             if (ItemRule.HaveDynamic)
             {
+                logger.Info("reading equipped items to update dynamic rules");
                 var inventoryItems = new ItemSet();
                 await GetEquippedItems(inventoryItems);
                 inventoryItems.UpdateDynamicRules();
@@ -461,7 +462,13 @@ namespace ChaosHelper
                         var w = item.GetIntOrDefault("w", 999);
                         var h = item.GetIntOrDefault("h", 999);
 
-                        if (w != 1 || h != 2)
+                        if (w == 1 && h == 1)
+                        {
+                            var baseType = item.GetStringOrDefault("baseType");
+                            if (!baseType.EndsWith("Map", StringComparison.OrdinalIgnoreCase))
+                                continue;
+                        }
+                        else if (w != 1 || h != 2)
                             continue;
                     }
 

@@ -368,17 +368,30 @@ namespace ChaosHelper
 
         public ItemSet MakeQualitySet()
         {
+            bool IsGem(ItemPosition itemPos)
+            {
+                return itemPos.iLvl == 0;
+            }
+
             var result = new ItemSet();
-            var gems = itemsDict[Cat.Junk].Where(x => x.H == 1).OrderBy(x => x, new QualityComparer());
+
+            var gems = itemsDict[Cat.Junk].Where(x => x.H == 1 && IsGem(x)).OrderBy(x => x, new QualityComparer());
             //ShowSet("gem", gems);
             var gemSet = MakeAQualitySet(gems, Config.QualityGemRecipeSlop);
             if (gemSet != null)
                 result.itemsDict[Cat.Junk].AddRange(gemSet);
+
             var flasks = itemsDict[Cat.Junk].Where(x => x.H == 2).OrderBy(x => x, new QualityComparer());
             //ShowSet("flask", flasks);
             var flaskSet = MakeAQualitySet(flasks, Config.QualityFlaskRecipeSlop);
             if (flaskSet != null)
                 result.itemsDict[Cat.Junk].AddRange(flaskSet);
+
+            var maps = itemsDict[Cat.Junk].Where(x => x.H == 1 && !IsGem(x)).OrderBy(x => x, new QualityComparer());
+            var mapSet = MakeAQualitySet(maps, Config.QualityGemRecipeSlop);
+            if (mapSet != null)
+                result.itemsDict[Cat.Junk].AddRange(mapSet);
+
             RemoveItems(result);
             return result;
         }
