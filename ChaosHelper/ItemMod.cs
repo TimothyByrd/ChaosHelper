@@ -31,16 +31,8 @@ namespace ChaosHelper
             if (NumVars == 1)
                 return (true, v1);
 
-            if (NumVars == 2
-                || NumVars == 4
-                && string.Equals(match.Groups["v1"].Value, match.Groups["v3"].Value)
-                && string.Equals(match.Groups["v2"].Value, match.Groups["v4"].Value))
-            {
-                var v2 = double.Parse(match.Groups["v2"].Value);
-                return (true, (v1 + v2) / 2);
-
-            }
-            throw new Exception($"don't know how to handle {NumVars} match groups");
+            var v2 = double.Parse(match.Groups["v2"].Value);
+            return (true, (v1 + v2) / 2);
         }
 
         public static ItemMod FromString(string modFileLine)
