@@ -154,6 +154,7 @@ Gain 1% of Physical Damage as Extra Lightning Damage
 1% reduced Hiring Fee for Perception Jobs
 1% reduced Hiring Fee for Trap Disarmament Jobs
 
++1 to Character Level
 1 to 1 added Cold Damage\nPlayers and their Minions have 1 to 1 added Cold Damage
 1 to 1 added Fire Damage\nPlayers and their Minions have 1 to 1 added Fire Damage
 1 to 1 added Lightning Damage\nPlayers and their Minions have 1 to 1 added Lightning Damage
@@ -161,25 +162,29 @@ Gain 1% of Physical Damage as Extra Lightning Damage
 1% increased Rarity of Items dropped in Heists
 1% increased time before Lockdown
 1% reduced Job speed
-1% reduced raising of Alert Level from opening Chests
 1% reduced raising of Alert Level
+1% reduced raising of Alert Level from opening Chests
 1% reduced Travel Fee
 Grants Level 1 Grace Skill
 Grants Level 1 Haste Skill
 Grants Level 1 Hatred Skill
+Guards take 1% reduced Damage
 Heist Chests have a 1% chance to Duplicate contained Basic Currency
 Heist Chests have a 1% chance to Duplicate contained Divination Cards
 Heist Chests have a 1% chance to Duplicate contained Jewels
 Heist Chests have a 1% chance to Duplicate contained Map Fragments
 Heist Chests have a 1% chance to Duplicate contained Maps
 Players gain 1% reduced Flask Charges
+Players gain 1% reduced Flask Charges per 1% Alert Level
 Players have 1% increased Flask Charges gained
 Players have 1% less Evasion per 1% Alert Level
-Players gain 1% reduced Flask Charges per 1% Alert Level
+Players have 1% less Life Recovery Rate per 1% Alert Level
+Reinforcements have 1% increased Attack Speed
+Reinforcements have 1% increased Cast Speed
+Reinforcements have 1% increased Movement Speed
 Reward Room Monsters deal 1% increased Damage
 Reward Rooms have 1% increased Monsters
 The Ring's Cut reduced by 1%
-+1 to Character Level
 
 # junk mods
 
@@ -360,6 +365,10 @@ The Ring's Cut reduced by 1%
 1% increased Melee Damage
 1% increased Mine Throwing Speed
 1% increased Minion Maximum Life
+1% increased Monster Attack Speed
+1% increased Monster Cast Speed
+1% increased Monster Movement Speed
+1% increased Movement Speed if you haven't been Hit Recently
 1% increased Poison Duration
 1% increased Power Charge Duration
 1% increased Projectile Attack Damage
@@ -380,12 +389,14 @@ The Ring's Cut reduced by 1%
 1% increased Trap Duration
 1% increased Trap Throwing Speed
 1% increased Warcry Speed
+1% less effect of Curses on Monsters
 1% more Attack Speed while Totem is Active
 1% more Burning Damage
 1% more Magic Monsters
 1% more Melee Damage while Totem is Active
 1% more Minion Movement Speed
 1% more Monster Life
+1% more Rare Monsters
 1% more Spell Fire Damage
 1% of Burning Arrow Physical Damage gained as Extra Fire Damage
 1% of Damage is taken from Mana before Life per Power Charge
@@ -429,6 +440,7 @@ Adds 1 to 1 Lightning Damage to Attacks
 Adds 1 to 1 Physical Damage
 Adds 1 to 1 Physical Damage to Attacks
 Adds 1 to 1 Physical Damage to Spells
+All Monster Damage from Hits always Ignites
 Allocates Arsonist
 Allocates Aspect of Stone
 Allocates Deep Breaths
@@ -509,12 +521,19 @@ Minions have 1% chance to Taunt on Hit with Attacks
 Minions have 1% increased Movement Speed
 Minions Regenerate 1% of Life per second
 Monsters fire 1 additional Projectiles
+Monsters have 1% increased Accuracy Rating
 Monsters have 1% increased Area of Effect
+Monsters Poison on Hit
+Monsters take 1% reduced Extra Damage from Critical Strikes
 Nearby Enemies are Blinded while in Sand Stance\nYou take 1% less Damage from Attacks from Enemies that aren't nearby while in Sand Stance\nNearby Enemies are Maimed while in Blood Stance
 Nearby Enemies are Intimidated
 Nearby Enemies take 1% increased Physical Damage
 Overwhelm 1% Physical Damage Reduction
+Player chance to Dodge is Unlucky
+Players have 1% less Armour
+Players have 1% reduced Chance to Block
 Projectiles deal 1% less Damage
+Rare Monsters each have a Nemesis Mod
 Recover 1% of Life on Kill
 Reflects 1 Fire Damage to Melee Attackers
 Reflects 1 Physical Damage to Melee Attackers
