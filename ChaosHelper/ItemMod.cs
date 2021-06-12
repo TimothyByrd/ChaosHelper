@@ -12,11 +12,11 @@ namespace ChaosHelper
         private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         private static readonly char[] modTagSplits = "\t;".ToCharArray();
 
-        public static readonly List<ItemMod> PossibleMods = new List<ItemMod>();
+        public static readonly List<ItemMod> PossibleMods = new();
 
         public Regex Regex { get; private set; }
         public int NumVars { get; private set; }
-        public List<TagEntry> Tags { get; private set; } = new List<TagEntry>();
+        public List<TagEntry> Tags { get; private set; } = new();
 
         public (bool, double) TryMatch(string s)
         {
@@ -86,7 +86,7 @@ namespace ChaosHelper
 
             // replace each sring of digits (with decimal point)
             // with a (?<v1>\d+) group
-            MatchEvaluator evaluator = new MatchEvaluator(NextValueGroup);
+            var evaluator = new MatchEvaluator(NextValueGroup);
             var regexStr = Regex.Replace(escaped, @"\d+\.?\d*", evaluator);
 
             return (new Regex($"^{regexStr}$", RegexOptions.Compiled | RegexOptions.IgnoreCase), counter);
