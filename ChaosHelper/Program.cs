@@ -80,7 +80,7 @@ namespace ChaosHelper
 #endif
 
             // Define the cancellation token.
-            CancellationTokenSource source = new CancellationTokenSource();
+            var source = new CancellationTokenSource();
             CancellationToken token = source.Token;
 
             var keyboardTask = Task.Run(async () =>
@@ -188,7 +188,7 @@ namespace ChaosHelper
             // get initial counts
             itemsCurrent = new ItemSet();
             await Task.Delay(500);
-            await GetTabContents(Config.TabIndex, itemsCurrent);
+            await GetTabContents(Config.RecipeTabIndex, itemsCurrent);
             await Task.Delay(500);
             await GetCurrencyTabContents();
             itemsCurrent.RefreshCounts();
@@ -203,7 +203,7 @@ namespace ChaosHelper
                     {
                         logger.Info("registering hotkeys");
 
-                        void MaybeRegister(HotKeyBinding x)
+                        static void MaybeRegister(HotKeyBinding x)
                         {
                             if (x != null)
                                 HotKeyManager.RegisterHotKey(x.Key, x.Modifiers);
@@ -266,13 +266,12 @@ namespace ChaosHelper
 
             itemsPrevious = itemsCurrent;
             itemsCurrent = new ItemSet();
-            await GetTabContents(Config.TabIndex, itemsCurrent);
+            await GetTabContents(Config.RecipeTabIndex, itemsCurrent);
             await Task.Delay(500);
             await GetCurrencyTabContents();
             itemsCurrent.RefreshCounts();
             itemsCurrent.CalculateClassesToShow(Config.MaxSets, Config.IgnoreMaxSets);
 
-            overlay?.SetCurrentItems(itemsCurrent);
             SetOverlayStatusMessage();
 
             if (forceFilterUpdate || !itemsCurrent.SameClassesToShow(itemsPrevious))
@@ -343,6 +342,7 @@ namespace ChaosHelper
                     msg = $"no sets, yet";
             }
             overlay?.SetStatus(msg, numSets >= Config.MaxSets);
+            overlay?.SetCurrentItems(itemsCurrent);
         }
 
         // frameType:
@@ -484,7 +484,7 @@ namespace ChaosHelper
                 logger.Error(ex, $"HTTP error getting quality tab contents: {ex.Message}");
             }
 
-            int GetQuality(JsonElement item)
+            static int GetQuality(JsonElement item)
             {
                 var quality = 0;
                 foreach (var prop in item.GetProperty("properties").EnumerateArray())
@@ -800,104 +800,102 @@ namespace ChaosHelper
 
         static async Task TailClientTxt(CancellationToken token)
         {
-            using (var fs = new FileStream(Config.ClientFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            using (var sr = new StreamReader(fs))
+            using var fs = new FileStream(Config.ClientFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            using var sr = new StreamReader(fs);
+            sr.BaseStream.Seek(0, SeekOrigin.End);
+
+            try
             {
-                sr.BaseStream.Seek(0, SeekOrigin.End);
-
-                try
+                const string loginPattern = "login.pathofexile.com";
+                var sawLoginLine = false;
+                while (!token.IsCancellationRequested)
                 {
-                    const string loginPattern = "login.pathofexile.com";
-                    var sawLoginLine = false;
-                    while (!token.IsCancellationRequested)
+                    string newArea = null;
+                    string line = await sr.ReadLineAsync();
+                    while (line != null)
                     {
-                        string newArea = null;
-                        string line = await sr.ReadLineAsync();
-                        while (line != null)
-                        {
-                            var i = line.IndexOf(Config.AreaEnteredPattern);
-                            if (i > 0)
-                                newArea = line.Substring(i + Config.AreaEnteredPattern.Length).Trim().TrimEnd('.');
-                            else if (line.IndexOf(loginPattern) > 0)
-                                sawLoginLine = true;
-                            line = await sr.ReadLineAsync();
-                        }
-
-                        if (reloadConfig)
-                        {
-                            await Config.ReadConfigFile();
-                            overlay?.SendKey(ConsoleKey.R);
-                            reloadConfig = false;
-                        }
-
-                        if (checkCharacter || sawLoginLine && newArea != null)
-                        {
-                            await Config.CheckAccount(forceWebCheck: true);
-                            await Config.DetermineTabIndicies(forceWebCheck: true);
-                            checkCharacter = false;
-                            sawLoginLine = false;
-                        }
-
-                        bool wasTown = Config.IsTown(currentArea);
-
-                        if (newArea != null)
-                        {
-                            bool isTown = Config.IsTown(newArea);
-                            var status = isPaused ? " (paused)" : !isTown ? string.Empty : !wasTown ? " (to town)" : " (town)";
-                            logger.Info($"new area - {newArea}{status}");
-                            overlay?.SetArea($"{newArea}{status}", isTown);
-                            qualityItems = null;
-                            highlightQualityToSell = false;
-                            currentArea = newArea;
-                        }
-                        else if (forceFilterUpdate)
-                            logger.Info("forcing filter update");
-
-                        if ((newArea != null && wasTown) || forceFilterUpdate)
-                            await CheckForUpdate();
-                        else if (newArea != null)
-                            SetOverlayStatusMessage();
-
-                        if (highlightSetsToSell)
-                        {
-                            var setToSell = itemsCurrent.GetSetToSell(Config.AllowIDedSets, Config.ChaosParanoiaLevel);
-                            overlay?.SetitemSetToSell(setToSell);
-                            overlay?.SendKey(ConsoleKey.H);
-                            highlightSetsToSell = false;
-                            SetOverlayStatusMessage();
-                        }
-                        else if (highlightQualityToSell)
-                        {
-                            if (qualityItems == null)
-                            {
-                                qualityItems = new ItemSet();
-                                await GetQualityTabContents(Config.QualityTabIndex, qualityItems);
-                            }
-                            var qualitySet = qualityItems.MakeQualitySet();
-                            overlay?.SetitemSetToSell(qualitySet);
-                            overlay?.SendKey(ConsoleKey.Q);
-                            highlightQualityToSell = false;
-                        }
-                        else if (logMatchingNames)
-                        {
-                            await CheckDumpTabs();
-                            logMatchingNames = false;
-                        }
-                        else if (itemStatsFromClipboard)
-                        {
-                            await CheckItemStatsFromClipboard();
-                            itemStatsFromClipboard = false;
-                        }
-
-                        await Task.Delay(1000, token);
-                        if (token.IsCancellationRequested)
-                            break;
+                        var i = line.IndexOf(Config.AreaEnteredPattern);
+                        if (i > 0)
+                            newArea = line.Substring(i + Config.AreaEnteredPattern.Length).Trim().TrimEnd('.');
+                        else if (line.IndexOf(loginPattern) > 0)
+                            sawLoginLine = true;
+                        line = await sr.ReadLineAsync();
                     }
+
+                    if (reloadConfig)
+                    {
+                        await Config.ReadConfigFile();
+                        overlay?.SendKey(ConsoleKey.R);
+                        reloadConfig = false;
+                    }
+
+                    if (checkCharacter || sawLoginLine && newArea != null)
+                    {
+                        await Config.CheckAccount(forceWebCheck: true);
+                        await Config.DetermineTabIndicies(forceWebCheck: true);
+                        checkCharacter = false;
+                        sawLoginLine = false;
+                    }
+
+                    bool wasTown = Config.IsTown(currentArea);
+
+                    if (newArea != null)
+                    {
+                        bool isTown = Config.IsTown(newArea);
+                        var status = isPaused ? " (paused)" : !isTown ? string.Empty : !wasTown ? " (to town)" : " (town)";
+                        logger.Info($"new area - {newArea}{status}");
+                        overlay?.SetArea($"{newArea}{status}", isTown);
+                        qualityItems = null;
+                        highlightQualityToSell = false;
+                        currentArea = newArea;
+                    }
+                    else if (forceFilterUpdate)
+                        logger.Info("forcing filter update");
+
+                    if ((newArea != null && wasTown) || forceFilterUpdate)
+                        await CheckForUpdate();
+                    else if (newArea != null)
+                        SetOverlayStatusMessage();
+
+                    if (highlightSetsToSell)
+                    {
+                        var setToSell = itemsCurrent.GetSetToSell(Config.AllowIDedSets, Config.ChaosParanoiaLevel);
+                        overlay?.SetitemSetToSell(setToSell);
+                        overlay?.SendKey(ConsoleKey.H);
+                        highlightSetsToSell = false;
+                        SetOverlayStatusMessage();
+                    }
+                    else if (highlightQualityToSell)
+                    {
+                        if (qualityItems == null)
+                        {
+                            qualityItems = new ItemSet();
+                            await GetQualityTabContents(Config.QualityTabIndex, qualityItems);
+                        }
+                        var qualitySet = qualityItems.MakeQualitySet();
+                        overlay?.SetitemSetToSell(qualitySet);
+                        overlay?.SendKey(ConsoleKey.Q);
+                        highlightQualityToSell = false;
+                    }
+                    else if (logMatchingNames)
+                    {
+                        await CheckDumpTabs();
+                        logMatchingNames = false;
+                    }
+                    else if (itemStatsFromClipboard)
+                    {
+                        await CheckItemStatsFromClipboard();
+                        itemStatsFromClipboard = false;
+                    }
+
+                    await Task.Delay(1000, token);
+                    if (token.IsCancellationRequested)
+                        break;
                 }
-                catch (TaskCanceledException)
-                {
-                    // do nothing
-                }
+            }
+            catch (TaskCanceledException)
+            {
+                // do nothing
             }
         }
     }

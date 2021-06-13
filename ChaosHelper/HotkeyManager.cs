@@ -46,10 +46,10 @@ namespace ConsoleHotKey
 
         private static volatile MessageWindow _wnd;
         private static volatile IntPtr _hwnd;
-        private static readonly ManualResetEvent _windowReadyEvent = new ManualResetEvent(false);
+        private static readonly ManualResetEvent _windowReadyEvent = new(false);
         static HotKeyManager()
         {
-            Thread messageLoop = new Thread(delegate ()
+            var messageLoop = new Thread(delegate ()
             {
                 Application.Run(new MessageWindow());
             })
@@ -73,7 +73,7 @@ namespace ConsoleHotKey
             {
                 if (m.Msg == WM_HOTKEY)
                 {
-                    HotKeyEventArgs e = new HotKeyEventArgs(m.LParam);
+                    var e = new HotKeyEventArgs(m.LParam);
                     HotKeyManager.OnHotKeyPressed(e);
                 }
 

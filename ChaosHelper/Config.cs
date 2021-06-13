@@ -41,7 +41,7 @@ namespace ChaosHelper
         public static int MaxSets { get; private set; }
         public static int MaxIlvl { get; private set; }
         public static int MinIlvl { get; private set; }
-        public static int TabIndex { get; private set; }
+        public static int RecipeTabIndex { get; private set; }
         public static bool IsQuadTab { get; private set; }
         public static bool QualityIsQuadTab { get; private set; }
         public static int QualityFlaskRecipeSlop { get; private set; }
@@ -208,7 +208,7 @@ namespace ChaosHelper
 
             Currency.SetArray(rawConfig.GetArray("currency"));
 
-            HotKeyBinding GetHotKey(string s)
+            static HotKeyBinding GetHotKey(string s)
             {
                 var result = rawConfig.GetHotKey(s);
                 if (result != null)
@@ -382,16 +382,16 @@ namespace ChaosHelper
             //
             if (!forceWebCheck)
             {
-                TabIndex = rawConfig.GetInt("tabIndex", -1);
-                if (TabIndex >= 0)
+                RecipeTabIndex = rawConfig.GetInt("tabIndex", -1);
+                if (RecipeTabIndex >= 0)
                 {
-                    logger.Info($"using configured tab index = {TabIndex}");
+                    logger.Info($"using configured tab index = {RecipeTabIndex}");
                     IsQuadTab = rawConfig.GetBoolean("isQuadTab", true);
                     return true;
                 }
             }
 
-            TabIndex = -1;
+            RecipeTabIndex = -1;
             CurrencyTabIndex = -1;
             QualityTabIndex = -1;
 
@@ -416,7 +416,7 @@ namespace ChaosHelper
 
                 bool Done()
                 {
-                    return TabIndex >= 0
+                    return RecipeTabIndex >= 0
                         && (!lookForCurrencyTab || CurrencyTabIndex >= 0)
                         && (!lookForQualityTab || QualityTabIndex >= 0)
                         && !dumpTabNames.Any();
@@ -430,7 +430,7 @@ namespace ChaosHelper
                     var i = tab.GetIntOrDefault("i", -1);
                     bool found = false;
 
-                    if (TabIndex == -1)
+                    if (RecipeTabIndex == -1)
                     {
                         if (checkTabNames)
                             found = string.Equals(name, tabNameFromConfig, StringComparison.OrdinalIgnoreCase);
@@ -439,8 +439,8 @@ namespace ChaosHelper
 
                         if (found)
                         {
-                            TabIndex = i;
-                            logger.Info($"found tab '{name}', index = {TabIndex}, type = {tabType}");
+                            RecipeTabIndex = i;
+                            logger.Info($"found chaos recipe tab '{name}', index = {RecipeTabIndex}, type = {tabType}");
                             IsQuadTab = string.Equals(tabType, "QuadStash", StringComparison.OrdinalIgnoreCase);
                         }
                     }
@@ -481,7 +481,7 @@ namespace ChaosHelper
             {
                 logger.Error(ex, $"HTTP error getting tab list: {ex.Message}");
             }
-            if (TabIndex < 0)
+            if (RecipeTabIndex < 0)
             {
                 logger.Error("ERROR: stash tab not found");
                 return false;

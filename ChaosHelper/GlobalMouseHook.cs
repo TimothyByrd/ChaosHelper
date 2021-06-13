@@ -14,7 +14,7 @@ namespace ChaosHelper
 
         public GlobalMouseHook()
         {
-            Thread messageLoop = new Thread(delegate ()
+            var messageLoop = new Thread(delegate ()
             {
                 messageWindow = new MessageWindow();
                 Application.Run(messageWindow);
@@ -36,12 +36,12 @@ namespace ChaosHelper
         {
             messageWindow?.Close();
             messageWindow = null;
-            //GC.SuppressFinalize(this);
+            GC.SuppressFinalize(this);
         }
 
         delegate IntPtr HookProc(int nCode, IntPtr wParam, IntPtr lParam);
 
-        [DllImport("kernel32.dll")]
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
         private static extern IntPtr LoadLibrary(string lpFileName);
 
         [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
@@ -95,7 +95,7 @@ namespace ChaosHelper
         //const uint WM_MOUSEWHEEL = 0x20A;
         //const uint WM_MOUSEHWHEEL = 0x20E;
 
-        private static readonly ManualResetEvent _windowReadyEvent = new ManualResetEvent(false);
+        private static readonly ManualResetEvent _windowReadyEvent = new(false);
 
         protected class MessageWindow : Form
         {

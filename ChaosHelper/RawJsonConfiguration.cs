@@ -99,7 +99,7 @@ namespace ChaosHelper
             {
                 var valueStr = value.GetString();
                 int modifiers = 0;
-                while (valueStr.Length > 0 && "^+!".IndexOf(valueStr[0]) >= 0)
+                while (valueStr.Length > 0 && "^+!".Contains(valueStr[0]))
                 {
                     switch (valueStr[0])
                     {

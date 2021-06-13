@@ -22,9 +22,9 @@ namespace ChaosHelper
             public int Total { get { return NumIded + NumUnIded; } }
         }
 
-        readonly Dictionary<Cat, List<ItemPosition>> itemsDict = new Dictionary<Cat, List<ItemPosition>>();
-        readonly Dictionary<Cat, ItemCounts> countsDict = new Dictionary<Cat, ItemCounts>();
-        readonly Dictionary<Cat, bool> showDict = new Dictionary<Cat, bool>();
+        readonly Dictionary<Cat, List<ItemPosition>> itemsDict = new();
+        readonly Dictionary<Cat, ItemCounts> countsDict = new();
+        readonly Dictionary<Cat, bool> showDict = new();
 
         public ItemSet()
         {
@@ -100,7 +100,7 @@ namespace ChaosHelper
                 if (c.Skip)
                     continue;
 
-                if (ignoreMaxSets.IndexOf(c.CategoryStr, StringComparison.OrdinalIgnoreCase) >= 0)
+                if (ignoreMaxSets.Contains(c.CategoryStr, StringComparison.OrdinalIgnoreCase))
                 {
                     showDict[c.Category] = true;
                     continue;
@@ -368,7 +368,7 @@ namespace ChaosHelper
 
         public ItemSet MakeQualitySet()
         {
-            bool IsGem(ItemPosition itemPos)
+            static bool IsGem(ItemPosition itemPos)
             {
                 return itemPos.iLvl == 0;
             }
@@ -493,7 +493,7 @@ namespace ChaosHelper
             }
         }
 
-        private static readonly Dictionary<BaseClass, string> equippedSlotDict = new Dictionary<BaseClass, string>
+        private static readonly Dictionary<BaseClass, string> equippedSlotDict = new()
         {
             { BaseClass.BodyArmours, "BodyArmour" },
             { BaseClass.Helmets, "Helm" },

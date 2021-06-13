@@ -46,7 +46,7 @@ namespace ChaosHelper
             public bool Fractured;
         }
 
-        readonly SortedDictionary<string, TagValue> tagValues = new SortedDictionary<string, TagValue>();
+        readonly SortedDictionary<string, TagValue> tagValues = new();
 
         public (double, bool) GetTag(string tag)
         {
@@ -100,7 +100,7 @@ namespace ChaosHelper
             }
 
             if (!found)
-                logger.Warn($"*** unknown mod: {s}");
+                logger.Warn($"*** unknown mod: {s.Replace("\r", "\\r").Replace("\n", "\\n")}");
         }
 
         public Cat Cat { get; set; }
@@ -228,7 +228,7 @@ namespace ChaosHelper
             Console.WriteLine();
         }
 
-        static readonly Dictionary<int, string> propDict = new Dictionary<int, string>
+        static readonly Dictionary<int, string> propDict = new()
         {
             { 6,  "PropQuality" },
             { 9,  "PropPDam" },

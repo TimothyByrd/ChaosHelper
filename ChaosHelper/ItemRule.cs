@@ -12,13 +12,13 @@ namespace ChaosHelper
         private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
         public static List<ItemRule> Rules { get; private set; } = new List<ItemRule>();
-        public static bool HaveDynamic;
+        public static bool HaveDynamic { get; private set; }
 
         public string Name { get; private set; }
         public BaseClass BaseClass { get; private set; }
         public bool IsDynamic { get; private set; }
         
-        private readonly List<RuleEntry> entries = new List<RuleEntry>();
+        private readonly List<RuleEntry> entries = new();
 
         private static readonly char[] ruleLineSplits = "\t;,".ToCharArray();
 
@@ -84,7 +84,7 @@ namespace ChaosHelper
         {
             private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
-            private static readonly Regex entrySplitter = new Regex(
+            private static readonly Regex entrySplitter = new(
                 @"^
                 (?<term> \w+ (?: [:*](?: \d+\.?\d*))? )
                 (?: (?<plus> \+)
@@ -117,7 +117,7 @@ namespace ChaosHelper
             public bool isDynamic;
             public double dynamicFactor;
 
-            private readonly List<TagEntry> sumItems = new List<TagEntry>();
+            private readonly List<TagEntry> sumItems = new();
 
             public static RuleEntry FromString(string s)
             {
@@ -160,16 +160,15 @@ namespace ChaosHelper
             {
                 double sum = GetSum(stats);
 
-                switch (compare)
+                return compare switch
                 {
-                case ">": return sum > target;
-                default:
-                case ">=": return sum >= target;
-                case "<": return sum < target;
-                case "<=": return sum <= target;
-                case "==": return sum == target;
-                case "=": return sum == target;
-                }
+                    ">" => sum > target,
+                    "<" => sum < target,
+                    "<=" => sum <= target,
+                    "==" => sum == target,
+                    "=" => sum == target,
+                    _ => sum >= target,
+                };
             }
 
             private double GetSum(ItemStats stats)

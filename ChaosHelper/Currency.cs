@@ -18,8 +18,7 @@ namespace ChaosHelper
         public bool CanFilterOn { get; private set; }
         public bool ShowBlock { get { return CanFilterOn && CurrentCount < Desired; } }
         public int CurrentCount { get; set; }
-
-        static public List<Currency> CurrencyList = new List<Currency>();
+        public static List<Currency> CurrencyList { get; private set; } = new List<Currency>();
 
         public static void ResetCounts()
         {

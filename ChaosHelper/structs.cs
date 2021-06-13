@@ -117,7 +117,7 @@ namespace ChaosHelper
             }
         }
 
-        static readonly List<ItemClassForFilter> itemClasses = new List<ItemClassForFilter>
+        static readonly List<ItemClassForFilter> itemClasses = new()
         {
             new ItemClassForFilter("a",  false, 38, Cat.BodyArmours, "BodyArmours", "Body Armours"),
             new ItemClassForFilter("h",  false, 38, Cat.Helmets, "Helmets", "Helmets"),
@@ -136,18 +136,6 @@ namespace ChaosHelper
 //
 public static class Helpers
     {
-        /// <summary>
-        /// Returns a value indicating whether a specified substring occurs within this string.
-        /// </summary>
-        /// <param name="s">The string to seek in.</param>
-        /// <param name="value">The string to seek.</param>
-        /// <param name="comparisonType">One of the enumeration values that specifies the rules for the search.</param>
-        /// <returns>true if the value parameter occurs within this string; otherwise, false.</returns>
-        public static bool Contains(this string thisString, string value, StringComparison comparisonType)
-        {
-            return thisString.IndexOf(value, comparisonType) >= 0;
-        }
-
         /// <summary>
         /// Gets the specified JSON property value as an integer, or returns a default value.
         /// </summary>
@@ -196,8 +184,8 @@ public static class Helpers
             return Math.Max(min, Math.Min(max, i));
         }
 
-        static readonly Regex nonColorCharRegex = new Regex("[^0-9xXa-fA-F ]+");
-        static readonly Regex filterColorRegex  = new Regex("^[0-9]{1,3}( [0-9]{1,3}){2,3}$");
+        static readonly Regex nonColorCharRegex = new("[^0-9xXa-fA-F ]+");
+        static readonly Regex filterColorRegex  = new("^[0-9]{1,3}( [0-9]{1,3}){2,3}$");
 
         public static string CheckColorString(this string s, string defaultValue = null)
         {
@@ -233,7 +221,7 @@ public static class Helpers
             return -1;
         }
 
-        private static readonly Dictionary<Cat, BaseClass> catClassDict = new Dictionary<Cat, BaseClass>
+        private static readonly Dictionary<Cat, BaseClass> catClassDict = new()
         {
             { Cat.BodyArmours, BaseClass.BodyArmours },
             { Cat.Helmets, BaseClass.Helmets },

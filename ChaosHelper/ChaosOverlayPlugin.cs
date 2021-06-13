@@ -14,7 +14,7 @@ namespace ChaosHelper
     {
         private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
-        private readonly TickEngine _tickEngine = new TickEngine();
+        private readonly TickEngine _tickEngine = new();
         private int _font;
         private int _redBrush;
         private int _redOpacityBrush;
@@ -52,8 +52,8 @@ namespace ChaosHelper
         private bool _showStashTest = false;
         private bool _showJunkItems = false;
 
-        private readonly List<Point> _clickList = new List<Point>();
-        private readonly List<ItemRectStruct> _itemsToDraw = new List<ItemRectStruct>();
+        private readonly List<Point> _clickList = new();
+        private readonly List<ItemRectStruct> _itemsToDraw = new();
 
         public ChaosOverlayPlugin(int fps)
         {
@@ -347,10 +347,24 @@ namespace ChaosHelper
             var y = (int)(_stashRect.Bottom + _squareHeight * _numSquares / 16);
             var width = (int)_squareWidth;
             var height = (int)_squareHeight;
-            RectAndArrow(width, y, width, height, _highlightBrushDict[Cat.BodyArmours], _solidBrushDict[Cat.BodyArmours]);
-            RectAndArrow(width * 3, y, width, height, _highlightBrushDict[Cat.Helmets], _solidBrushDict[Cat.Helmets]);
-            RectAndArrow(width * 5, y, width, height, _highlightBrushDict[Cat.Belts], _solidBrushDict[Cat.Belts]);
-            RectAndArrow(width * 7, y, width, height, _highlightBrushDict[Cat.Rings], _solidBrushDict[Cat.Rings], false);
+
+            bool drawArrow = false;
+            int offset = 1;
+            void DrawForCategory(Cat cat)
+            {
+                bool drawRect = _itemsToDraw.Any(x => x.BrushH == _highlightBrushDict[cat]);
+                if (drawRect)
+                {
+                    ArrowAndRect(width * offset, y, width, height, _highlightBrushDict[cat], _solidBrushDict[cat], drawArrow);
+                    offset += 2;
+                    drawArrow = true;
+                }
+            }
+
+            DrawForCategory(Cat.BodyArmours);
+            DrawForCategory(Cat.Helmets);
+            DrawForCategory(Cat.Belts);
+            DrawForCategory(Cat.Rings);
 
             foreach (var item in _itemsToDraw)
                 HightlightItem(item);
@@ -368,16 +382,17 @@ namespace ChaosHelper
                 HightlightItem(item);
         }
 
-        private void RectAndArrow(int x, int y, int width, int height, int brushF, int brushS, bool drawArrow = true)
+        private void ArrowAndRect(int x, int y, int width, int height, int brushF, int brushS, bool drawArrow = true)
         {
             OverlayWindow.Graphics.FillRectangle(x, y, width, height, brushF);
             OverlayWindow.Graphics.DrawRectangle(x, y, width, height, 3, brushS);
             if (drawArrow)
             {
-                var arrowX1 = (int) (x + width * 1.1);
-                var arrowX2 = (int) (x + width * 1.9);
-                var arrowYc = y + height / 2;
+                x -= width * 2; // move arrow to left of rect
+                var arrowX1 = (int)(x + width * 1.1);
+                var arrowX2 = (int)(x + width * 1.9);
                 var arrowX3 = (arrowX1 + arrowX2 + arrowX2) / 3;
+                var arrowYc = y + height / 2;
                 OverlayWindow.Graphics.DrawLine(arrowX1, arrowYc, arrowX2, arrowYc, 2, _whiteBrush);
                 OverlayWindow.Graphics.DrawLine(arrowX3, y + 10, arrowX2, arrowYc, 2, _whiteBrush);
                 OverlayWindow.Graphics.DrawLine(arrowX3, y + height - 10, arrowX2, arrowYc, 2, _whiteBrush);
@@ -533,6 +548,7 @@ namespace ChaosHelper
         {
             OverlayWindow.Dispose();
             base.Dispose();
+            GC.SuppressFinalize(this);
         }
 
         private void ClearScreen()
