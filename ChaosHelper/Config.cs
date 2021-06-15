@@ -407,7 +407,7 @@ namespace ChaosHelper
             {
                 var stashTabListUrl = System.Uri.EscapeUriString("https://www.pathofexile.com/character-window/get-stash-items"
                     + $"?league={League}&tabs=1&accountName={Account}");
-                JsonElement json = await GetJsonForUrl(stashTabListUrl, -1);
+                JsonElement json = await GetJsonForUrl(stashTabListUrl, "tabList");
 
                 var lookForCurrencyTab = Currency.CurrencyList.Any();
                 var lookForQualityTab = !string.IsNullOrWhiteSpace(qualityTabNameFromConfig);
@@ -489,10 +489,15 @@ namespace ChaosHelper
             return true;
         }
 
-        public static async Task<JsonElement> GetJsonForUrl(string theUrl, int tabIndex)
+        public static Task<JsonElement> GetJsonForUrl(string theUrl, int tabIndex)
         {
-            var fileName = Path.Combine(exePath, $"./{tabIndex}.json");
-            if (StashReadMode == StashReading.Playback && tabIndex > 0 && File.Exists(fileName))
+            return GetJsonForUrl(theUrl, tabIndex.ToString());
+        }
+
+        public static async Task<JsonElement> GetJsonForUrl(string theUrl, string tabName)
+        {
+            var fileName = TabFileName(tabName);
+            if (StashReadMode == StashReading.Playback && File.Exists(fileName))
             {
                 var options = new JsonSerializerOptions
                 {
@@ -505,7 +510,7 @@ namespace ChaosHelper
                 }
                 catch (Exception ex)
                 {
-                    logger.Error(ex, $"Reading save tab data '{tabIndex}.json'");
+                    logger.Error(ex, $"Reading save tab data for '{tabName}'");
                 }
             }
 
@@ -514,15 +519,7 @@ namespace ChaosHelper
                 try
                 {
                     var result = await HttpClient.GetFromJsonAsync<JsonElement>(theUrl);
-                    if (tabIndex > 0 && StashReadMode == StashReading.Record)
-                    {
-                        var options = new JsonSerializerOptions
-                        {
-                            WriteIndented = true,
-                        };
-                        var jsonString = JsonSerializer.Serialize(result, options);
-                        File.WriteAllText(fileName, jsonString);
-                    }
+                    MaybeSavePageJson(result, tabName);
                     return result;
                 }
                 catch (Exception ex)
@@ -532,6 +529,26 @@ namespace ChaosHelper
             }
 
             return await ManualGetUrlJson(theUrl);
+        }
+
+        private static string TabFileName(string tabName)
+        {
+            return Path.Combine(exePath, $"./json_{tabName}.json");
+        }
+
+        public static void MaybeSavePageJson(JsonElement result, string tabName)
+        {
+
+            if (StashReadMode == StashReading.Record)
+            {
+                var options = new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                };
+                var jsonString = JsonSerializer.Serialize(result, options);
+                var fileName = TabFileName(tabName);
+                File.WriteAllText(fileName, jsonString);
+            }
         }
 
         private static async Task<JsonElement> ManualGetUrlJson(string theUrl)

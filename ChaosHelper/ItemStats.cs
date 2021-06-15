@@ -100,7 +100,10 @@ namespace ChaosHelper
             }
 
             if (!found)
-                logger.Warn($"*** unknown mod: {s.Replace("\r", "\\r").Replace("\n", "\\n")}");
+            {
+                var x = Regex.Replace(s, @"\d+\.?\d*", "1").Replace("\r", "\\r").Replace("\n", "\\n");
+                logger.Warn($"*** unknown mod: {x}");
+            }
         }
 
         public Cat Cat { get; set; }

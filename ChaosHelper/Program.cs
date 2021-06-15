@@ -593,6 +593,7 @@ namespace ChaosHelper
                 response.EnsureSuccessStatusCode();
 
                 var json = await response.Content.ReadFromJsonAsync<JsonElement>();
+                Config.MaybeSavePageJson(json, "inventory");
 
                 foreach (var item in json.GetProperty("items").EnumerateArray())
                 {
@@ -633,7 +634,7 @@ namespace ChaosHelper
                     league = league.Substring(4);
 
                 var poeNinjaUrl = System.Uri.EscapeUriString($"https://poe.ninja/api/data/currencyoverview?league={league}&type=Currency");
-                var json = await Config.GetJsonForUrl(poeNinjaUrl, -1);
+                var json = await Config.GetJsonForUrl(poeNinjaUrl, "poeNinja");
                 foreach (var item in json.GetProperty("lines").EnumerateArray())
                 {
                     var currencyTypeName = item.GetProperty("currencyTypeName").GetString();
