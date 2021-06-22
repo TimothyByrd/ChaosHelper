@@ -25,7 +25,7 @@ High Evasion, BodyArmours, PropEva >= 1800
 High Armour, BodyArmours, PropArm >= 1800
 
 High Phys, OneHandWeapons, DamPctPhys >= 150
-High Phys, TwoHandWeapons, DamPctPhys >= 150
+High Phys, TwoHandWeapons, DamPctPhys >= 160
 
 ES Shield,  Shields, TotRes >= 80, PropES >= 100
 
