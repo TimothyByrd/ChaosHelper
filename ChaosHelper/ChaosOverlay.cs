@@ -24,7 +24,7 @@ namespace ChaosHelper
         {
             _requiredProcessName = Config.RequiredProcessName;
             if (Config.ForceSteam)
-                _requiredProcessName = "PathOfExile_x64Steam";
+                _requiredProcessName = "PathOfExileSteam";
 
             try
             {
@@ -107,9 +107,9 @@ namespace ChaosHelper
                 process = System.Diagnostics.Process.GetProcessesByName(_requiredProcessName).FirstOrDefault();
             else
             {
-                process = System.Diagnostics.Process.GetProcessesByName("PathOfExile_x64").FirstOrDefault();
+                process = System.Diagnostics.Process.GetProcessesByName("PathOfExile").FirstOrDefault();
                 if (process == null)
-                    process = System.Diagnostics.Process.GetProcessesByName("PathOfExile_x64Steam").FirstOrDefault();
+                    process = System.Diagnostics.Process.GetProcessesByName("PathOfExileSteam").FirstOrDefault();
             }
             return process;
         }

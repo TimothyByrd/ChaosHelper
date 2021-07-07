@@ -39,6 +39,13 @@ namespace ChaosHelper
             return defaultValue;
         }
 
+        public double GetDouble(string s, double defaultValue = 0.0)
+        {
+            if (rawConfig.TryGetProperty(s, out var value) && value.TryGetDouble(out var doubleVal))
+                return doubleVal;
+            return defaultValue;
+        }
+
         public bool GetBoolean(string s, bool defaultValue = false)
         {
             if (rawConfig.TryGetProperty(s, out var value))

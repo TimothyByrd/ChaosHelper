@@ -17,7 +17,8 @@ namespace ChaosHelper
         public string Name { get; private set; }
         public BaseClass BaseClass { get; private set; }
         public bool IsDynamic { get; private set; }
-        
+        public List<string> DynamicDefenseTypes { get; private set; }
+
         private readonly List<RuleEntry> entries = new();
 
         private static readonly char[] ruleLineSplits = "\t;,".ToCharArray();
@@ -68,15 +69,16 @@ namespace ChaosHelper
         public bool Matches(ItemStats stats)
         {
             if (BaseClass == stats.BaseClass || BaseClass == BaseClass.Any)
-                return entries.All(x => x.Matches(stats));
+                return entries.All(x => x.Matches(stats, DynamicDefenseTypes));
             return false;
         }
 
         public void UpdateDynamic(ItemStats stats)
         {
+            DynamicDefenseTypes = stats.GetDefenseTypes();
             foreach (var entry in entries.Where(x => x.isDynamic))
             {
-                entry.UpdateDynamic(stats);
+                entry.UpdateDynamic(stats, DynamicDefenseTypes);
             }
         }
 
@@ -156,9 +158,9 @@ namespace ChaosHelper
                 return result;
             }
 
-            public bool Matches(ItemStats stats)
+            public bool Matches(ItemStats stats, List<string> defenseTypes)
             {
-                double sum = GetSum(stats);
+                double sum = GetSum(stats, defenseTypes);
 
                 return compare switch
                 {
@@ -171,12 +173,13 @@ namespace ChaosHelper
                 };
             }
 
-            private double GetSum(ItemStats stats)
+            private double GetSum(ItemStats stats, List<string> defenseTypes)
             {
                 var sum = 0.0;
                 foreach (var entry in sumItems)
                 {
-                    var value = stats[entry.Tag];
+                    var isDef = string.Equals(entry.Tag, "propdef", StringComparison.OrdinalIgnoreCase);
+                    var value = isDef ? stats.GetDefense(defenseTypes) : stats[entry.Tag];
                     if (value == 0 && entry.Tag.Contains("_frac", StringComparison.OrdinalIgnoreCase))
                     {
                         var baseTag = entry.Tag.Substring(0, entry.Tag.IndexOf("_frac", StringComparison.OrdinalIgnoreCase));
@@ -190,9 +193,9 @@ namespace ChaosHelper
                 return sum;
             }
 
-            public void UpdateDynamic(ItemStats stats)
+            public void UpdateDynamic(ItemStats stats, List<string> defenseTypes)
             {
-                double sum = GetSum(stats);
+                double sum = GetSum(stats, defenseTypes);
                 target = sum * dynamicFactor;
             }
         }

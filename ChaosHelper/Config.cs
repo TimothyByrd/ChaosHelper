@@ -74,6 +74,7 @@ namespace ChaosHelper
         public static bool FilterMarkerChecked { get; set; }
         public static bool PutFilterLineAtTop { get; set; }
         public static string FilterInsertFile { get; private set; }
+        public static double DefenseVariance { get; private set; }
 
         public static bool IsTown(string newArea)
         {
@@ -402,6 +403,7 @@ namespace ChaosHelper
             var dumpTabNames = rawConfig.GetStringList("dumpTabs");
             DumpTabDictionary.Clear();
             logger.Info($"dumpTabs has {dumpTabNames.Count} entries");
+            DefenseVariance = Math.Clamp(rawConfig.GetDouble("defenseVariance", 0.7), 0.1, 1.0);
 
             try
             {

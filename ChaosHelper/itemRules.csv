@@ -3,10 +3,12 @@ Dynamic, Gloves, TotRes + MaxLife > X, MaxLife > X * 0.9, TotRes > X * 0.9
 Dynamic, Boots, MoveSpeed >= 25, TotRes + MaxLife > X, MaxLife > X * 0.9, TotRes > X * 0.9
 Dynamic, Belts, TotRes + MaxLife > X, MaxLife > X * 0.9, TotRes > X * 0.9
 
-DynamicA, BodyArmours, PropArm + TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
-DynamicA, Gloves, PropArm + TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
-DynamicA, Boots, MoveSpeed >= 20, PropArm + TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
-DynamicA, Helmets, PropArm + TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
+DynamicA, BodyArmours, PropDef + TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
+DynamicA, Gloves, PropDef + TotRes + MaxLife + IAS > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
+DynamicA, Boots, MoveSpeed >= 20, PropDef + TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
+DynamicA, Helmets, PropDef + TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
+DynamicA, Amulets, TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
+DynamicA, Rings, TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
 
 # rules for interesting items
 # each line is a rule name, the item class for the rule,
@@ -19,7 +21,7 @@ Minion, Helmets, GemLvlMinion >= 2, MaxLife + TotRes >= 90
 High ES, BodyArmours, PropES >= 500
 High ES, Shields, PropES >= 250
 High ES, Helmets, PropES >= 180
-High ES, Gloves, PropES >= 100
+High ES, Gloves, PropES >= 140
 High ES, Boots, MoveSpeed >= 25, PropES >= 100
 High Evasion, BodyArmours, PropEva >= 1800
 High Armour, BodyArmours, PropArm >= 1800

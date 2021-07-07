@@ -219,6 +219,9 @@ namespace ChaosHelper
             Console.WriteLine($"class = {BaseClass}");
             if (!string.IsNullOrEmpty(BaseType))
                 Console.WriteLine($"base = {BaseType}");
+            var defenseTypes = GetDefenseTypes();
+            if (defenseTypes.Any())
+                Console.WriteLine($"def = {string.Join(", ", defenseTypes)}");
             foreach (var tagValue in tagValues.Values)
             {
                 Console.WriteLine($"\t{tagValue.Tag}: {tagValue.Value}");
@@ -229,6 +232,37 @@ namespace ChaosHelper
             else
                 Console.WriteLine(msg);
             Console.WriteLine();
+        }
+
+
+        const double _esMult = 5.0;
+
+        public List<string> GetDefenseTypes()
+        {
+            double fudge = Config.DefenseVariance;
+
+            var propArm = V("PropArm");
+            var propEva = V("PropEva");
+            var propES = V("PropES") * _esMult;
+            var defenseTypes = new List<string>();
+            if (propArm > 0 && propArm > propEva * fudge && propArm > propES * fudge)
+                defenseTypes.Add("PropArm");
+            if (propEva > 0 && propEva > propArm * fudge && propEva > propES * fudge)
+                defenseTypes.Add("PropEva");
+            if (propES > 0 && propES > propArm * fudge && propES > propEva * fudge)
+                defenseTypes.Add("PropES");
+            return defenseTypes;
+        }
+        
+        public double GetDefense(List<string> defenseTypes)
+        {
+            var result = 0.0;
+            foreach (var dt in defenseTypes)
+            {
+                var mult = string.Equals(dt, "PropES", StringComparison.OrdinalIgnoreCase) ? _esMult : 1.0;
+                result += V(dt) * mult;
+            }
+            return result;
         }
 
         static readonly Dictionary<int, string> propDict = new()
