@@ -257,10 +257,13 @@ namespace ChaosHelper
         public double GetDefense(List<string> defenseTypes)
         {
             var result = 0.0;
-            foreach (var dt in defenseTypes)
+            if (defenseTypes != null)
             {
-                var mult = string.Equals(dt, "PropES", StringComparison.OrdinalIgnoreCase) ? _esMult : 1.0;
-                result += V(dt) * mult;
+                foreach (var dt in defenseTypes)
+                {
+                    var mult = string.Equals(dt, "PropES", StringComparison.OrdinalIgnoreCase) ? _esMult : 1.0;
+                    result += V(dt) * mult;
+                }
             }
             return result;
         }

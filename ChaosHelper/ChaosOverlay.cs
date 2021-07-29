@@ -65,6 +65,8 @@ namespace ChaosHelper
                             Thread.Sleep(2000);
                         }
 
+                        Config.SetProcessModule(process.MainModule.FileName);
+
                         _plugin.Initialize(_processSharp.WindowFactory.MainWindow);
                         _plugin.Enable();
 
@@ -110,6 +112,10 @@ namespace ChaosHelper
                 process = System.Diagnostics.Process.GetProcessesByName("PathOfExile").FirstOrDefault();
                 if (process == null)
                     process = System.Diagnostics.Process.GetProcessesByName("PathOfExileSteam").FirstOrDefault();
+                if (process == null)
+                    process = System.Diagnostics.Process.GetProcessesByName("PathOfExileEGS").FirstOrDefault();
+                if (process == null)
+                    process = System.Diagnostics.Process.GetProcessesByName("PathOfExile_KG").FirstOrDefault();
             }
             return process;
         }

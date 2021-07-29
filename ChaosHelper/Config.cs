@@ -15,6 +15,7 @@ namespace ChaosHelper
         private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         private static RawJsonConfiguration rawConfig;
         private static string exePath;
+        private static bool forcingClientTxt = false;
 
         public enum StashReading
         {
@@ -300,18 +301,29 @@ namespace ChaosHelper
 
             var clientTxtBase = rawConfig["clientTxt"];
             ClientFileName = Environment.ExpandEnvironmentVariables(clientTxtBase);
-            if (ForceSteam && !File.Exists(ClientFileName))
+            forcingClientTxt = File.Exists(ClientFileName);
+            if (File.Exists(ClientFileName))
+            {
+                forcingClientTxt = true;
+            }
+            else if (ForceSteam)
+            {
                 ClientFileName = Environment.ExpandEnvironmentVariables("%ProgramFiles(x86)%\\Steam\\steamapps\\common\\Path of Exile\\logs\\Client.txt");
-            if (ForceSteam && !File.Exists(ClientFileName))
-                ClientFileName = "D:/pf_games/Steam/steamapps/common/Path of Exile/logs/client.txt";
-            if (!ForceSteam && !File.Exists(ClientFileName))
+                if (!File.Exists(ClientFileName))
+                    ClientFileName = "D:/pf_games/Steam/steamapps/common/Path of Exile/logs/client.txt";
+                forcingClientTxt = File.Exists(ClientFileName);
+            }
+            else
+            {
                 ClientFileName = Environment.ExpandEnvironmentVariables("%ProgramFiles(x86)%\\Games\\Grinding Gear Games\\Path of Exile\\logs\\Client.txt");
-            if (!ForceSteam && !File.Exists(ClientFileName))
-                ClientFileName = Environment.ExpandEnvironmentVariables("%ProgramFiles(x86)%\\Grinding Gear Games\\Path of Exile\\logs\\Client.txt");
-            if (!ForceSteam && !File.Exists(ClientFileName))
-                ClientFileName = Environment.ExpandEnvironmentVariables("%ProgramFiles%\\Grinding Gear Games\\Path of Exile\\logs\\Client.txt");
-            if (!ForceSteam && !File.Exists(ClientFileName))
-                ClientFileName = Environment.ExpandEnvironmentVariables("%ProgramFiles(x86)%\\Steam\\steamapps\\common\\Path of Exile\\logs\\Client.txt");
+                if (!File.Exists(ClientFileName))
+                    ClientFileName = Environment.ExpandEnvironmentVariables("%ProgramFiles(x86)%\\Grinding Gear Games\\Path of Exile\\logs\\Client.txt");
+                if (!File.Exists(ClientFileName))
+                    ClientFileName = Environment.ExpandEnvironmentVariables("%ProgramFiles%\\Grinding Gear Games\\Path of Exile\\logs\\Client.txt");
+                if (!File.Exists(ClientFileName))
+                    ClientFileName = Environment.ExpandEnvironmentVariables("%ProgramFiles(x86)%\\Steam\\steamapps\\common\\Path of Exile\\logs\\Client.txt");
+            }
+
             if (!File.Exists(ClientFileName))
             {
                 logger.Error($"ERROR: client.txt file '{clientTxtBase}' not found");
@@ -573,6 +585,17 @@ namespace ChaosHelper
             if (text.StartsWith("{") && text.EndsWith("}"))
                 return JsonSerializer.Deserialize<JsonElement>(text); ;
             return JsonSerializer.Deserialize<JsonElement>("{}");
+        }
+
+        public static void SetProcessModule(string processModulePath)
+        {
+            if (!forcingClientTxt)
+            {
+                var path = Path.GetDirectoryName(processModulePath);
+                var clientFile = Path.Combine(path, "logs\\Client.txt");
+                if (File.Exists(clientFile))
+                    ClientFileName = clientFile;
+            }
         }
     }
 }

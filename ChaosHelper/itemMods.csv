@@ -216,6 +216,8 @@ The Ring's Cut reduced by 1%
 +1 Mana gained for each Enemy hit by your Attacks
 +1 Mana gained on Kill
 +1 Mana gained when you Block
++1 Physical Damage taken from Attack Hits
++1 Physical Damage taken from Attack Hits
 +1 second to Base Placed Banner Duration per Stage
 +1 seconds to Attack Time
 +1 to Accuracy Rating
@@ -225,6 +227,9 @@ The Ring's Cut reduced by 1%
 +1 to Energy Shield
 +1 to Evasion Rating
 +1 to Evasion Rating while on Full Life
++1 to Evasion Rating while on Low Life
++1 to Evasion Rating while on Low Life
++1 to Level of Socketed Spell Gems
 +1 to Level of Socketed Support Gems
 +1 to Maximum Endurance Charges
 +1 to maximum number of Raised Zombies
@@ -271,6 +276,7 @@ The Ring's Cut reduced by 1%
 +1% to Melee Critical Strike Multiplier
 +1% to Quality
 +1% to Quality of Socketed Cold Gems
++1% to Quality of Socketed Gems
 -1 Physical Damage taken from Attack Hits
 -1 Physical Damage taken from Projectile Attacks
 -1 Strength per 1 Strength on Allocated Passives in Radius
@@ -512,6 +518,7 @@ The Ring's Cut reduced by 1%
 1% increased Projectile Attack Damage
 1% increased Projectile Damage
 1% increased Projectile Speed
+1% increased Quantity of Items found
 1% increased Rarity of Items Dropped by Enemies killed with a Critical Strike
 1% increased Rarity of Items Dropped by Frozen Enemies
 1% increased Rarity of Items found
@@ -556,6 +563,7 @@ The Ring's Cut reduced by 1%
 1% of Burning Arrow Physical Damage gained as Extra Fire Damage
 1% of Chaos Damage Leeched as Life
 1% of Cold Damage Converted to Fire Damage
+1% of Cold Damage Leeched as Life
 1% of Damage from Hits is taken from your Spectres' Life before you
 1% of Damage is taken from Mana before Life per Power Charge
 1% of Damage Leeched as Life if you've Killed Recently
@@ -566,6 +574,7 @@ The Ring's Cut reduced by 1%
 1% of Fire Damage from Hits taken as Physical Damage
 1% of Fire Damage Leeched as Life
 1% of Maximum Life taken as Chaos Damage per second
+1% of Melee Physical Damage taken reflected to Attacker
 1% of Physical Attack Damage Leeched as Life
 1% of Physical Attack Damage Leeched as Life per Red Socket
 1% of Physical Attack Damage Leeched as Mana
@@ -652,11 +661,14 @@ Allocates Decay Ward
 Allocates Deep Breaths
 Allocates Disciple of the Forbidden
 Allocates Enduring Bond
+Allocates Gemini
 Allocates Harrier
+Allocates Infused
 Allocates Insightfulness
 Allocates Lucidity
 Allocates Poisonous Fangs
 Allocates Redemption
+Allocates Retribution
 Allocates Righteous Army
 Allocates Smashing Strikes
 Allocates Stabbing Thirst
@@ -823,6 +835,8 @@ Never deal Critical Strikes
 No Physical Damage
 Non-Channelling Skills have -1 to Total Mana Cost
 Overwhelm 1% Physical Damage Reduction
+Pain Attunement
+Pain Attunement
 Pestilent Strike has 1% increased Area of Effect
 Player chance to Dodge is Unlucky
 Players are Cursed with Temporal Chains, with 1% increased Effect
@@ -848,6 +862,7 @@ Reflects 1 to 1 Physical Damage to Attackers on Block
 Regenerate 1 Energy Shield per second
 Regenerate 1 Energy Shield per second while a Rare or Unique Enemy is Nearby
 Regenerate 1 Life over 1 second
+Regenerate 1 Life over 1 second when you Cast a Spell
 Regenerate 1 Life per second
 Regenerate 1 Life per second per Endurance Charge
 Regenerate 1 Mana per second
@@ -915,8 +930,10 @@ Trigger Level 1 Consecrate when you deal a Critical Strike
 Trigger Level 1 Gore Shockwave on Melee Hit if you have at least 1 Strength
 Trigger Level 1 Rain of Arrows when you Attack with a Bow
 Trigger Socketed Spells when you Focus, with a 1 second Cooldown
+Trigger Word of Ire when Hit
 Trigger Word of Reflection when Hit
 Trigger Word of the Grave when your Skills or Minions Kill
+Trigger Word of War on Kill
 Trigger Word of Winter when Hit
 Unaffected by Burning Ground
 Unaffected by Chilled Ground

@@ -9,6 +9,7 @@ DynamicA, Boots, MoveSpeed >= 20, PropDef + TotRes + MaxLife > X * 0.9, MaxLife 
 DynamicA, Helmets, PropDef + TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
 DynamicA, Amulets, TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
 DynamicA, Rings, TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
+DynamicA, Shields, PropDef + TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
 
 # rules for interesting items
 # each line is a rule name, the item class for the rule,

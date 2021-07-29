@@ -47,7 +47,7 @@ namespace ChaosHelper
 
                 MainAsync().Wait();
 
-                Console.WriteLine("Press 'Enter' to end program");
+                Console.WriteLine(" Press 'Enter' to end program");
                 Console.Read();
             }
             finally
@@ -219,7 +219,8 @@ namespace ChaosHelper
                     }
 
                     // This will check for updates as zones are entered
-                    await TailClientTxt(token);
+                    while (!token.IsCancellationRequested)
+                        await TailClientTxt(token);
                 }
                 finally
                 {
@@ -599,6 +600,7 @@ namespace ChaosHelper
                 {
                     var inventoryId = item.GetProperty("inventoryId").GetString();
                     if (inventoryId == "MainInventory") continue; // only want equipped items
+                    if (inventoryId == "Flask") continue; // only want equipped items
 
                     var category = Cat.Junk;
                     var iconUrl = item.GetProperty("icon").GetString();
@@ -611,7 +613,7 @@ namespace ChaosHelper
                         }
                     }
 
-                    if (category != Cat.Junk)
+                    //if (category != Cat.Junk)
                         items.Add(category, item, -1);
                 }
             }
@@ -801,15 +803,18 @@ namespace ChaosHelper
 
         static async Task TailClientTxt(CancellationToken token)
         {
-            using var fs = new FileStream(Config.ClientFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            var savedClientFileName = Config.ClientFileName;
+            using var fs = new FileStream(savedClientFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             using var sr = new StreamReader(fs);
             sr.BaseStream.Seek(0, SeekOrigin.End);
+
+            logger.Info($"tailing '{savedClientFileName}'");
 
             try
             {
                 const string loginPattern = "login.pathofexile.com";
                 var sawLoginLine = false;
-                while (!token.IsCancellationRequested)
+                while (!token.IsCancellationRequested && string.Equals(savedClientFileName, Config.ClientFileName))
                 {
                     string newArea = null;
                     string line = await sr.ReadLineAsync();
@@ -889,9 +894,7 @@ namespace ChaosHelper
                         itemStatsFromClipboard = false;
                     }
 
-                    await Task.Delay(1000, token);
-                    if (token.IsCancellationRequested)
-                        break;
+                    await Task.Delay(1000, CancellationToken.None);
                 }
             }
             catch (TaskCanceledException)

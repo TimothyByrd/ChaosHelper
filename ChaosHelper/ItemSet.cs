@@ -460,7 +460,7 @@ namespace ChaosHelper
                         var item2 = item.TabIndex < otherItem.TabIndex ? otherItem : item;
                         var tab1 = DumpTabName(item1.TabIndex);
                         var tab2 = DumpTabName(item2.TabIndex);
-                        logger.Info($"name match: tab '{tab1}' at {item1.X},{item1.Y}, '{tab2}' at {item2.X},{item2.Y} - {item.Name}");
+                        logger.Info($"name match: '{tab1}'({item1.X},{item1.Y}), '{tab2}'({item2.X},{item2.Y}) - {item.Name} - tabs {tab1}, {tab2}");
                         nameDict.Remove(item.Name);
                     }
                 }
