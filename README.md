@@ -1,5 +1,7 @@
 # ChaosHelper
 
+_In 3.15, GGG has changed the CDN urls, so most items are being classed as "Junk". I won't have time to fix it for a few weeks. For most people, that means "see you next league"._
+
 This tool eases the completion of chaos recipes in Path of Exile.
 
 ![](./sample1.png?raw=true)
