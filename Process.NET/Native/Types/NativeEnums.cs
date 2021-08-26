@@ -104,13 +104,13 @@ namespace Process.NET.Native.Types
         Unknown = 0xFFFF
     }
 
-    [SuppressMessage("ReSharper", "InconsistentNaming")]
+    //[SuppressMessage("ReSharper", "InconsistentNaming")]
     public enum PrivilegeAttributes
     {
         SE_PRIVILEGE_ENABLED = 0x00000002
     }
 
-    [SuppressMessage("ReSharper", "InconsistentNaming")]
+    //[SuppressMessage("ReSharper", "InconsistentNaming")]
     public enum TokenObject
     {
         TOKEN_QUERY = 0x0008,
@@ -168,7 +168,7 @@ namespace Process.NET.Native.Types
         Tray = 0x2
     }
 
-    [SuppressMessage("ReSharper", "InconsistentNaming")]
+    //[SuppressMessage("ReSharper", "InconsistentNaming")]
     public enum HookType
     {
         WH_JOURNALRECORD = 0,

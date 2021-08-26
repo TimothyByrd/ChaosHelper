@@ -115,6 +115,9 @@
 
     // "dumpTabs": [ "dump", "dump2", ], // if you want to configure dump tab scanning, set your dump tabs here
 
+    // For the experimental dynamic rules
+    "defenseVariance": 0.7,
+
     // this is to figure out the place on the screen for the stash tab to highlight items
     // use [ 0, 0, 0, 0 ] to auto determine
     // if you need to set a custom value, take a screenshot of your stash tab,

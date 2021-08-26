@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 using Overlay.NET.Common;
@@ -71,22 +73,22 @@ namespace ChaosHelper
     public enum BaseClass
     {
         Any,
-        Amulets,
-        Belts,
-        BodyArmours,
+        Amulet,
+        Belt,
+        BodyArmour,
         Boots,
         Gloves,
-        Helmets,
-        Jewels,
-        OneHandWeapons,
-        Quivers,
-        Rings,
-        Shields,
-        TwoHandWeapons,
+        Helmet,
+        Jewel,
+        OneHandWeapon,
+        Quiver,
+        Ring,
+        Shield,
+        TwoHandWeapon,
         Flask,
-        Gems,
+        Gem,
         Currency,
-        Divination,
+        DivinationCard,
         Map,
     }
 
@@ -223,15 +225,15 @@ public static class Helpers
 
         private static readonly Dictionary<Cat, BaseClass> catClassDict = new()
         {
-            { Cat.BodyArmours, BaseClass.BodyArmours },
-            { Cat.Helmets, BaseClass.Helmets },
+            { Cat.BodyArmours, BaseClass.BodyArmour },
+            { Cat.Helmets, BaseClass.Helmet },
             { Cat.Gloves, BaseClass.Gloves },
             { Cat.Boots, BaseClass.Boots },
-            { Cat.OneHandWeapons, BaseClass.OneHandWeapons },
-            { Cat.TwoHandWeapons, BaseClass.TwoHandWeapons },
-            { Cat.Belts, BaseClass.Belts },
-            { Cat.Amulets, BaseClass.Amulets },
-            { Cat.Rings, BaseClass.Rings },
+            { Cat.OneHandWeapons, BaseClass.OneHandWeapon },
+            { Cat.TwoHandWeapons, BaseClass.TwoHandWeapon },
+            { Cat.Belts, BaseClass.Belt },
+            { Cat.Amulets, BaseClass.Amulet },
+            { Cat.Rings, BaseClass.Ring },
             { Cat.Junk, BaseClass.Any },
         };
 
@@ -254,24 +256,104 @@ public static class Helpers
             return BaseClass.Any;
         }
 
-        public static BaseClass JsonToBaseClass(this System.Text.Json.JsonElement json)
+        public static BaseClass JsonToBaseClass(this JsonElement json)
         {
-            var iconPath = json.GetStringOrDefault("icon");
-            foreach (BaseClass b in Enum.GetValues(typeof(BaseClass)))
-            {
-                if (iconPath.Contains($"/{b}/"))
-                {
-                    return b;
-                }
-            }
             var baseType = json.GetStringOrDefault("baseType");
-            if (baseType.Contains(" Flask", StringComparison.OrdinalIgnoreCase))
-                return BaseClass.Flask;
-            if (baseType.Contains(" Map", StringComparison.OrdinalIgnoreCase))
-                return BaseClass.Map;
+            var baseClass = Helpers.BaseClassFromBaseType(baseType);
+            return baseClass;
+        }
 
+        private static readonly Dictionary<string, BaseClass> itemTypeToBaseClassDict = new()
+        {
+            { "AbyssJewel", BaseClass.Jewel },
+            { "Active Skill Gem", BaseClass.Gem },
+            { "Amulet", BaseClass.Amulet },
+            { "AtlasRegionUpgradeItem", BaseClass.Currency },
+            { "Belt", BaseClass.Belt },
+            { "Body Armour", BaseClass.BodyArmour },
+            { "Boots", BaseClass.Boots },
+            { "Bow", BaseClass.TwoHandWeapon },
+            { "Claw", BaseClass.OneHandWeapon },
+            { "Currency", BaseClass.Currency },
+            { "Dagger", BaseClass.OneHandWeapon },
+            { "DivinationCard", BaseClass.DivinationCard },
+            { "FishingRod", BaseClass.TwoHandWeapon },
+            { "Gloves", BaseClass.Gloves },
+            { "Helmet", BaseClass.Helmet },
+            { "HybridFlask", BaseClass.Flask },
+            { "Jewel", BaseClass.Jewel },
+            { "LifeFlask", BaseClass.Flask },
+            { "ManaFlask", BaseClass.Flask },
+            { "Map", BaseClass.Map },
+            { "MapFragment", BaseClass.Currency },
+            { "One Hand Axe", BaseClass.OneHandWeapon },
+            { "One Hand Mace", BaseClass.OneHandWeapon },
+            { "One Hand Sword", BaseClass.OneHandWeapon },
+            { "Quiver", BaseClass.Quiver },
+            { "Ring", BaseClass.Ring },
+            { "Rune Dagger", BaseClass.OneHandWeapon },
+            { "Sceptre", BaseClass.OneHandWeapon },
+            { "Shield", BaseClass.Shield },
+            { "StackableCurrency", BaseClass.Currency },
+            { "Staff", BaseClass.TwoHandWeapon },
+            { "Support Skill Gem", BaseClass.Gem },
+            { "Thrusting One Hand Sword", BaseClass.OneHandWeapon },
+            { "Two Hand Axe", BaseClass.TwoHandWeapon },
+            { "Two Hand Mace", BaseClass.TwoHandWeapon },
+            { "Two Hand Sword", BaseClass.TwoHandWeapon },
+            { "UtilityFlask", BaseClass.Flask },
+            { "Wand", BaseClass.OneHandWeapon },
+            { "Warstaff", BaseClass.TwoHandWeapon },
+        };
 
+        private static readonly Dictionary<string, string> nameToItemTypeDict = new();
+
+        public static void ReadBaseItemsJson()
+        {
+            nameToItemTypeDict.Clear();
+
+            var exePath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            var baseItemsFileName = Path.Combine(exePath, "base_items.json");
+            if (!File.Exists(baseItemsFileName))
+                return;
+
+            var baseItems = JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(baseItemsFileName));
+            using var props = baseItems.EnumerateObject();
+            while (props.MoveNext())
+            {
+                var val = props.Current.Value;
+                if (val.ValueKind != JsonValueKind.Object) continue;
+                var name = val.GetStringOrDefault("name");
+                if (string.IsNullOrEmpty(name)) continue;
+                var item_class = val.GetStringOrDefault("item_class");
+                if (string.IsNullOrEmpty(item_class)) continue;
+                nameToItemTypeDict[name] = item_class;
+            }
+        }
+
+        public static BaseClass BaseClassFromBaseType(string typeName)
+        {
+            if (nameToItemTypeDict.TryGetValue(typeName, out var itemType)
+                && itemTypeToBaseClassDict.TryGetValue(itemType, out var baseClass))
+                return baseClass;
             return BaseClass.Any;
+        }
+
+        public static Cat DetermineCategory(this JsonElement item, bool forChaosRecipe = false)
+        {
+            var baseType = item.GetStringOrDefault("baseType");
+            var baseClass = Helpers.BaseClassFromBaseType(baseType);
+            var category = baseClass.ToCat();
+
+            // only handling 1x3 one-handed weapons
+            //
+            if (forChaosRecipe && category == Cat.OneHandWeapons)
+            {
+                if (item.GetIntOrDefault("w", 999) > 1
+                    || item.GetIntOrDefault("h", 999) > 3)
+                    category = Cat.Junk;
+            }
+            return category;
         }
     }
 }

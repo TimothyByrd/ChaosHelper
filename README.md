@@ -1,7 +1,5 @@
 # ChaosHelper
 
-_In 3.15, GGG has changed the CDN urls, so most items are being classed as "Junk". I won't have time to fix it for a few weeks. For most people, that means "see you next league"._
-
 This tool eases the completion of chaos recipes in Path of Exile.
 
 ![](./sample1.png?raw=true)
@@ -166,7 +164,7 @@ As of 3.14, "Override 270" seems to look like a reasonable marker.
 ## Security
 <a name="h06" />
 
-I trust myself, but you shouldn't. I suggest building the tool yourself (see "Building the tool" below).
+I suggest building the tool yourself (see "Building the tool" below).
 Or for security, limit what the tool can do via your firewall.
 The only HTTP calls the tool should make are all to www.pathofexile.com.
 They are all HTTP GETs, so they aren't changing anything on the server.
@@ -414,9 +412,10 @@ The `processName` setting will probably also have to be configured.
 ## Links
 <a name="h12" />
 
-- Originally inspired by [poe_qolV2](https://github.com/notablackbear/poe_qolV2), which uses Python.
+- Originally inspired by [poe_qolV2](https://github.com/notablackbear/poe_qolV2), which is in Python.
 - The overlay code comes from [Overlay.NET](https://github.com/lolp1/Overlay.NET). I copied in this code because there are posts in the project that the published Nuget package is not up to date with source code.
 - The hotkey code is originally from [StackOverflow](https://stackoverflow.com/questions/3654787/global-hotkey-in-console-application/3654821).
+- Using `base_items.json` from the [RePoE project](https://github.com/brather1ng/RePoE) to map item base types to categories. (At some point, I should grab the data from the ggpk file, like they do.)
 
 ## Donation
 <a name="h13" />

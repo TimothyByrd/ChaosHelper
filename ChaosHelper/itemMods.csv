@@ -239,7 +239,9 @@ The Ring's Cut reduced by 1%
 +1 to Melee Strike Range per White Socket
 +1 to Minimum Endurance Charges
 +1 to Minimum Power Charges
++1 to radius
 +1 to Spectre maximum Life
++1 to Ward
 +1% Chance to Block
 +1% Chance to Block Attack Damage if you have Blocked Spell Damage Recently
 +1% Chance to Block Attack Damage when in Off Hand
@@ -329,6 +331,7 @@ The Ring's Cut reduced by 1%
 1% chance to Dodge Spell Hits
 1% chance to Dodge Spell Hits while Phasing
 1% chance to double Stun Duration
+1% chance to Fortify on Melee hit
 1% chance to Freeze
 1% chance to Freeze, Shock and Ignite
 1% chance to gain a Flask Charge when you deal a Critical Strike
@@ -543,6 +546,7 @@ The Ring's Cut reduced by 1%
 1% increased Trap Duration
 1% increased Trap Throwing Speed
 1% increased Warcry Speed
+1% increased Ward
 1% less Animate Weapon Duration
 1% less effect of Curses on Monsters
 1% less Elemental Damage taken per Raised Zombie
@@ -573,6 +577,7 @@ The Ring's Cut reduced by 1%
 1% of Evasion Rating is Regenerated as Life per second while Focussed
 1% of Fire Damage from Hits taken as Physical Damage
 1% of Fire Damage Leeched as Life
+1% of Lightning Damage Leeched as Life
 1% of Maximum Life taken as Chaos Damage per second
 1% of Melee Physical Damage taken reflected to Attacker
 1% of Physical Attack Damage Leeched as Life
@@ -607,6 +612,7 @@ The Ring's Cut reduced by 1%
 1% reduced Global Accuracy Rating
 1% reduced Ignite Duration on Enemies
 1% reduced Light Radius
+1% reduced Lightning Damage taken
 1% reduced Mana Cost of Minion Skills
 1% reduced Mana Cost of Skills
 1% reduced maximum Energy Shield
@@ -701,6 +707,7 @@ Blind you inflict is Reflected to you
 Bow Attacks fire an additional Arrow
 Buff grants +1% to all Elemental Resistances per Endurance Charge
 Buff grants 1% additional Physical Damage Reduction per Endurance Charge
+Buff grants Phasing
 Can roll Minion Modifiers
 Can't be Evaded
 Cannot be Chilled
@@ -797,6 +804,7 @@ Ignites you inflict with Attacks deal Damage 1% faster
 Immune to Freeze, Chill, Curses and Stuns during Flask Effect
 Implicit Modifier magnitudes are tripled
 Increases and Reductions to Energy Shield in Radius are Transformed to apply to Armour at 1% of their value
+Inflicts 1 Withered Debuffs the first time each Enemy enters the Area
 Knocks Enemies Back on Hit
 Life Leech from Hits with this Weapon is instant
 Lightning Trap pierces 1 additional Targets
@@ -871,6 +879,7 @@ Regenerate 1% of Energy Shield per second
 Regenerate 1% of Life per second
 Regenerate 1% of Life per second if you have been Hit Recently
 Regenerate 1% of Life per second while on Low Life
+Removes existing Elusive before granting a new Elusive Buff when used
 Resolute Technique
 Ruthless Blows with Supported Skills deal 1% more Damage with Bleeding caused by Melee Hits
 Ruthless Blows with Supported Skills deal 1% more Melee Damage
@@ -909,6 +918,7 @@ Supported Skills deal 1% less Damage to surrounding targets
 Supported Skills deal 1% more Damage with Ailments caused by Melee Hits
 Supported Skills deal 1% more Melee Damage
 Supported Skills deal 1% more Physical Damage
+Supported Skills deal 1% more Spell Damage
 Supported Skills deal Splash Damage to surrounding targets
 Supported Skills gain 1% of Physical Damage as Extra Fire Damage
 Supported Skills grant 1 Rage on Melee Hit, no more than once every 1 seconds
@@ -916,9 +926,12 @@ Supported Skills grant Fortify on Melee hit
 Supported Skills have 1 to 1 added Cold Damage
 Supported Skills have 1% chance to grant Onslaught for 1 seconds on\ndealing a Killing Blow
 Supported Skills have 1% chance to grant Onslaught for 1 seconds when you Hit a Unique Enemy
+Supported Skills have 1% increased Cast Speed
 Supported Skills have 1% increased Fortify duration
+Supported Skills have 1% less Critical Strike Chance
 Supported Skills have 1% more Melee Splash Area of Effect
 Supported Strike Skills target 1 additional nearby Enemies
+This Skill's Cooldown does not recover during its effect
 Total Recovery per second from Life Leech is Doubled
 Totem lasts 1 seconds
 Totems fire 1 additional Projectiles
@@ -926,10 +939,12 @@ Totems gain +1% to all Elemental Resistances
 Totems Reflect 1% of their maximum Life as Fire Damage to nearby Enemies when Hit
 Trigger Commandment of Spite when Hit
 Trigger Decree of War on Kill
+Trigger Edict of Inferno on Kill
 Trigger Level 1 Consecrate when you deal a Critical Strike
 Trigger Level 1 Gore Shockwave on Melee Hit if you have at least 1 Strength
 Trigger Level 1 Rain of Arrows when you Attack with a Bow
 Trigger Socketed Spells when you Focus, with a 1 second Cooldown
+Trigger Word of Flames on Hit
 Trigger Word of Ire when Hit
 Trigger Word of Reflection when Hit
 Trigger Word of the Grave when your Skills or Minions Kill
@@ -954,9 +969,14 @@ With at least 1 Strength in Radius, 1% of Glacial\nHammer Physical Damage Conver
 With at least 1 Strength in Radius, Cleave grants Fortify on Hit
 With at least 1 Strength in Radius, Cleave has +1 to Radius per Nearby\nEnemy, up to +1
 With at least 1 Strength in Radius, Glacial Hammer deals\nCold-only Splash Damage to surrounding targets
+Withered lasts 1 seconds
 Withering Step has 1% increased Elusive Effect
 Wrath has 1% reduced Reservation
+You and nearby allies deal 1% more Spell Damage
 You and nearby allies gain 1% increased Accuracy Rating
+You and nearby allies have 1% increased Spell Critical Strike Chance
+You and nearby Allies Regenerate 1 Mana per second
+You and nearby Non-Minion Allies have a 1% chance to create Consecrated Ground on Hitting a Rare or Unique Enemy, lasting 1 seconds
 You and your Minions take 1% reduced Reflected Elemental Damage
 You can apply an additional Curse
 You cannot be Chilled for 1 seconds after being Chilled
@@ -979,3 +999,4 @@ Your Hexes can affect Hexproof Enemies
 Your Lightning Damage can Freeze but not Shock
 Your Minions spread Caustic Ground on Death, dealing 1% of their maximum Life as Chaos Damage per second
 Your Skills deal you 1% of Mana Spent on Skill Mana Costs as Physical Damage
+1% chance to Freeze, Shock and Ignite if you haven't Crit Recently

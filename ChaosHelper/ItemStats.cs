@@ -195,7 +195,7 @@ namespace ChaosHelper
                 {
                     var classStr = line.Substring(11).Trim();
                     if (string.Equals(classStr, "Jewel", StringComparison.OrdinalIgnoreCase))
-                        BaseClass = BaseClass.Jewels;
+                        BaseClass = BaseClass.Jewel;
                     else
                         BaseClass = classStr.ToBaseClass();
                 }

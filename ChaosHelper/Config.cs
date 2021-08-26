@@ -139,7 +139,7 @@ namespace ChaosHelper
         public static async Task<bool> ReadConfigFile()
         {
             exePath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            var configFile = Path.Combine(exePath, "./settings.jsonc");
+            var configFile = Path.Combine(exePath, "settings.jsonc");
             if (!File.Exists(configFile))
             {
                 logger.Error("ERROR: config file 'settings.jsonc' not found");
@@ -156,11 +156,11 @@ namespace ChaosHelper
                 return false;
             }
 
-            FilterUpdateSound = Path.Combine(exePath, "./FilterUpdateSound.wav");
+            FilterUpdateSound = Path.Combine(exePath, "FilterUpdateSound.wav");
             var filterUpdateVolumeInt = rawConfig.GetInt("soundFileVolume", 50).Clamp(0, 100);
             FilterUpdateVolume = filterUpdateVolumeInt / 100.0f;
 
-            FilterInsertFile = Path.Combine(exePath, "./filter_insert.txt");
+            FilterInsertFile = Path.Combine(exePath, "filter_insert.txt");
             if (!File.Exists(FilterInsertFile))
                 FilterInsertFile = null;
 
@@ -285,14 +285,14 @@ namespace ChaosHelper
                 return false;
             }
 
-            var itemModFile = Path.Combine(exePath, "./itemMods.csv");
+            var itemModFile = Path.Combine(exePath, "itemMods.csv");
             if (File.Exists(itemModFile))
             {
                 ItemMod.ReadItemModFile(itemModFile);
                 logger.Info($"item mod file - there are {ItemMod.PossibleMods.Count} mods");
             }
 
-            var itemRuleFile = Path.Combine(exePath, "./itemRules.csv");
+            var itemRuleFile = Path.Combine(exePath, "itemRules.csv");
             if (File.Exists(itemRuleFile))
             {
                 ItemRule.ReadRuleFile(itemRuleFile);
@@ -333,6 +333,8 @@ namespace ChaosHelper
 
             if (!await DetermineTabIndicies())
                 return false;
+
+            Helpers.ReadBaseItemsJson();
 
             FilterMarkerChecked = false;
             PutFilterLineAtTop = false;
@@ -547,7 +549,7 @@ namespace ChaosHelper
 
         private static string TabFileName(string tabName)
         {
-            return Path.Combine(exePath, $"./json_{tabName}.json");
+            return Path.Combine(exePath, $"json_{tabName}.json");
         }
 
         public static void MaybeSavePageJson(JsonElement result, string tabName)

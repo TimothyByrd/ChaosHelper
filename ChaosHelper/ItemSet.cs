@@ -495,16 +495,16 @@ namespace ChaosHelper
 
         private static readonly Dictionary<BaseClass, string> equippedSlotDict = new()
         {
-            { BaseClass.BodyArmours, "BodyArmour" },
-            { BaseClass.Helmets, "Helm" },
+            { BaseClass.BodyArmour, "BodyArmour" },
+            { BaseClass.Helmet, "Helm" },
             { BaseClass.Gloves, "Gloves" },
             { BaseClass.Boots, "Boots" },
-            { BaseClass.OneHandWeapons, "Weapon" },
-            { BaseClass.TwoHandWeapons, "Weapon" },
-            { BaseClass.Belts, "Belt" },
-            { BaseClass.Amulets, "Amulet" },
-            { BaseClass.Rings, "Ring" }, // or Ring2
-            { BaseClass.Shields, "Offhand" },
+            { BaseClass.OneHandWeapon, "Weapon" },
+            { BaseClass.TwoHandWeapon, "Weapon" },
+            { BaseClass.Belt, "Belt" },
+            { BaseClass.Amulet, "Amulet" },
+            { BaseClass.Ring, "Ring" }, // or Ring2
+            { BaseClass.Shield, "Offhand" },
         };
 
         public void UpdateDynamicRules()
@@ -535,7 +535,7 @@ namespace ChaosHelper
         private ItemStats FindItemForRule(ItemRule rule)
         {
             var wantedInventoryId = equippedSlotDict[rule.BaseClass];
-            if (rule.BaseClass == BaseClass.Rings && rule.Name.Contains("2"))
+            if (rule.BaseClass == BaseClass.Ring && rule.Name.Contains("2"))
                 wantedInventoryId = "Ring2";
 
             ItemStats TryFind(Cat cat)

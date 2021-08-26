@@ -47,7 +47,8 @@ namespace ChaosHelper
 
                 MainAsync().Wait();
 
-                Console.WriteLine(" Press 'Enter' to end program");
+                Console.WriteLine();
+                Console.WriteLine("Press 'Enter' to end program");
                 Console.Read();
             }
             finally
@@ -77,7 +78,13 @@ namespace ChaosHelper
 
             //await CheckDumpTabs();
             //return;
+
+            //itemsCurrent = new ItemSet();
+            //await Task.Delay(500);
+            //await GetTabContents(Config.RecipeTabIndex, itemsCurrent);
+            //return;
 #endif
+
 
             // Define the cancellation token.
             var source = new CancellationTokenSource();
@@ -313,7 +320,7 @@ namespace ChaosHelper
                 if (shouldDelay) await Task.Delay(300);
                 shouldDelay = Config.StashReadMode != Config.StashReading.Playback;
                 logger.Info($"retrieving tab '{kvp.Value}' ({kvp.Key})");
-                var itemsInThisTab = await GetTabContents(kvp.Key, dumpTabItems, true);
+                var itemsInThisTab = await GetTabContents(kvp.Key, dumpTabItems, forChaosRecipe: false);
             }
 
             dumpTabItems.CheckMods(Config.DumpTabDictionary);
@@ -358,7 +365,7 @@ namespace ChaosHelper
         // 8 prophecy
         // 9 relic
 
-        private static async Task<int> GetTabContents(int tabIndex, ItemSet items, bool includeForDump = false)
+        private static async Task<int> GetTabContents(int tabIndex, ItemSet items, bool forChaosRecipe = true)
         {
             var count = 0;
 
@@ -381,28 +388,10 @@ namespace ChaosHelper
 
                     // only check category for rares of ilvl 60+
                     //
-                    var getCat = (includeForDump && identified && (frameType == 1 || frameType == 2))
-                        || (!includeForDump && frameType == 2 && ilvl >= Config.MinIlvl && (Config.AllowIDedSets || !identified));
+                    var getCat = (!forChaosRecipe && identified && (frameType == 1 || frameType == 2))
+                        || (forChaosRecipe && frameType == 2 && ilvl >= Config.MinIlvl && (Config.AllowIDedSets || !identified));
 
-                    var category = Cat.Junk;
-                    if (getCat)
-                    {
-                        var iconUrl = item.GetProperty("icon").GetString();
-                        foreach (var c in ItemClassForFilter.Iterator())
-                        {
-                            if (iconUrl.Contains(c.CategoryStr))
-                            {
-                                category = c.Category;
-                                if (!includeForDump && c.Category == Cat.OneHandWeapons)
-                                {
-                                    if (item.GetIntOrDefault("w", 999) > 1
-                                        || item.GetIntOrDefault("h", 999) > 3)
-                                        category = Cat.Junk;
-                                }
-                                break;
-                            }
-                        }
-                    }
+                    var category = !getCat ? Cat.Junk : item.DetermineCategory(forChaosRecipe);
 
                     items.Add(category, item, tabIndex);
                     ++count;
@@ -602,16 +591,7 @@ namespace ChaosHelper
                     if (inventoryId == "MainInventory") continue; // only want equipped items
                     if (inventoryId == "Flask") continue; // only want equipped items
 
-                    var category = Cat.Junk;
-                    var iconUrl = item.GetProperty("icon").GetString();
-                    foreach (var c in ItemClassForFilter.Iterator())
-                    {
-                        if (iconUrl.Contains(c.CategoryStr))
-                        {
-                            category = c.Category;
-                            break;
-                        }
-                    }
+                    var category = item.DetermineCategory();
 
                     //if (category != Cat.Junk)
                         items.Add(category, item, -1);
