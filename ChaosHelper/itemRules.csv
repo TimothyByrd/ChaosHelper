@@ -1,74 +1,94 @@
-Dynamic, Helmets, TotRes + MaxLife > X, MaxLife > X * 0.9, TotRes > X * 0.9
-Dynamic, Gloves, TotRes + MaxLife > X, MaxLife > X * 0.9, TotRes > X * 0.9
-Dynamic, Boots, MoveSpeed >= 25, TotRes + MaxLife > X, MaxLife > X * 0.9, TotRes > X * 0.9
-Dynamic, Belts, TotRes + MaxLife > X, MaxLife > X * 0.9, TotRes > X * 0.9
-
-DynamicA, BodyArmours, PropDef + TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
-DynamicA, Gloves, PropDef + TotRes + MaxLife + IAS > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
-DynamicA, Boots, MoveSpeed >= 20, PropDef + TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
-DynamicA, Helmets, PropDef + TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
-DynamicA, Amulets, TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
-DynamicA, Rings, TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
-DynamicA, Shields, PropDef + TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
-
 # rules for interesting items
 # each line is a rule name, the item class for the rule,
 # and then a set of terms the item must match to pass the rule.
 
-Vortex Weapon, OneHandWeapons, GemLvlCold*85 + DotCold*3.7 + SpellPctCold >= 150
+# These rules compared against the current character's equipped items.
 
-Minion, Helmets, GemLvlMinion >= 2, MaxLife + TotRes >= 90
+# Dyn Armour, BodyArmour, TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
+Dyn Helment, Helmet, TotRes + MaxLife > X, MaxLife > X * 0.9, TotRes > X * 0.9
+Dyn Gloves, Gloves, TotRes + MaxLife > X, MaxLife > X * 0.9, TotRes > X * 0.9
+Dyn Boots, Boots, MoveSpeed >= 25, TotRes + MaxLife > X, MaxLife > X * 0.9, TotRes > X * 0.9
+Dyn Belt, Belt, TotRes + MaxLife > X, MaxLife > X * 0.9, TotRes > X * 0.9
+Dyn Amulet, Amulet, TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
+Dyn Ring, Ring, TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
+Dyn Ring2, Ring, TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
 
-High ES, BodyArmours, PropES >= 500
-High ES, Shields, PropES >= 250
-High ES, Helmets, PropES >= 180
+# These rules also take the defense (Armour, ES, Evasion) into account.
+
+# DynamicA, BodyArmour, PropDef + TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
+DynamicA, Gloves, PropDef + TotRes + MaxLife + IAS > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
+DynamicA, Boots, MoveSpeed >= 20, PropDef + TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
+DynamicA, Helmet, PropDef + TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
+#DynamicA, Shield, PropDef + TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
+
+Dyn FR, OneHandWeapon, GemLvlChaos*20 + SpellPctChaos >= X * 0.9, AddMana >= X * 0.9
+
+
+# weapon for a shak vortex build
+
+Vortex Weapon, OneHandWeapon, GemLvlCold*85 + DotCold*3.7 + SpellPctCold >= 150
+
+Minion, Helmet, GemLvlMinion >= 2, MaxLife + TotRes >= 90
+
+High ES, BodyArmour, PropES >= 500
+High ES, Shield, PropES >= 250
+High ES, Helmet, PropES >= 180
 High ES, Gloves, PropES >= 140
 High ES, Boots, MoveSpeed >= 25, PropES >= 100
-High Evasion, BodyArmours, PropEva >= 1800
-High Armour, BodyArmours, PropArm >= 1800
+High Evasion, BodyArmour, PropEva >= 1800
+High Armour, BodyArmour, PropArm >= 1800
 
-High Phys, OneHandWeapons, DamPctPhys >= 150
-High Phys, TwoHandWeapons, DamPctPhys >= 160
+High Phys, OneHandWeapon, DamPctPhys >= 150
+High Phys, TwoHandWeapon, DamPctPhys >= 160
 
-ES Shield,  Shields, TotRes >= 80, PropES >= 100
+ES Shield,  Shield, TotRes >= 80, PropES >= 100
 
-Res Armour, BodyArmours, TotRes >= 80, MaxLife >= 110
-Res Shield, Shields, TotRes >= 80, MaxLife >= 80
-Res Helmet, Helmets, TotRes >= 80, MaxLife >= 75
+Res Armour, BodyArmour, TotRes >= 80, MaxLife >= 110
+Res Shield, Shield, TotRes >= 80, MaxLife >= 80
+Res Helmet, Helmet, TotRes >= 80, MaxLife >= 75
 Res Glove, Gloves, TotRes >= 80, MaxLife >= 60
 Res Boots, Boots, MoveSpeed >= 25, TotRes >= 70
-Res Belt, Belts, TotRes >= 80, MaxLife >= 100
+Res Belt, Belt, TotRes >= 80, MaxLife >= 100
 
 Frac MS, Boots, MoveSpeed_fractured >= 25
-Frac Phys, OneHandWeapons, DamPctPhys_fractured >= 100
-Frac Phys, TwoHandWeapons, DamPctPhys_fractured >= 100
+Frac Phys, OneHandWeapon, DamPctPhys_fractured >= 100
+Frac Phys, TwoHandWeapon, DamPctPhys_fractured >= 100
 
 Veiled, Any, Veiled >= 1
 
 Gem Level, Any, GemLvl >= 3
 
-Life Jewel, Jewels, PctLife >= 7
-ES Jewel, Jewels, ESRecoverStart + ESRecoverRate + PctES >= 10
+Life Jewel, Jewel, PctLife >= 7
+ES Jewel, Jewel, ESRecoverStart + ESRecoverRate + PctES >= 10
 
-Stat Amulet, Amulets, TotRes >= 40, MaxLife >= 50, AddDex >= 24, AddStr >= 11
+Stat Amulet, Amulet, TotRes >= 40, MaxLife >= 50, AddDex >= 24, AddStr >= 11
 
-Dot Cold, OneHandWeapons, DotCold >= 40
-Dot Fire, OneHandWeapons, DotFile >= 40
-Dot Chaos, OneHandWeapons, DotChaos >= 40
-ES Rings, Rings, TotRes >= 80, AddES >= 25
-ES Amulets, Amulets, TotRes >= 80, AddES >= 25
-Life Rings,  Rings, TotRes >= 80, MaxLife >= 60
-Life Amulets, Amulets, TotRes >= 80, MaxLife >= 60
+Dot Cold, OneHandWeapon, DotCold >= 40
+Dot Fire, OneHandWeapon, DotFile >= 40
+Dot Chaos, OneHandWeapon, DotChaos >= 40
+ES Ring, Ring, TotRes >= 80, AddES >= 25
+ES Amulet, Amulet, TotRes >= 80, AddES >= 25
+Life Ring,  Ring, TotRes >= 80, MaxLife >= 60
+Life Amulet, Amulet, TotRes >= 80, MaxLife >= 60
 
 # all the recommendations from https://odealo.com/articles/holy-flame-totem-hierophant-templar-build
-HFT Helmet, Helmets, MaxLife >= 80, TotRes >= 75
-HFT Sceptre, OneHandWeapons, SpellPctFire >= 60, CritChanceSpell >= 70, AddFireSpell >= 40, PhysAsFire >= 20
-HFT Shield, Shields, SpellPctFire >= 30, CritChanceSpell >= 80, MaxLife >= 80
-#HFT Armour, BodyArmours, MaxLife >= 110
-HFT Boots, Boots, MoveSpeed >= 25, TotRes >= 75, MaxLife >= 70
-HFT Gloves, Gloves, TotRes >= 75, MaxLife >= 90
-HFT Belt, Belts, TotRes >= 80, MaxLife >= 100
-HFT Amulet, Amulets, MaxLife >= 60, CritMult >= 30
-HFT Ring, Rings, TotRes >= 80, MaxLife >= 60
-HFT Jewel, Jewels, PctLife >= 5, SpellPctFire >= 5, CritMult >= 5
-HFT Jewel, Jewels, MaxLife >= 25, AddFireSpell >= 5, CritMult >= 5
+
+# HFT Helmet, Helmet, MaxLife >= 80, TotRes >= 75
+# HFT Sceptre, OneHandWeapon, SpellPctFire >= 60, CritChanceSpell >= 70, AddFireSpell >= 40, PhysAsFire >= 20
+# HFT Shield, Shield, SpellPctFire >= 30, CritChanceSpell >= 80, MaxLife >= 80
+# HFT Armour, BodyArmour, MaxLife >= 110
+# HFT Boots, Boots, MoveSpeed >= 25, TotRes >= 75, MaxLife >= 70
+# HFT Gloves, Gloves, TotRes >= 75, MaxLife >= 90
+# HFT Belt, Belt, TotRes >= 80, MaxLife >= 100
+# HFT Amulet, Amulet, MaxLife >= 60, CritMult >= 30
+# HFT Ring, Ring, TotRes >= 80, MaxLife >= 60
+# HFT Jewel, Jewel, PctLife >= 5, SpellPctFire >= 5, CritMult >= 5
+# HFT Jewel, Jewel, MaxLife >= 25, AddFireSpell >= 5, CritMult >= 5
+
+# forbidden rite totem items
+
+FR Helmet, Helmet, MaxLife >= 70, AddMana >= 60, TotRes >= 60
+FR Gloves, Gloves, MaxLife >= 70, AddMana >= 60, TotRes >= 60
+FR Weapon, OneHandWeapon, GemLvlChaos*20 + SpellPctChaos >= 80, AddMana >= 60
+FR Shield, Shield, MaxLife >= 70, AddMana >= 50
+

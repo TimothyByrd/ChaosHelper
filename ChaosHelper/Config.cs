@@ -76,6 +76,7 @@ namespace ChaosHelper
         public static bool PutFilterLineAtTop { get; set; }
         public static string FilterInsertFile { get; private set; }
         public static double DefenseVariance { get; private set; }
+        public static bool ShowMinimumCurrency { get; private set; }
 
         public static bool IsTown(string newArea)
         {
@@ -208,6 +209,7 @@ namespace ChaosHelper
             if (string.IsNullOrWhiteSpace(AreaEnteredPattern))
                 AreaEnteredPattern = "] : You have entered ";
 
+            ShowMinimumCurrency = rawConfig.GetBoolean("showMinimumCurrency", false);
             Currency.SetArray(rawConfig.GetArray("currency"));
 
             static HotKeyBinding GetHotKey(string s)

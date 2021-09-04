@@ -15,7 +15,10 @@ Other stuff it can do:
 - Check a tab for quality gems/flasks for the 40% recipes, and highlight if found.
 - Check a set of dump tabs for interesting rare items. Where interesting can be defined by a set of item rules. It also checks for items with matching names for the chance recipe. Since multiple tabs are checked, results are not highlighted.
 
-Compared to poe_qol, this tool has no UI. So if that matters, use poe_qol.
+~~Compared to poe_qol, this tool has no UI. So if that matters, use poe_qol.~~ (Not being maintained.)
+
+If you need support for multiple dump tabs or the exalted shard recipe, please look at [EnhancePoEApp](https://github.com/kosace/EnhancePoEApp).
+
 
 #### Table of contents
 [TLDR to use it](#h01)<br>
@@ -56,7 +59,7 @@ Compared to poe_qol, this tool has no UI. So if that matters, use poe_qol.
     - Change zones once for the tool to know where you are.
     - If this is your first time or if you have switched leagues, force an initial generation of the loot filter by typing an 'f' in the tool window.
     - Go to `Options->UI` and select "Chaos Helper" as your loot filter.
-- As you play, reload your filter via `Options->UI` when it tells you to.
+- As you play, reload your filter via `Options->Game` when it tells you to.
 - When you are ready to sell a batch of recipes:
     - Use the highlight items hotkey to highlight the next batch of things to sell.
     - Use the highlight colors to guide you in Ctrl-clicking items from your stash to your inventory, so the bigger items move first.
@@ -281,8 +284,8 @@ __`townZones`__ defines the areas that are considered to be "towns".
 The commands noted as "town only" - highlight items, show junk items and test pattern - will only work when the tool thinks you are in a town zone.
 If no town zones are defined, then the tool will treat every area as a town zone.
 If you want protection from accidentally pressing one of the highlight hotkeys while in combat, then uncomment the list of zones, and add you hideout to the list.
-    
-__`currency`__ This array allows specifying minimum desired amounts for currencies and to put code in the loot filter to display them then the currency tab contains less than those amounts.
+
+__`currency`__ This array allows specifying minimum desired amounts for currencies and to put code in the loot filter to display them then the currency tab contains less than those amounts, if __`showMinimumCurrency`__ (false) is set to true.
 This lets you run a stricter loot filter, but show certain currencies when the supply in your currency tab runs low. 
 For example if there was an entry for wisdom scrolls that read:
 ```
@@ -409,10 +412,16 @@ If that doesn't work, you may need to configure the `clientTxt` setting to point
 This depends on how you installed Steam, but it it likely "%ProgramFiles(x86)%/Steam/steamapps/common/Path of Exile/logs/Client.txt".
 The `processName` setting will probably also have to be configured.
 
+**I have some custom filter text I'd like to insert into the generated filter.**
+
+For example, I am using a Neversink filter, but I'd like to insert lines to highlight items to craft for a Shak Vortex build. Put the custom text into a file named `filter_insert.txt` and put that file into the same folder as ChaosHelper.exe.
+The contents of filter_insert.txt will be inserted into the generated filter just before the chaos recipe entries.
+Note that `Hide` entries in filter_insert.txt will take precedence over entries later in the filter file.
+
 ## Links
 <a name="h12" />
 
-- Originally inspired by [poe_qolV2](https://github.com/notablackbear/poe_qolV2), which is in Python.
+- Originally inspired by [poe_qolV2](https://github.com/notablackbear/poe_qolV2), which is in Python. (but no longer maintained)
 - The overlay code comes from [Overlay.NET](https://github.com/lolp1/Overlay.NET). I copied in this code because there are posts in the project that the published Nuget package is not up to date with source code.
 - The hotkey code is originally from [StackOverflow](https://stackoverflow.com/questions/3654787/global-hotkey-in-console-application/3654821).
 - Using `base_items.json` from the [RePoE project](https://github.com/brather1ng/RePoE) to map item base types to categories. (At some point, I should grab the data from the ggpk file, like they do.)

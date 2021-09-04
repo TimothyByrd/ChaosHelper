@@ -77,6 +77,7 @@
     ],
 
     // see README.md
+    "showMinimumCurrency": false,
     "currency": [
         { "c": "Silver Coin", "desired": 0, "fontSize": 45, "text": "0 0 0 255", "border": "0 0 0 200", "back": "61 156 136 255" },
         { "c": "Jeweller's Orb", "desired": 0, "fontSize": 45, "text": "0 0 0 255", "border": "0 0 0 200", "back": "61 156 136 255" },

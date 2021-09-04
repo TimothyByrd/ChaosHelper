@@ -102,7 +102,7 @@ namespace ChaosHelper
             if (!found)
             {
                 var x = Regex.Replace(s, @"\d+\.?\d*", "1").Replace("\r", "\\r").Replace("\n", "\\n");
-                logger.Warn($"*** unknown mod: {x}");
+                logger.Warn($"*** mod not in ItemMods.csv: {x}");
             }
         }
 

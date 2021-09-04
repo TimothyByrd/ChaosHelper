@@ -253,6 +253,8 @@ public static class Helpers
             if (Enum.TryParse<BaseClass>(s, true, out var baseClass)
                 && Enum.IsDefined(typeof(BaseClass), baseClass))
                 return baseClass;
+            if (s.EndsWith("s"))
+                return ToBaseClass(s.TrimEnd('s'));
             return BaseClass.Any;
         }
 

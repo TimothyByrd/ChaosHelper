@@ -284,14 +284,20 @@ namespace ChaosHelper
 
             if (forceFilterUpdate || !itemsCurrent.SameClassesToShow(itemsPrevious))
             {
-                var msg = itemsCurrent.GetCountsMsg();
-                logger.Info($"updating filter - {msg}");
-                File.WriteAllLines(Config.FilterFileName, NewFilterContents(itemsCurrent));
-
-                if (Config.FilterUpdateVolume > 0.0f && File.Exists(Config.FilterUpdateSound))
+                if (File.Exists(Config.TemplateFileName))
                 {
-                    SharpDxSoundPlayer.PlaySoundFile(Config.FilterUpdateSound, Config.FilterUpdateVolume);
+                    var msg = itemsCurrent.GetCountsMsg();
+                    logger.Info($"updating filter - {msg}");
+                    File.WriteAllLines(Config.FilterFileName, NewFilterContents(itemsCurrent));
+
+                    if (Config.FilterUpdateVolume > 0.0f && File.Exists(Config.FilterUpdateSound))
+                    {
+                        SharpDxSoundPlayer.PlaySoundFile(Config.FilterUpdateSound, Config.FilterUpdateVolume);
+                    }
                 }
+                else
+                    logger.Warn($"source filter not found '{Config.TemplateFileName}'");
+
                 overlay?.SendKey(ConsoleKey.Spacebar);
                 forceFilterUpdate = false;
             }
@@ -632,7 +638,6 @@ namespace ChaosHelper
 
         static IEnumerable<string> NewFilterContents(ItemSet items)
         {
-            var numMarkerlinesFound = 0;
 
             if (!Config.FilterMarkerChecked)
             {
@@ -640,67 +645,51 @@ namespace ChaosHelper
                     .Any(line => line.StartsWith("#") && line.Contains(Config.FilterMarker, StringComparison.OrdinalIgnoreCase));
                 Config.FilterMarkerChecked = true;
                 if (Config.PutFilterLineAtTop)
-                    logger.Warn("filter marker not found - putting section after first comment line in file");
+                    logger.Warn("filter marker not found - putting section at top of file");
             }
 
-            var forceGeneratedSection = Config.PutFilterLineAtTop;
+            var insertGeneratedSection = Config.PutFilterLineAtTop;
+            var numGeneratedSections = 0;
 
             foreach (var line in File.ReadAllLines(Config.TemplateFileName))
             {
-                yield return line;
-
-                if (!line.Trim().StartsWith("#")
-                    || (!forceGeneratedSection && !line.Contains(Config.FilterMarker, StringComparison.OrdinalIgnoreCase)))
-                    continue;
-
-                forceGeneratedSection = false;
-
-                ++numMarkerlinesFound;
-
-                yield return "";
-                yield return "# Begin ChaosHelper generated section";
-                yield return "";
-
-                foreach (var c in ItemClassForFilter.Iterator())
+                if (insertGeneratedSection)
                 {
-                    if (c.Skip || !items.ShouldShow(c.Category))
-                        continue;
+                    insertGeneratedSection = false;
+                    ++numGeneratedSections;
 
-                    var canBeIded = Config.AllowIDedSets && (c.Category == Cat.Rings || c.Category == Cat.Amulets);
-                    var limitIlvl = Config.LimitIlvl(c);
+                    if (!string.IsNullOrEmpty(Config.FilterInsertFile)
+                        && File.Exists(Config.FilterInsertFile))
+                    {
+                        yield return "";
+                        yield return "# Begin ChaosHelper filter_insert section";
+                        yield return "";
 
-                    yield return $"# {c.Category} for chaos";
-                    yield return "Show";
-                    yield return $"Class \"{c.FilterClass}\"";
-                    yield return "Rarity Rare";
-                    yield return $"SetBorderColor {Config.FilterColor}";
-                    yield return $"SetTextColor {Config.FilterColor}";
-                    yield return $"SetFontSize {c.FontSize}";
-                    if (!canBeIded)
-                        yield return "Identified False";
-                    yield return $"ItemLevel >= {Config.MinIlvl}";
-                    if (limitIlvl)
-                        yield return $"ItemLevel <= {Config.MaxIlvl}";
-                    if (c.Category == Cat.OneHandWeapons)
-                    {
-                        yield return "Height = 3";
-                        yield return "Width = 1";
-                    }
-                    else if (c.Category == Cat.BodyArmours)
-                    {
-                        yield return "Sockets < 6";
+                        foreach (var insertLine in File.ReadAllLines(Config.FilterInsertFile))
+                        {
+                            yield return insertLine;
+                        }
+
+                        yield return "";
+                        yield return "# End ChaosHelper filter_insert section";
                     }
 
                     yield return "";
+                    yield return "# Begin ChaosHelper generated section";
+                    yield return "";
 
-                    // Add in bows
-                    if (c.Category == Cat.OneHandWeapons)
+                    foreach (var c in ItemClassForFilter.Iterator())
                     {
-                        yield return "# Bows for chaos";
+                        if (c.Skip || !items.ShouldShow(c.Category))
+                            continue;
+
+                        var canBeIded = Config.AllowIDedSets && (c.Category == Cat.Rings || c.Category == Cat.Amulets);
+                        var limitIlvl = Config.LimitIlvl(c);
+
+                        yield return $"# {c.Category} for chaos";
                         yield return "Show";
-                        yield return "Class \"Bows\"";
+                        yield return $"Class \"{c.FilterClass}\"";
                         yield return "Rarity Rare";
-                        yield return "Sockets < 6";
                         yield return $"SetBorderColor {Config.FilterColor}";
                         yield return $"SetTextColor {Config.FilterColor}";
                         yield return $"SetFontSize {c.FontSize}";
@@ -709,74 +698,92 @@ namespace ChaosHelper
                         yield return $"ItemLevel >= {Config.MinIlvl}";
                         if (limitIlvl)
                             yield return $"ItemLevel <= {Config.MaxIlvl}";
-                        yield return "Height = 3";
-                        yield return "";
-
-                        yield return "# 1x4 2hd weapons for chaos";
-                        yield return "Show";
-                        yield return "Class \"Two Hand\" \"Staves\"";
-                        yield return "Rarity Rare";
-                        yield return "Sockets < 6";
-                        yield return $"SetBorderColor {Config.FilterColor}";
-                        yield return $"SetTextColor {Config.FilterColor}";
-                        yield return $"SetFontSize {c.FontSize}";
-                        if (!canBeIded)
-                            yield return "Identified False";
-                        yield return $"ItemLevel >= {Config.MinIlvl}";
-                        if (limitIlvl)
-                            yield return $"ItemLevel <= {Config.MaxIlvl}";
-                        yield return "Width = 1";
-                        yield return "";
-                    }
-                }
-
-                if (Config.CurrencyTabIndex >= 0)
-                {
-                    foreach (var c in Currency.CurrencyList)
-                    {
-                        if (c.CurrentCount < c.Desired)
+                        if (c.Category == Cat.OneHandWeapons)
                         {
-                            yield return $"# Because we want at least {c.Desired} {c.Name} in reserve";
+                            yield return "Height = 3";
+                            yield return "Width = 1";
+                        }
+                        else if (c.Category == Cat.BodyArmours)
+                        {
+                            yield return "Sockets < 6";
+                        }
+
+                        yield return "";
+
+                        // Add in bows
+                        if (c.Category == Cat.OneHandWeapons)
+                        {
+                            yield return "# Bows for chaos";
                             yield return "Show";
-                            yield return "Class Currency";
-                            yield return $"BaseType \"{c.Name}\"";
+                            yield return "Class \"Bows\"";
+                            yield return "Rarity Rare";
+                            yield return "Sockets < 6";
+                            yield return $"SetBorderColor {Config.FilterColor}";
+                            yield return $"SetTextColor {Config.FilterColor}";
                             yield return $"SetFontSize {c.FontSize}";
-                            yield return $"SetTextColor {c.TextColor}";
-                            yield return $"SetBorderColor {c.BorderColor}";
-                            yield return $"SetBackgroundColor {c.BackGroundColor}";
+                            if (!canBeIded)
+                                yield return "Identified False";
+                            yield return $"ItemLevel >= {Config.MinIlvl}";
+                            if (limitIlvl)
+                                yield return $"ItemLevel <= {Config.MaxIlvl}";
+                            yield return "Height = 3";
+                            yield return "";
+
+                            yield return "# 1x4 2hd weapons for chaos";
+                            yield return "Show";
+                            yield return "Class \"Two Hand\" \"Staves\"";
+                            yield return "Rarity Rare";
+                            yield return "Sockets < 6";
+                            yield return $"SetBorderColor {Config.FilterColor}";
+                            yield return $"SetTextColor {Config.FilterColor}";
+                            yield return $"SetFontSize {c.FontSize}";
+                            if (!canBeIded)
+                                yield return "Identified False";
+                            yield return $"ItemLevel >= {Config.MinIlvl}";
+                            if (limitIlvl)
+                                yield return $"ItemLevel <= {Config.MaxIlvl}";
+                            yield return "Width = 1";
                             yield return "";
                         }
                     }
-                }
 
-                yield return "# End ChaosHelper generated section";
-                yield return "";
-
-                if (!string.IsNullOrEmpty(Config.FilterInsertFile))
-                {
-                    yield return "";
-                    yield return "# Begin ChaosHelper filter_insert section";
-                    yield return "";
-
-                    foreach (var insertLine in File.ReadAllLines(Config.FilterInsertFile))
+                    if (Config.CurrencyTabIndex >= 0 && Config.ShowMinimumCurrency)
                     {
-                        yield return insertLine;
+                        foreach (var c in Currency.CurrencyList)
+                        {
+                            if (c.CurrentCount < c.Desired)
+                            {
+                                yield return $"# Because we want at least {c.Desired} {c.Name} in reserve";
+                                yield return "Show";
+                                yield return "Class Currency";
+                                yield return $"BaseType \"{c.Name}\"";
+                                yield return $"SetFontSize {c.FontSize}";
+                                yield return $"SetTextColor {c.TextColor}";
+                                yield return $"SetBorderColor {c.BorderColor}";
+                                yield return $"SetBackgroundColor {c.BackGroundColor}";
+                                yield return "";
+                            }
+                        }
                     }
 
-                    yield return "";
-                    yield return "# End ChaosHelper filter_insert section";
+                    yield return "# End ChaosHelper generated section";
                     yield return "";
                 }
+
+                yield return line;
+
+                insertGeneratedSection = line.Trim().StartsWith("#")
+                    && line.Contains(Config.FilterMarker, StringComparison.OrdinalIgnoreCase);
             }
-    
-            if (numMarkerlinesFound == 0)
+
+            if (numGeneratedSections == 0)
             {
                 logger.Warn("WARNING: marker not found in filter template - chaos recipe items will not be highlighted");
                 logger.Warn($"filter template marker is '{Config.FilterMarker}'");
             }
-            else if (numMarkerlinesFound > 1)
+            else if (numGeneratedSections > 1)
             {
-                logger.Warn($"WARNING: marker found {numMarkerlinesFound} times in filter template - this may be a problem - see README.md");
+                logger.Warn($"WARNING: marker found {numGeneratedSections} times in filter template - this may be a problem - see README.md");
                 logger.Warn($"filter template marker is '{Config.FilterMarker}'");
             }
         }
