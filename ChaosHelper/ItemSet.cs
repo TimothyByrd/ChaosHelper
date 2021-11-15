@@ -535,7 +535,7 @@ namespace ChaosHelper
         private ItemStats FindItemForRule(ItemRule rule)
         {
             var wantedInventoryId = equippedSlotDict[rule.BaseClass];
-            if (rule.BaseClass == BaseClass.Ring && rule.Name.Contains("2"))
+            if (rule.BaseClass == BaseClass.Ring && rule.Name.Contains('2'))
                 wantedInventoryId = "Ring2";
 
             ItemStats TryFind(Cat cat)
@@ -789,8 +789,11 @@ namespace ChaosHelper
 
             var w1Source = source.GetCategory(Cat.OneHandWeapons);
             var w1List = new List<ItemPosition>();
-
+                        
             int StillNeed() { return (numSets * 2) - (w2List.Count * 2 + w1List.Count); }
+
+            IEnumerable<ItemPosition> W1NotPicked() { return w1Source.Where(x => !w1List.Contains(x)); }
+            IEnumerable<ItemPosition> W2NotPicked() { return w2Source.Where(x => !w2List.Contains(x)); }
 
             // 2x4 weapons trump everything because they take up so much stash space
             //
@@ -805,11 +808,27 @@ namespace ChaosHelper
 
             // next take ilvl 75+ 2x3 items
             if (!mustBe60 && w2List.Count < numSets)
-            {
                 w2List.AddRange(w2Source.Where(x => x.Identified == ided && x.iLvl >= 75 && x.H == 3).Take(numSets - w2List.Count));
-                if (numSets > w2List.Count && ided)
-                    w2List.AddRange(w2Source.Where(x => !x.Identified && x.iLvl >= 75 && x.H == 3).Take(numSets - w2List.Count));
+
+            // check for ided 1x3 items.
+            if (!mustBe60 && ided && w1_60Id + w1_75Id >= 2)
+            {
+                var w1_ided_possible_sets = (w1_60Id + w1_75Id) / 2;
+                var w1_ided_can_take = w1_ided_possible_sets * 2;
+
+                var prevCount = w1List.Count;
+                w1List.AddRange(w1Source.Where(x => x.Identified && x.iLvl >= 75).Take(Math.Min(StillNeed(), w1_ided_can_take)));
+                w1_75Id -= (w1List.Count - prevCount);
+                w1_ided_can_take -= (w1List.Count - prevCount);
+
+                prevCount = w1List.Count;
+                w1List.AddRange(w1Source.Where(x => x.Identified && x.iLvl < 75).Take(Math.Min(StillNeed(), w1_ided_can_take)));
+                w1_60Id -= (w1List.Count - prevCount);
             }
+
+            // next take ilvl 75+ 2x3 items - un-ided in ided recipe
+            if (!mustBe60 && numSets > w2List.Count + w1List.Count / 2 && ided)
+                w2List.AddRange(W2NotPicked().Where(x => !x.Identified && x.iLvl >= 75 && x.H == 3).Take(numSets - w2List.Count));
 
             // at this point we still need 0, 1 or 2 sets and it's time to look at 1x3 1hd weapons
 
@@ -824,39 +843,39 @@ namespace ChaosHelper
             if (!mustBe60 && w1_75_possible > 0 && StillNeed() > 0)
             {
                 var prevCount = w1List.Count;
-                w1List.AddRange(w1Source.Where(x => x.Identified == ided && x.iLvl >= 75).Take(Math.Min(w1_75_possible, StillNeed())));
+                w1List.AddRange(W1NotPicked().Where(x => x.Identified == ided && x.iLvl >= 75).Take(Math.Min(w1_75_possible, StillNeed())));
                 w1_75_possible -= (w1List.Count - prevCount);
             }
             if (!mustBe60 && w1_75_possible > 0 && ided && StillNeed() > 0)
-                w1List.AddRange(w1Source.Where(x => !x.Identified && x.iLvl >= 75).Take(Math.Min(w1_75_possible, StillNeed())));
+                w1List.AddRange(W1NotPicked().Where(x => !x.Identified && x.iLvl >= 75).Take(Math.Min(w1_75_possible, StillNeed())));
 
             // Special case to add in one 75 1x3 to a must be 60 recipe.
             //
             if (mustBe60 && w1_75_possible > 0 && w1_60_possible > 0 && StillNeed() > 1)
             {
                 var prevCount = w1List.Count;
-                w1List.AddRange(w1Source.Where(x => x.Identified == ided && x.iLvl >= 75).Take(1));
+                w1List.AddRange(W1NotPicked().Where(x => x.Identified == ided && x.iLvl >= 75).Take(1));
                 if (prevCount == w1List.Count && ided)
-                    w1List.AddRange(w1Source.Where(x => !x.Identified && x.iLvl >= 75).Take(1));
+                    w1List.AddRange(W1NotPicked().Where(x => !x.Identified && x.iLvl >= 75).Take(1));
             }
 
             // check for 60 2x3s
             var wantW260 = StillNeed() / 2;
             if (wantW260 > 0)
             {
-                w2List.AddRange(w2Source.Where(x => x.Identified == ided && x.iLvl < 75 && x.H == 3).Take(wantW260));
+                w2List.AddRange(W2NotPicked().Where(x => x.Identified == ided && x.iLvl < 75 && x.H == 3).Take(wantW260));
                 wantW260 = StillNeed() / 2;
                 if (wantW260 > 0 && ided)
-                    w2List.AddRange(w2Source.Where(x => !x.Identified && x.iLvl < 75 && x.H == 3).Take(wantW260));
+                    w2List.AddRange(W2NotPicked().Where(x => !x.Identified && x.iLvl < 75 && x.H == 3).Take(wantW260));
             }
 
             // last bit is 60 1x3s
             var wantW160 = StillNeed();
             if (wantW160 > 0)
-                w1List.AddRange(w1Source.Where(x => x.Identified == ided && x.iLvl < 75).Take(wantW160));
+                w1List.AddRange(W1NotPicked().Where(x => x.Identified == ided && x.iLvl < 75).Take(wantW160));
             wantW160 = StillNeed();
             if (wantW160 > 0 && ided)
-                w1List.AddRange(w1Source.Where(x => !x.Identified && x.iLvl < 75).Take(wantW160));
+                w1List.AddRange(W1NotPicked().Where(x => !x.Identified && x.iLvl < 75).Take(wantW160));
 
             if (StillNeed() > 0)
             {

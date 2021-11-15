@@ -244,6 +244,7 @@ namespace ChaosHelper
             var propArm = V("PropArm");
             var propEva = V("PropEva");
             var propES = V("PropES") * _esMult;
+            var propWard = V("PropWard");
             var defenseTypes = new List<string>();
             if (propArm > 0 && propArm > propEva * fudge && propArm > propES * fudge)
                 defenseTypes.Add("PropArm");
@@ -251,6 +252,8 @@ namespace ChaosHelper
                 defenseTypes.Add("PropEva");
             if (propES > 0 && propES > propArm * fudge && propES > propEva * fudge)
                 defenseTypes.Add("PropES");
+            if (propWard > 0)
+                defenseTypes.Add("PropWard");
             return defenseTypes;
         }
         
@@ -280,6 +283,7 @@ namespace ChaosHelper
             { 16, "PropArm" },
             { 17, "PropEva" },
             { 18, "PropES" },
+            { 54, "PropWard" },
         };
 
         //

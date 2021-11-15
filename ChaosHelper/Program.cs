@@ -25,6 +25,7 @@ namespace ChaosHelper
         static bool reloadConfig = false;
         static bool itemStatsFromClipboard = false;
         static bool isPaused = false;
+        static bool haveAddedHotkeyEventHandler = false;
 
         static ChaosOverlay overlay;
 
@@ -41,15 +42,15 @@ namespace ChaosHelper
                 //ItemRule.RuleEntry.ShowMatch("ES*0.5>=150");
                 //ItemRule.RuleEntry.ShowMatch("LvlCold*85+DotCold*3.7+SpellPctCold>=100");
 
-                Config.ForceSteam = args.Length > 0 && string.Equals(args[0], "steam", StringComparison.OrdinalIgnoreCase);
+                Config.ForceSteam = args.Any(x => string.Equals(x, "steam", StringComparison.OrdinalIgnoreCase));
 
                 Console.Title = "ChaosHelper.exe";
 
                 MainAsync().Wait();
 
-                Console.WriteLine();
-                Console.WriteLine("Press 'Enter' to end program");
-                Console.Read();
+                //Console.WriteLine();
+                //Console.WriteLine("Press 'Enter' to end program");
+                //Console.Read();
             }
             finally
             {
@@ -83,18 +84,21 @@ namespace ChaosHelper
             //await Task.Delay(500);
             //await GetTabContents(Config.RecipeTabIndex, itemsCurrent);
             //return;
+
+            //await FindAndSaveTab("map");
+            //return;
 #endif
 
 
             // Define the cancellation token.
             var source = new CancellationTokenSource();
-            CancellationToken token = source.Token;
+            CancellationToken cancellationToken = source.Token;
 
             var keyboardTask = Task.Run(async () =>
             {
                 await Task.Delay(1500);
                 logger.Info("Press 'Escape' to exit, '?' for help");
-                while (!token.IsCancellationRequested)
+                while (!cancellationToken.IsCancellationRequested)
                 {
                     if (Console.KeyAvailable)
                     {
@@ -169,7 +173,7 @@ namespace ChaosHelper
                             logger.Info("\t'f' to force a filter update");
                             logger.Info("\t'c' to switch characters");
                             logger.Info("\t't' to toggle stash test mode (to make sure the rectangle is good)");
-                            logger.Info("\t'r' to reload configuration, except hotkeys");
+                            logger.Info("\t'r' to reload configuration");
                             logger.Info("\t'z' to list contents of currency stash tab (with prices from poe ninja)");
                             if (Config.DumpTabDictionary.Any())
                                 logger.Info("\t'd' to check dump tabs for interesting items");
@@ -188,7 +192,7 @@ namespace ChaosHelper
             overlayTask = Task.Run(() =>
             {
                 overlay = new ChaosOverlay();
-                overlay.RunOverLay(token);
+                overlay.RunOverLay(cancellationToken);
                 overlay = null;
             });
 
@@ -206,31 +210,15 @@ namespace ChaosHelper
             {
                 try
                 {
-                    if (Config.HaveAHotKey())
-                    {
-                        logger.Info("registering hotkeys");
-
-                        static void MaybeRegister(HotKeyBinding x)
-                        {
-                            if (x != null)
-                                HotKeyManager.RegisterHotKey(x.Key, x.Modifiers);
-                        }
-                        MaybeRegister(Config.HighlightItemsHotkey);
-                        if (Config.QualityTabIndex >= 0)
-                            MaybeRegister(Config.ShowQualityItemsHotkey);
-                        MaybeRegister(Config.ShowJunkItemsHotkey);
-                        MaybeRegister(Config.ForceUpdateHotkey);
-                        MaybeRegister(Config.CharacterCheckHotkey);
-                        MaybeRegister(Config.TestPatternHotkey);
-                        HotKeyManager.HotKeyPressed += new EventHandler<HotKeyEventArgs>(HotKeyManager_HotKeyPressed);
-                    }
+                    CheckHotkeyRegistration();
 
                     // This will check for updates as zones are entered
-                    while (!token.IsCancellationRequested)
-                        await TailClientTxt(token);
+                    while (!cancellationToken.IsCancellationRequested)
+                        await TailClientTxt(cancellationToken);
                 }
                 finally
                 {
+                    HotKeyManager.UnregisterAllHotKeys();
                 }
             }
 
@@ -239,11 +227,37 @@ namespace ChaosHelper
             if (keyboardTask != null) await keyboardTask;
         }
 
+        private static void CheckHotkeyRegistration()
+        {
+            HotKeyManager.UnregisterAllHotKeys();
+            if (Config.HaveAHotKey())
+            {
+                logger.Info("registering hotkeys");
+
+                static void MaybeRegister(HotKeyBinding x)
+                {
+                    if (x != null)
+                        HotKeyManager.RegisterHotKey(x.Key, x.Modifiers);
+                }
+                MaybeRegister(Config.HighlightItemsHotkey);
+                if (Config.QualityTabIndex >= 0)
+                    MaybeRegister(Config.ShowQualityItemsHotkey);
+                MaybeRegister(Config.ShowJunkItemsHotkey);
+                MaybeRegister(Config.ForceUpdateHotkey);
+                MaybeRegister(Config.CharacterCheckHotkey);
+                MaybeRegister(Config.TestPatternHotkey);
+                if (!haveAddedHotkeyEventHandler)
+                    HotKeyManager.HotKeyPressed += new EventHandler<HotKeyEventArgs>(HotKeyManager_HotKeyPressed);
+                haveAddedHotkeyEventHandler = true;
+            }
+        }
+
         static void HotKeyManager_HotKeyPressed(object sender, ConsoleHotKey.HotKeyEventArgs e)
         {
             var activated = overlay.IsPoeWindowActivated();
             if (!activated)
                 return;
+            
             if (Config.IsHighlightItemsHotkey(e))
             {
                 logger.Info("Highlighting sets to sell");
@@ -271,6 +285,9 @@ namespace ChaosHelper
         {
             if (isPaused && !forceFilterUpdate)
                 return;
+
+            if (forceFilterUpdate)
+                qualityItems = null;
 
             itemsPrevious = itemsCurrent;
             itemsCurrent = new ItemSet();
@@ -383,9 +400,7 @@ namespace ChaosHelper
                     return 0;
                 }
 
-                var stashTabUrl = System.Uri.EscapeUriString("https://www.pathofexile.com/character-window/get-stash-items"
-                    + $"?league={Config.League}&tabIndex={tabIndex}&accountName={Config.Account}");
-                var json = await Config.GetJsonForUrl(stashTabUrl, tabIndex);
+                JsonElement json = await GetJsonByTabIndex(tabIndex);
                 foreach (var item in json.GetProperty("items").EnumerateArray())
                 {
                     var frameType = item.GetIntOrDefault("frameType", 0);
@@ -426,9 +441,7 @@ namespace ChaosHelper
 
                 var category = Cat.Junk;
 #if true
-                var stashTabUrl = System.Uri.EscapeUriString("https://www.pathofexile.com/character-window/get-stash-items"
-                    + $"?league={Config.League}&tabIndex={tabIndex}&accountName={Config.Account}");
-                var json = await Config.GetJsonForUrl(stashTabUrl, tabIndex);
+                JsonElement json = await GetJsonByTabIndex(tabIndex);
 #else
                 await Task.Yield();
                 var text = File.ReadAllText("D:/code/ChaosHelper/quality.json");
@@ -517,10 +530,7 @@ namespace ChaosHelper
                     Console.WriteLine("currency;count;ratio;value");
 
                 var currencyDict = Currency.GetWebDictionary();
-
-                var stashTabUrl = System.Uri.EscapeUriString("https://www.pathofexile.com/character-window/get-stash-items"
-                    + $"?league={Config.League}&tabIndex={Config.CurrencyTabIndex}&accountName={Config.Account}");
-                var json = await Config.GetJsonForUrl(stashTabUrl, Config.CurrencyTabIndex);
+                JsonElement json = await GetJsonByTabIndex(Config.CurrencyTabIndex);
                 foreach (var item in json.GetProperty("items").EnumerateArray())
                 {
                     var stackSize = item.GetIntOrDefault("stackSize", 0);
@@ -561,6 +571,55 @@ namespace ChaosHelper
             {
                 logger.Error(ex, $"HTTP error getting currency tab contents: {ex.Message}");
             }
+        }
+
+        public static async Task<bool> FindAndSaveTab(string tabName)
+        {
+            var foundTabIndex = -1;
+            try
+            {
+                JsonElement tabList = await Config.GetTabList();
+
+                foreach (var tab in tabList.GetProperty("tabs").EnumerateArray())
+                {
+                    var name = tab.GetProperty("n").GetString();
+                    var i = tab.GetIntOrDefault("i", -1);
+
+                    if (string.Equals(tabName, name, StringComparison.OrdinalIgnoreCase))
+                    {
+                        foundTabIndex = i;
+                        logger.Info($"Found stash tab '{tabName}' at index {i}");
+                        JsonElement json = await GetJsonByTabIndex(i);
+                        var options = new JsonSerializerOptions
+                        {
+                            WriteIndented = true,
+                        };
+                        var jsonString = JsonSerializer.Serialize(json, options);
+                        var fileName = Config.TabFileName(tabName);
+                        File.WriteAllText(fileName, jsonString);
+                        logger.Info($"Contents of tab '{tabName}' written to {fileName}");
+                        break;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"HTTP error getting tab or tab list: {ex.Message}");
+            }
+            if (foundTabIndex < 0)
+            {
+                logger.Error($"ERROR: stash tab '{tabName}' not found");
+                return false;
+            }
+            return true;
+        }
+
+        private static async Task<JsonElement> GetJsonByTabIndex(int tabIndex)
+        {
+            var stashTabUrl = "https://www.pathofexile.com/character-window/get-stash-items"
+                + $"?league={Uri.EscapeDataString(Config.League)}&tabIndex={tabIndex}&accountName={Uri.EscapeDataString(Config.Account)}";
+            var json = await Config.GetJsonForUrl(stashTabUrl, tabIndex);
+            return json;
         }
 
         private static async Task GetEquippedItems(ItemSet items)
@@ -621,7 +680,7 @@ namespace ChaosHelper
                 if (league.StartsWith("SSF"))
                     league = league.Substring(4);
 
-                var poeNinjaUrl = System.Uri.EscapeUriString($"https://poe.ninja/api/data/currencyoverview?league={league}&type=Currency");
+                var poeNinjaUrl = $"https://poe.ninja/api/data/currencyoverview?league={Uri.EscapeDataString(league)}&type=Currency";
                 var json = await Config.GetJsonForUrl(poeNinjaUrl, "poeNinja");
                 foreach (var item in json.GetProperty("lines").EnumerateArray())
                 {
@@ -686,13 +745,16 @@ namespace ChaosHelper
                         var canBeIded = Config.AllowIDedSets && (c.Category == Cat.Rings || c.Category == Cat.Amulets);
                         var limitIlvl = Config.LimitIlvl(c);
 
+                        var fontSize = Config.FilterDisplay.FontSize > 10 ? Config.FilterDisplay.FontSize : c.DefaultFontSize;
+
                         yield return $"# {c.Category} for chaos";
                         yield return "Show";
                         yield return $"Class \"{c.FilterClass}\"";
                         yield return "Rarity Rare";
-                        yield return $"SetBorderColor {Config.FilterColor}";
-                        yield return $"SetTextColor {Config.FilterColor}";
-                        yield return $"SetFontSize {c.FontSize}";
+                        yield return $"SetFontSize {fontSize}";
+                        yield return $"SetTextColor {Config.FilterDisplay.TextColor}";
+                        yield return $"SetBackgroundColor {Config.FilterDisplay.BackGroundColor}";
+                        yield return $"SetBorderColor {Config.FilterDisplay.BorderColor}";
                         if (!canBeIded)
                             yield return "Identified False";
                         yield return $"ItemLevel >= {Config.MinIlvl}";
@@ -718,9 +780,10 @@ namespace ChaosHelper
                             yield return "Class \"Bows\"";
                             yield return "Rarity Rare";
                             yield return "Sockets < 6";
-                            yield return $"SetBorderColor {Config.FilterColor}";
-                            yield return $"SetTextColor {Config.FilterColor}";
-                            yield return $"SetFontSize {c.FontSize}";
+                            yield return $"SetFontSize {fontSize}";
+                            yield return $"SetTextColor {Config.FilterDisplay.TextColor}";
+                            yield return $"SetBackgroundColor {Config.FilterDisplay.BackGroundColor}";
+                            yield return $"SetBorderColor {Config.FilterDisplay.BorderColor}";
                             if (!canBeIded)
                                 yield return "Identified False";
                             yield return $"ItemLevel >= {Config.MinIlvl}";
@@ -734,9 +797,10 @@ namespace ChaosHelper
                             yield return "Class \"Two Hand\" \"Staves\"";
                             yield return "Rarity Rare";
                             yield return "Sockets < 6";
-                            yield return $"SetBorderColor {Config.FilterColor}";
-                            yield return $"SetTextColor {Config.FilterColor}";
-                            yield return $"SetFontSize {c.FontSize}";
+                            yield return $"SetFontSize {fontSize}";
+                            yield return $"SetTextColor {Config.FilterDisplay.TextColor}";
+                            yield return $"SetBackgroundColor {Config.FilterDisplay.BackGroundColor}";
+                            yield return $"SetBorderColor {Config.FilterDisplay.BorderColor}";
                             if (!canBeIded)
                                 yield return "Identified False";
                             yield return $"ItemLevel >= {Config.MinIlvl}";
@@ -757,10 +821,10 @@ namespace ChaosHelper
                                 yield return "Show";
                                 yield return "Class Currency";
                                 yield return $"BaseType \"{c.Name}\"";
-                                yield return $"SetFontSize {c.FontSize}";
-                                yield return $"SetTextColor {c.TextColor}";
-                                yield return $"SetBorderColor {c.BorderColor}";
-                                yield return $"SetBackgroundColor {c.BackGroundColor}";
+                                yield return $"SetFontSize {c.ItemDisplay.FontSize}";
+                                yield return $"SetTextColor {c.ItemDisplay.TextColor}";
+                                yield return $"SetBorderColor {c.ItemDisplay.BorderColor}";
+                                yield return $"SetBackgroundColor {c.ItemDisplay.BackGroundColor}";
                                 yield return "";
                             }
                         }
@@ -791,6 +855,12 @@ namespace ChaosHelper
         static async Task TailClientTxt(CancellationToken token)
         {
             var savedClientFileName = Config.ClientFileName;
+            if (!File.Exists(savedClientFileName))
+            {
+                await Task.Delay(1000, CancellationToken.None);
+                return;
+            }
+
             using var fs = new FileStream(savedClientFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             using var sr = new StreamReader(fs);
             sr.BaseStream.Seek(0, SeekOrigin.End);
@@ -818,6 +888,7 @@ namespace ChaosHelper
                     if (reloadConfig)
                     {
                         await Config.ReadConfigFile();
+                        CheckHotkeyRegistration();
                         overlay?.SendKey(ConsoleKey.R);
                         reloadConfig = false;
                     }

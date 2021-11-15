@@ -108,8 +108,8 @@ These are the commands you can send to the tool:
 4. Show junk items (J): (town only) To toggle showing items in your stash tab that are not for the recipe, so you can clear them out.
 5. Force update (F): To force a re-read of the stash tab and a write of the filter file.
 6. Character check (C): Recheck your character and league. (This should happen automatically when you switch chararacters.)
-7. Test pattern (T): (town only) Toggle displaying a test pattern to verify the stash window size is correct. Once good, you can disable any hotkey for it, until you change monitors.
-8. Re-read configuation (R): Re-reads the settings.jsonc file. Active hotkeys are not updated, and changes to hotkeys will cause them to be ineffective.
+7. Test pattern (T): (town only) Toggle displaying a test pattern to verify the stash window size is correct. Once good, you can disable the hotkey for it, until you change monitors.
+8. Re-read configuation (R): Re-reads the settings.jsonc file.
 9. Currency list (Z): Get currency prices from Poe Ninja, then print a listing of the contents of the currency tab in the ChaosHelper console window, with a total value. The listing should be copy-pastable into a spreadsheet.
 10. Check dump tabs (D): Check dump tabs for interesting items (see "Item rules" below) and for items with matching names for chance recipe. Must have `dumpTabs` configured in settings.jsonc. 
 11. Check item from clipboard (S): After doing Ctrl-C on an item in PoE, this command will check it against configured item rules (see "Item rules" below). Mostly useful for testing rules.
@@ -221,7 +221,7 @@ __`chaosParanoiaLevel`__ (0) sets the level of effort to maximize chaos vs. rega
 - A value of 1 will allow the tool will highlight a single set at a time.
 For example, if the stash contains one ilvl 74 glove and one ilvl 74 helmet and everything else is ilvl 75+, it will highlight them in two individual sales.
 - A value of 2 will also cause unidentified ilvl 75+ items to be favored over identified ilvl 60-74 items in IDed recipes.
-This will tend to cause hoarding of identified ilvl 60-74 items in teh stash tab.
+This will tend to cause hoarding of identified ilvl 60-74 items in the stash tab.
 
 __`ignoreMaxSets`__ causes the specified item classes to ignore the `maxSets` setting.
 For example, setting `ignoreMaxSets` to "Rings,Amulets,Belts" when `maxSets` is 12,
@@ -240,7 +240,6 @@ There must be four strings in the array and they can be hex numbers ("0xRRGGBB")
 __`highlightItemsHotkey`__, __`showQualityItemsHotkey`__, __`showJunkItemsHotkey`__, __`forceUpdateHotkey`__, __`characterCheckHotkey`__ and __`testPatternHotkey`__
 can be set to enable global hotkeys to execute ChaosHelper commands.
 If not defined, the hotkeys are not enabled.
-Altering these settings will require that the ChaosHelper be restarted. The Re-read configuration command will not suffice.
 See "Commands and hotkeys" for more info.
 
 __`hookMouseEvents`__ (true) sets if mouse events should be hooked.
@@ -262,20 +261,16 @@ The `Manual` mode is in case GGG blocks non-site access to the inventory informa
 When manual mode is enabled, the console window will show a URL to open in your browser (the URL should already be copied to your clipboard).
 The page should open as a JSON document. Select the entire document and copy to your clipboard. At that point, the tool should continue.
 
-__`clientTxt`__ defines where to find the PoE client.txt log file, which the tool uses to track zone changes.
-The tool tries to auto-determine this, but if Path of Exile was installed to a custom folder,
-or if both the stand alone client and the Steam client are installed, this value may need to be set.
-(The tool will look for the client.txt for the stand alone client, first.)
-The Epic client is not yet supported, and `clientTxt` must be configured for it.
-
 __`processName`__ defines the process name for the running game.
-The tool tries to auto-determine this, looking for "PathOfExile_x64" for the stand alone client and "PathOfExile_x64Steam" for the Steam client.
-The Epic client is not yet supported, and `processName` must be configured for it.
+The tool tries to auto-determine this, looking for clients in this order:
+- "PathOfExile"
+- "PathOfExileSteam"
+- "PathOfExileEGS"
+- "PathOfExile_KG"
 
 The tool simply finds the first matching process.
-To run two copies of Path of Exile while using the tool,
-run one PoE using the stand alone client and one PoE using the Steam client,
-and configure `processName` (and `clientTxt`) for the copy you want the tool to go with.
+To run two copies of Path of Exile while using the tool on one copy, run them using two different clients, 
+and configure `processName` for the process you want the tool to go track.
 
 __`areaEnteredPattern`__ ("] : You have entered ") is the text marker used when tailing client.txt to determine when a character change areas.
 Translate this if you use the PoE client in a language other than English.
@@ -407,10 +402,8 @@ When there are no shorter weapons, it will say one recipe, repeatedly.
 **I'm running the Steam client and the tool is not detecting when I change zones.**
 
 The tool favours using the stand alone client by default.
-So if both PoE clients are installed, try starting the tool with a `steam` argument to force use of the steam client for both the client.txt file and for process detection.
-If that doesn't work, you may need to configure the `clientTxt` setting to point to the Steam copy of client.txt.
-This depends on how you installed Steam, but it it likely "%ProgramFiles(x86)%/Steam/steamapps/common/Path of Exile/logs/Client.txt".
-The `processName` setting will probably also have to be configured.
+So if both PoE clients are installed, try starting the tool with a `steam` argument to force use of the steam client for process detection.
+The `processName` setting may also have to be configured.
 
 **I have some custom filter text I'd like to insert into the generated filter.**
 

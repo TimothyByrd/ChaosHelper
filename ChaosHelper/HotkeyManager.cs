@@ -1,5 +1,6 @@
 ﻿// This code is originally from https://stackoverflow.com/questions/3654787/global-hotkey-in-console-application/3654821
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
@@ -15,7 +16,20 @@ namespace ConsoleHotKey
             _windowReadyEvent.WaitOne();
             int id = System.Threading.Interlocked.Increment(ref _id);
             _wnd.Invoke(new RegisterHotKeyDelegate(RegisterHotKeyInternal), _hwnd, id, (uint)modifiers, (uint)key);
+            _registeredHotKeys.Add(id);
             return id;
+        }
+
+        public static bool HaveRegisteredAHotKey()
+        {
+            return _registeredHotKeys.Count > 0;
+        }
+
+        public static void UnregisterAllHotKeys()
+        {
+            foreach(var id in _registeredHotKeys)
+                UnregisterHotKey(id);
+            _registeredHotKeys.Clear();
         }
 
         public static void UnregisterHotKey(int id)
@@ -96,8 +110,8 @@ namespace ConsoleHotKey
         private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
         private static int _id = 0;
+        private static readonly List<int> _registeredHotKeys = new();
     }
-
 
     public class HotKeyEventArgs : EventArgs
     {

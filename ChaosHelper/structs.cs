@@ -96,7 +96,7 @@ namespace ChaosHelper
     {
         public string Abbrev;
         public bool Skip;
-        public int FontSize;
+        public int DefaultFontSize;
         public Cat Category;
         public string CategoryStr;
         public string FilterClass;
@@ -105,7 +105,7 @@ namespace ChaosHelper
         {
             Abbrev = abbrev;
             Skip = skip;
-            FontSize = fontSize;
+            DefaultFontSize = fontSize;
             Category = category;
             CategoryStr = categoryStr;
             FilterClass = filterClass;
@@ -253,6 +253,8 @@ public static class Helpers
             if (Enum.TryParse<BaseClass>(s, true, out var baseClass)
                 && Enum.IsDefined(typeof(BaseClass), baseClass))
                 return baseClass;
+            if (itemTypeToBaseClassDict.ContainsKey(s))
+                return itemTypeToBaseClassDict[s];
             if (s.EndsWith("s"))
                 return ToBaseClass(s.TrimEnd('s'));
             return BaseClass.Any;
@@ -356,6 +358,34 @@ public static class Helpers
                     category = Cat.Junk;
             }
             return category;
+        }
+    }
+
+    public class ItemDisplay
+    {
+        public int FontSize { get; set; }
+        public string TextColor { get; set; }
+        public string BorderColor { get; set; }
+        public string BackGroundColor { get; set; }
+        static public ItemDisplay Parse(JsonElement element)
+        {
+            var fontSize = element.GetIntOrDefault("fontSize", 0).Clamp(0, 50);
+            var textColor = element.GetStringOrDefault("text").CheckColorString();
+            var borderColor = element.GetStringOrDefault("border").CheckColorString();
+            var backgroundColor = element.GetStringOrDefault("back").CheckColorString();
+
+            if (fontSize <= 10 || string.IsNullOrWhiteSpace(textColor)
+                || string.IsNullOrWhiteSpace(borderColor)
+                || string.IsNullOrWhiteSpace(backgroundColor))
+                return null;
+
+            return new ItemDisplay
+            {
+                FontSize = fontSize,
+                TextColor = textColor,
+                BorderColor = borderColor,
+                BackGroundColor = backgroundColor,
+            };
         }
     }
 }

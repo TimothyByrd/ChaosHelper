@@ -9,10 +9,7 @@ namespace ChaosHelper
 
         public string Name { get; private set; }
         public int Desired { get; private set; }
-        public int FontSize { get; private set; }
-        public string TextColor { get; private set; }
-        public string BorderColor { get; private set; }
-        public string BackGroundColor { get; private set; }
+        public ItemDisplay ItemDisplay { get; private set; }
         public double ValueRatio { get; private set; }
         public double Value { get { return ValueRatio * CurrentCount; } }
         public bool CanFilterOn { get; private set; }
@@ -78,17 +75,8 @@ namespace ChaosHelper
             var currencyName = element.GetStringOrDefault("c");
             if (string.IsNullOrWhiteSpace(currencyName)) canFilterOn = false;
 
-            var fontSize = element.GetIntOrDefault("fontSize", 0).Clamp(0, 50);
-            if (fontSize <= 10) canFilterOn = false;
-
-            var textColor = element.GetStringOrDefault("text").CheckColorString();
-            if (string.IsNullOrWhiteSpace(textColor)) canFilterOn = false;
-
-            var borderColor = element.GetStringOrDefault("border").CheckColorString();
-            if (string.IsNullOrWhiteSpace(borderColor)) canFilterOn = false;
-
-            var backgroundColor = element.GetStringOrDefault("back").CheckColorString();
-            if (string.IsNullOrWhiteSpace(backgroundColor)) canFilterOn = false;
+            var itemDisplay = ItemDisplay.Parse(element);
+            if (itemDisplay == null) canFilterOn = false;
 
             //logger.Info($"Adding currency entry for {currencyName} ({canFilterOn}): des={desired}");
 
@@ -96,10 +84,7 @@ namespace ChaosHelper
             {
                 Name = currencyName,
                 Desired = desired,
-                FontSize = fontSize,
-                TextColor = textColor,
-                BorderColor = borderColor,
-                BackGroundColor = backgroundColor,
+                ItemDisplay = itemDisplay,
                 CanFilterOn = canFilterOn,
                 CurrentCount = int.MaxValue,
             });

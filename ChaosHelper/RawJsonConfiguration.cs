@@ -137,6 +137,11 @@ namespace ChaosHelper
 
            return null;
         }
+
+        public bool TryGetProperty(string propertyName, out JsonElement value)
+        {
+            return rawConfig.TryGetProperty(propertyName, out value);
+        }
     }
     public class HotKeyBinding
     {

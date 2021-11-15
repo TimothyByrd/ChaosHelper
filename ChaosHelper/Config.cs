@@ -15,7 +15,6 @@ namespace ChaosHelper
         private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         private static RawJsonConfiguration rawConfig;
         private static string exePath;
-        private static bool forcingClientTxt = false;
 
         public enum StashReading
         {
@@ -55,8 +54,9 @@ namespace ChaosHelper
         public static string IgnoreMaxIlvl { get; private set; }
         public static List<string> TownZones { get; private set; }
         public static List<int> HighlightColors { get; private set; }
-        public static string FilterColor { get; private set; }
         public static string FilterMarker { get; private set; }
+        //public static string FilterColor { get; private set; }
+        public static ItemDisplay FilterDisplay { get; private set; }
         public static string AreaEnteredPattern { get; private set; }
         public static HotKeyBinding HighlightItemsHotkey { get; private set; }
         public static HotKeyBinding ShowQualityItemsHotkey { get; private set; }
@@ -245,9 +245,23 @@ namespace ChaosHelper
                 return false;
             }
 
-            const string defaultFilterColor = "106 77 255";
-            FilterColor = rawConfig["filterColor"].CheckColorString(defaultFilterColor);
-            logger.Info($"filterColor is '{FilterColor}'");
+            //const string defaultFilterColor = "106 77 255";
+            //FilterColor = rawConfig["filterColor"].CheckColorString(defaultFilterColor);
+            //logger.Info($"filterColor is '{FilterColor}'");
+
+            FilterDisplay = null;
+            if (rawConfig.TryGetProperty("filterDisplay", out var filterDisplayElement))
+                FilterDisplay = ItemDisplay.Parse(filterDisplayElement);
+            if (FilterDisplay == null)
+            {
+                FilterDisplay = new ItemDisplay
+                {
+                    FontSize = 0,
+                    TextColor = "106 77 255",
+                    BackGroundColor = "70 70 70",
+                    BorderColor = "106 77 255",
+                };
+            }
 
             FilterMarker = rawConfig["filterMarker"];
             if (string.IsNullOrWhiteSpace(FilterMarker))
@@ -300,38 +314,6 @@ namespace ChaosHelper
                 ItemRule.ReadRuleFile(itemRuleFile);
                 logger.Info($"item rule file - there are {ItemRule.Rules.Count} rules");
             }
-
-            var clientTxtBase = rawConfig["clientTxt"];
-            ClientFileName = Environment.ExpandEnvironmentVariables(clientTxtBase);
-            forcingClientTxt = File.Exists(ClientFileName);
-            if (File.Exists(ClientFileName))
-            {
-                forcingClientTxt = true;
-            }
-            else if (ForceSteam)
-            {
-                ClientFileName = Environment.ExpandEnvironmentVariables("%ProgramFiles(x86)%\\Steam\\steamapps\\common\\Path of Exile\\logs\\Client.txt");
-                if (!File.Exists(ClientFileName))
-                    ClientFileName = "D:/pf_games/Steam/steamapps/common/Path of Exile/logs/client.txt";
-                forcingClientTxt = File.Exists(ClientFileName);
-            }
-            else
-            {
-                ClientFileName = Environment.ExpandEnvironmentVariables("%ProgramFiles(x86)%\\Games\\Grinding Gear Games\\Path of Exile\\logs\\Client.txt");
-                if (!File.Exists(ClientFileName))
-                    ClientFileName = Environment.ExpandEnvironmentVariables("%ProgramFiles(x86)%\\Grinding Gear Games\\Path of Exile\\logs\\Client.txt");
-                if (!File.Exists(ClientFileName))
-                    ClientFileName = Environment.ExpandEnvironmentVariables("%ProgramFiles%\\Grinding Gear Games\\Path of Exile\\logs\\Client.txt");
-                if (!File.Exists(ClientFileName))
-                    ClientFileName = Environment.ExpandEnvironmentVariables("%ProgramFiles(x86)%\\Steam\\steamapps\\common\\Path of Exile\\logs\\Client.txt");
-            }
-
-            if (!File.Exists(ClientFileName))
-            {
-                logger.Error($"ERROR: client.txt file '{clientTxtBase}' not found");
-                return false;
-            }
-            logger.Info($"will tail client file '{ClientFileName}'");
 
             if (!await DetermineTabIndicies())
                 return false;
@@ -423,9 +405,7 @@ namespace ChaosHelper
 
             try
             {
-                var stashTabListUrl = System.Uri.EscapeUriString("https://www.pathofexile.com/character-window/get-stash-items"
-                    + $"?league={League}&tabs=1&accountName={Account}");
-                JsonElement json = await GetJsonForUrl(stashTabListUrl, "tabList");
+                JsonElement tablit = await GetTabList();
 
                 var lookForCurrencyTab = Currency.CurrencyList.Any();
                 var lookForQualityTab = !string.IsNullOrWhiteSpace(qualityTabNameFromConfig);
@@ -440,7 +420,7 @@ namespace ChaosHelper
                         && !dumpTabNames.Any();
                 }
 
-                foreach (var tab in json.GetProperty("tabs").EnumerateArray())
+                foreach (var tab in tablit.GetProperty("tabs").EnumerateArray())
                 {
                     var name = tab.GetProperty("n").GetString();
                     var isRemoveOnly = name.Contains(removeOnlyTabPattern, StringComparison.OrdinalIgnoreCase);
@@ -466,8 +446,8 @@ namespace ChaosHelper
                     if (lookForCurrencyTab && CurrencyTabIndex == -1 && !isRemoveOnly
                         && string.Equals(tabType, "CurrencyStash", StringComparison.OrdinalIgnoreCase))
                     {
-                            CurrencyTabIndex = i;
-                            logger.Info($"found currency tab '{name}', index = {CurrencyTabIndex}");
+                        CurrencyTabIndex = i;
+                        logger.Info($"found currency tab '{name}', index = {CurrencyTabIndex}");
                     }
 
                     if (lookForQualityTab && QualityTabIndex == -1
@@ -505,6 +485,14 @@ namespace ChaosHelper
                 return false;
             }
             return true;
+        }
+
+        public static async Task<JsonElement> GetTabList()
+        {
+            var stashTabListUrl = "https://www.pathofexile.com/character-window/get-stash-items"
+                + $"?league={Uri.EscapeDataString(League)}&tabs=1&accountName={Uri.EscapeDataString(Account)}";
+            JsonElement json = await GetJsonForUrl(stashTabListUrl, "tabList");
+            return json;
         }
 
         public static Task<JsonElement> GetJsonForUrl(string theUrl, int tabIndex)
@@ -549,12 +537,12 @@ namespace ChaosHelper
             return await ManualGetUrlJson(theUrl);
         }
 
-        private static string TabFileName(string tabName)
+        public static string TabFileName(string tabName)
         {
             return Path.Combine(exePath, $"json_{tabName}.json");
         }
 
-        public static void MaybeSavePageJson(JsonElement result, string tabName)
+        public static void MaybeSavePageJson(JsonElement json, string tabName)
         {
 
             if (StashReadMode == StashReading.Record)
@@ -563,7 +551,7 @@ namespace ChaosHelper
                 {
                     WriteIndented = true,
                 };
-                var jsonString = JsonSerializer.Serialize(result, options);
+                var jsonString = JsonSerializer.Serialize(json, options);
                 var fileName = TabFileName(tabName);
                 File.WriteAllText(fileName, jsonString);
             }
@@ -593,13 +581,10 @@ namespace ChaosHelper
 
         public static void SetProcessModule(string processModulePath)
         {
-            if (!forcingClientTxt)
-            {
-                var path = Path.GetDirectoryName(processModulePath);
-                var clientFile = Path.Combine(path, "logs\\Client.txt");
-                if (File.Exists(clientFile))
-                    ClientFileName = clientFile;
-            }
+            var path = Path.GetDirectoryName(processModulePath);
+            var clientFile = Path.Combine(path, "logs\\Client.txt");
+            if (File.Exists(clientFile))
+                ClientFileName = clientFile;
         }
     }
 }

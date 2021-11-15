@@ -4,25 +4,27 @@
 
 # These rules compared against the current character's equipped items.
 
-# Dyn Armour, BodyArmour, TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
-Dyn Helment, Helmet, TotRes + MaxLife > X, MaxLife > X * 0.9, TotRes > X * 0.9
-Dyn Gloves, Gloves, TotRes + MaxLife > X, MaxLife > X * 0.9, TotRes > X * 0.9
-Dyn Boots, Boots, MoveSpeed >= 25, TotRes + MaxLife > X, MaxLife > X * 0.9, TotRes > X * 0.9
-Dyn Belt, Belt, TotRes + MaxLife > X, MaxLife > X * 0.9, TotRes > X * 0.9
-Dyn Amulet, Amulet, TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
-Dyn Ring, Ring, TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
-Dyn Ring2, Ring, TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
+# Dyn Armour, BodyArmour, MaxLife + TotRes > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.5
+Dyn Helmet, Helmet, MaxLife + TotRes > X, MaxLife > X * 0.9, TotRes > X * 0.5
+Dyn Gloves, Gloves, MaxLife + TotRes > X, MaxLife > X * 0.9, TotRes > X * 0.5
+# Dyn Boots, Boots, MoveSpeed >= 25, MaxLife + TotRes > X * 0.9, TotRes > X * 0.5
+Dyn Belt, Belt, MaxLife + TotRes > X, MaxLife > X * 0.9, TotRes > X * 0.5
+Dyn Amulet, Amulet, MaxLife + TotRes > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.5
+# Dyn Ring, Ring, MaxLife + TotRes > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.5
+# Dyn Ring2, Ring, MaxLife + TotRes > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.5
+Dyn Shield, Shield, MaxLife + TotRes > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.5
 
 # These rules also take the defense (Armour, ES, Evasion) into account.
 
-# DynamicA, BodyArmour, PropDef + TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
-DynamicA, Gloves, PropDef + TotRes + MaxLife + IAS > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
-DynamicA, Boots, MoveSpeed >= 20, PropDef + TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
-DynamicA, Helmet, PropDef + TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
-#DynamicA, Shield, PropDef + TotRes + MaxLife > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.9
+# DynamicA, BodyArmour, PropDef + MaxLife + TotRes > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.5
+DynamicA, Gloves, PropDef + MaxLife + TotRes + IAS > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.5
+# DynamicA, Boots, MoveSpeed >= 20, PropDef + MaxLife + TotRes > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.5
+DynamicA, Helmet, PropDef + MaxLife + TotRes > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.5
+# DynamicA, Shield, PropDef + MaxLife + TotRes > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.5
 
-Dyn FR, OneHandWeapon, GemLvlChaos*20 + SpellPctChaos >= X * 0.9, AddMana >= X * 0.9
-
+Dyn FR, OneHandWeapon, GemLvlChaos*20 + SpellPctChaos + CritChanceSpell * 0.4 + CritMult * 0.4 + AddMana * 0.2 >= X * 0.9
+Dyn loloppe FR, OneHandWeapon, GemLvlChaos*75 + SpellPctChaos * 1.4 + CritChanceSpell * 1.0 + CritMult * 3.0 + CastSpeed * 4 + ProjSpeed * 1.5 >= X * 0.75
+Dyn FR Shield, Shield, MaxLife + AddMana + TotRes + SpellPctChaos + NumTotems * 100 >= X * 0.9
 
 # weapon for a shak vortex build
 
