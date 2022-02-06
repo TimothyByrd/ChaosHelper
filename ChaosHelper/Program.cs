@@ -679,6 +679,10 @@ namespace ChaosHelper
                     league = league.Substring(0, league.Length - 4);
                 if (league.StartsWith("SSF"))
                     league = league.Substring(4);
+                if (league.EndsWith("HC"))
+                    league = "Hardcore " + league.Substring(0, league.Length - 3);
+                else if (league.StartsWith("SSF"))
+                    league = "Hardcore " + league.Substring(3);
 
                 var poeNinjaUrl = $"https://poe.ninja/api/data/currencyoverview?league={Uri.EscapeDataString(league)}&type=Currency";
                 var json = await Config.GetJsonForUrl(poeNinjaUrl, "poeNinja");
