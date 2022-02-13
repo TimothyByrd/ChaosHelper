@@ -439,7 +439,6 @@ namespace ChaosHelper
                     return;
                 }
 
-                var category = Cat.Junk;
 #if true
                 JsonElement json = await GetJsonByTabIndex(tabIndex);
 #else
@@ -453,6 +452,7 @@ namespace ChaosHelper
                     var identified = item.GetProperty("identified").GetBoolean();
                     var ilvl = item.GetIntOrDefault("ilvl", 0);
                     var isVaal = false;
+                    var category = Cat.Junk;
 
                     // Gem
                     //
@@ -478,14 +478,21 @@ namespace ChaosHelper
                                 continue;
                         }
                         else if (w != 1 || h != 2)
-                            continue;
+                        {
+                            category = item.DetermineCategory();
+                            if (category == Cat.Junk)
+                                continue;
+                        }
                     }
-
+                                        
                     var quality = GetQuality(item);
-                    if (quality > 0 && quality < 20 && (!isVaal || quality <= Config.QualityVaalGemMaxQualityToUse))
-                    {
+                    if (quality == 0) continue;
+
+                    var maxQuality = frameType == 1 ? 20 : 19; // only include magic items with q20
+                    if (isVaal)
+                        maxQuality = Math.Min(maxQuality, Config.QualityVaalGemMaxQualityToUse);
+                    if (quality <= maxQuality)
                         items.Add(category, item, tabIndex, quality);
-                    }
                 }
             }
             catch (Exception ex)
@@ -680,9 +687,9 @@ namespace ChaosHelper
                 if (league.StartsWith("SSF"))
                     league = league.Substring(4);
                 if (league.EndsWith("HC"))
-                    league = "Hardcore " + league.Substring(0, league.Length - 3);
+                    league = string.Concat("Hardcore ", league.AsSpan(0, league.Length - 3));
                 else if (league.StartsWith("SSF"))
-                    league = "Hardcore " + league.Substring(3);
+                    league = string.Concat("Hardcore ", league.AsSpan(3));
 
                 var poeNinjaUrl = $"https://poe.ninja/api/data/currencyoverview?league={Uri.EscapeDataString(league)}&type=Currency";
                 var json = await Config.GetJsonForUrl(poeNinjaUrl, "poeNinja");

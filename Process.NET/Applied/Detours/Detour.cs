@@ -17,7 +17,9 @@ namespace Process.NET.Applied.Detours
         ///     to keep a reference, to avoid the GC from collecting the delegate instance!
         /// </summary>
         // ReSharper disable once NotAccessedField.Local
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly Delegate _hookDelegate;
+#pragma warning restore IDE0052 // Remove unread private members
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="Detour" /> class.

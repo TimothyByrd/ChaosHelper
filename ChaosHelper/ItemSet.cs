@@ -169,7 +169,8 @@ namespace ChaosHelper
                 e.GetProperty("baseType").GetString(),
                 tabIndex,
                 quality,
-                e));
+                e,
+                category));
         }
 
         public ItemSet GetSetToSell(bool allowIdentified, int chaosParanoiaLevel)
@@ -368,33 +369,62 @@ namespace ChaosHelper
 
         public ItemSet MakeQualitySet()
         {
+            var result = new ItemSet();
+
+            var gems = itemsDict[Cat.Junk].Where(x => x.W == 1 && x.H == 1 && IsGem(x))
+                .Where(x => x.Quality > 0).OrderBy(x => x, new QualityComparer());
+            //ShowSet("gem", gems);
+            var gemSet = MakeAQualitySet(gems, Config.QualityGemRecipeSlop);
+            AddToResult(gemSet);
+
+            var flasks = itemsDict[Cat.Junk].Where(x => x.W == 1 && x.H == 2)
+                .Where(x => x.Quality > 0).OrderBy(x => x, new QualityComparer());
+            //ShowSet("flask", flasks);
+            var flaskSet = MakeAQualitySet(flasks, Config.QualityFlaskRecipeSlop);
+            AddToResult(flaskSet);
+
+            var maps = itemsDict[Cat.Junk].Where(x => x.W == 1 && x.H == 1 && !IsGem(x))
+                .Where(x => x.Quality > 0).OrderBy(x => x, new QualityComparer());
+            var mapSet = MakeAQualitySet(maps, Config.QualityGemRecipeSlop);
+            AddToResult(mapSet);
+            
+            var weapons = itemsDict[Cat.OneHandWeapons].Concat(itemsDict[Cat.TwoHandWeapons])
+                .Where(x => x.Quality > 0).OrderBy(x => x, new QualityComparer());
+            var weaponSet = MakeAQualitySet(weapons, Config.QualityScrapRecipeSlop);
+            AddToResult(weaponSet);
+
+            var armours = itemsDict[Cat.BodyArmours].Concat(itemsDict[Cat.Helmets])
+                .Concat(itemsDict[Cat.Gloves]).Concat(itemsDict[Cat.Boots])
+                .Concat(itemsDict[Cat.OffHand])
+                .Where(x => x.Quality > 0).OrderBy(x => x, new QualityComparer());
+            var armourSet = MakeAQualitySet(armours, Config.QualityScrapRecipeSlop);
+            AddToResult(armourSet);
+
+            RemoveItems(result);
+
+            foreach (var c in ItemClassForFilter.Iterator())
+            {
+                if (c.Category == Cat.Junk) continue;
+                if (!result.itemsDict[c.Category].Any()) continue;
+                result.itemsDict[Cat.Junk].AddRange(result.itemsDict[c.Category]);
+                result.itemsDict[c.Category].Clear();
+            }
+         
+            return result;
+
             static bool IsGem(ItemPosition itemPos)
             {
                 return itemPos.iLvl == 0;
             }
 
-            var result = new ItemSet();
-
-            var gems = itemsDict[Cat.Junk].Where(x => x.H == 1 && IsGem(x)).OrderBy(x => x, new QualityComparer());
-            //ShowSet("gem", gems);
-            var gemSet = MakeAQualitySet(gems, Config.QualityGemRecipeSlop);
-            if (gemSet != null)
-                result.itemsDict[Cat.Junk].AddRange(gemSet);
-
-            var flasks = itemsDict[Cat.Junk].Where(x => x.H == 2).OrderBy(x => x, new QualityComparer());
-            //ShowSet("flask", flasks);
-            var flaskSet = MakeAQualitySet(flasks, Config.QualityFlaskRecipeSlop);
-            if (flaskSet != null)
-                result.itemsDict[Cat.Junk].AddRange(flaskSet);
-
-            var maps = itemsDict[Cat.Junk].Where(x => x.H == 1 && !IsGem(x)).OrderBy(x => x, new QualityComparer());
-            var mapSet = MakeAQualitySet(maps, Config.QualityGemRecipeSlop);
-            if (mapSet != null)
-                result.itemsDict[Cat.Junk].AddRange(mapSet);
-
-            RemoveItems(result);
-            return result;
-        }
+            void AddToResult(IEnumerable<ItemPosition> set)
+            {
+                if (set == null)
+                    return;
+                foreach (var item in set)
+                    result.itemsDict[item.Category].Add(item);
+            }
+        }           
 
         //private void ShowSet(string itemType, IEnumerable<ItemPosition> items)
         //{

@@ -49,13 +49,14 @@ $text = $text -replace '"processName"\s*:\s*"[^"]*"', "`"processName`": `"`""
 
 $text = $text -replace '"areaEnteredPattern"\s*:\s*"[^"]*"', "`"areaEnteredPattern`": `"] : You have entered `""
 
-$text = $text -replace '"stashPageVerticalOffset"\s*:[^,]+,', "`"stashPageVerticalOffset`": 0,"
+$text = $text -replace '"stashPageVerticalOffset"\s*:[^,]+,', "`"stashPageVerticalOffset`": 10,"
 
 $text = $text -replace '"desired"\s*:[^,]+,', "`"desired`": 0,"
 
 $text = $text -replace '"qualityTab"\s*:\s*"[^"]*"', "`"qualityTab`": `"`""
+$text = $text -replace '"qualityScrapRecipeSlop"\s*:[^,]+,', "`"qualityScrapRecipeSlop`": 3,"
 $text = $text -replace '"qualityGemRecipeSlop"\s*:[^,]+,', "`"qualityGemRecipeSlop`": 0,"
-$text = $text -replace '"qualityFlaskRecipeSlop"\s*:[^,]+,', "`"qualityFlaskRecipeSlop`": 0,"
+$text = $text -replace '"qualityFlaskRecipeSlop"\s*:[^,]+,', "`"qualityFlaskRecipeSlop`": 1,"
 $text = $text -replace '"qualityVaalGemMaxQualityToUse"\s*:[^,]+,', "`"qualityVaalGemMaxQualityToUse`": 0,"
 
 if ($origText -ne $text) {

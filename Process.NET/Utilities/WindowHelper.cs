@@ -122,8 +122,7 @@ namespace Process.NET.Utilities
             HandleManipulator.ValidateAsArgument(windowHandle, "windowHandle");
 
             // Get the process id
-            int processId;
-            User32.GetWindowThreadProcessId(windowHandle, out processId);
+            User32.GetWindowThreadProcessId(windowHandle, out int processId);
 
             return processId;
         }
@@ -139,8 +138,7 @@ namespace Process.NET.Utilities
             HandleManipulator.ValidateAsArgument(windowHandle, "windowHandle");
 
             // Get the thread id
-            int trash;
-            return User32.GetWindowThreadProcessId(windowHandle, out trash);
+            return User32.GetWindowThreadProcessId(windowHandle, out _);
         }
 
         /// <summary>
@@ -175,11 +173,11 @@ namespace Process.NET.Utilities
             // Create the list of windows
             var list = new List<IntPtr>();
             // Create the callback
-            EnumWindowsProc callback = delegate(IntPtr windowHandle, IntPtr lParam)
+            bool callback(IntPtr windowHandle, IntPtr lParam)
             {
                 list.Add(windowHandle);
                 return true;
-            };
+            }
             // Enumerate all windows
             User32.EnumChildWindows(parentHandle, callback, IntPtr.Zero);
 

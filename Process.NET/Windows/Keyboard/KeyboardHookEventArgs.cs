@@ -67,7 +67,6 @@ namespace Process.NET.Windows.Keyboard
         [DllImport("user32.dll")]
         private static extern short GetKeyState(VirtualKeyStates nVirtKey);
 
-        [SuppressMessage("ReSharper", "InconsistentNaming")]
         private enum VirtualKeyStates
         {
             VK_LWIN = 0x5B,
@@ -80,7 +79,7 @@ namespace Process.NET.Windows.Keyboard
             VK_RALT = 0xA5 //aka VK_RMENU
         }
 
-        [SuppressMessage("ReSharper", "InconsistentNaming")] private const int KEY_PRESSED = 0x8000;
+        private const int KEY_PRESSED = 0x8000;
 
         #endregion
     }

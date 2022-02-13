@@ -91,7 +91,8 @@ namespace Overlay.NET.Common {
         ///     <see cref="RelativeFile" />
         /// </returns>
         public static RelativeFile JsonFile(string fileName, string relativeSubDirectoryName = "",
-            bool timeStampFile = false, bool useDetailedTimeStamp = true) => new RelativeFile {
+            bool timeStampFile = false, bool useDetailedTimeStamp = true) => new()
+            {
             Name = fileName,
             Extension = ".json",
             SubDirectory = relativeSubDirectoryName,
@@ -111,7 +112,8 @@ namespace Overlay.NET.Common {
         ///     <see cref="RelativeFile" />
         /// </returns>
         public static RelativeFile XmlFile(string fileName, string relativeSubDirectoryName = "",
-            bool timeStampFile = false, bool useDetailedTimeStamp = true) => new RelativeFile {
+            bool timeStampFile = false, bool useDetailedTimeStamp = true) => new()
+            {
             Name = fileName,
             Extension = ".xml",
             SubDirectory = relativeSubDirectoryName,

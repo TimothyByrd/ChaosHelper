@@ -30,9 +30,8 @@ namespace Process.NET.Utilities
             HandleManipulator.ValidateAsArgument(startAddress, "startAddress");
 
             // Create the remote thread
-            int threadId;
             var ret = Kernel32.CreateRemoteThread(processHandle, IntPtr.Zero, 0, startAddress, parameter, creationFlags,
-                out threadId);
+                out _);
 
             // If the thread is created
             if (!ret.IsClosed && !ret.IsInvalid)
@@ -56,10 +55,9 @@ namespace Process.NET.Utilities
             HandleManipulator.ValidateAsArgument(threadHandle, "threadHandle");
 
             // Create the variable storing the output exit code
-            IntPtr exitCode;
 
             // Get the exit code of the thread
-            if (!Kernel32.GetExitCodeThread(threadHandle, out exitCode))
+            if (!Kernel32.GetExitCodeThread(threadHandle, out IntPtr exitCode))
                 throw new Win32Exception("Couldn't get the exit code of the thread.");
 
             // If the thread is still active
@@ -106,8 +104,7 @@ namespace Process.NET.Utilities
             HandleManipulator.ValidateAsArgument(threadHandle, "threadHandle");
 
             // Get the selector entry
-            LdtEntry entry;
-            if (Kernel32.GetThreadSelectorEntry(threadHandle, selector, out entry))
+            if (Kernel32.GetThreadSelectorEntry(threadHandle, selector, out LdtEntry entry))
                 return entry;
 
             // Else couldn't get the selector entry, throws an exception

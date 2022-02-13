@@ -91,7 +91,7 @@ namespace Process.NET.Memory
         /// <param name="encoding">The encoding used.</param>
         public virtual void Write(IntPtr intPtr, string stringToWrite, Encoding encoding)
         {
-            if (stringToWrite[stringToWrite.Length - 1] != '\0')
+            if (stringToWrite[^1] != '\0')
                 stringToWrite += '\0';
             var bytes = encoding.GetBytes(stringToWrite);
             Write(intPtr, bytes);

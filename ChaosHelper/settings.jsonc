@@ -7,6 +7,7 @@
     "filter": "Chaos Helper", // the name of the .filter file that will be written - see README.md
     "filterMarker": "",
 
+    // default 
     "filterDisplay": { "fontSize": 0, "text": "0x6a4dff", "back": "70 70 70", "border": "0x6a4dff" },
 
     // shak colors
@@ -115,7 +116,8 @@
     ],
 
     "qualityTab": "", // see README.md
-    "qualityFlaskRecipeSlop": 0,
+    "qualityScrapRecipeSlop": 3,
+    "qualityFlaskRecipeSlop": 1,
     "qualityGemRecipeSlop": 0,
     "qualityVaalGemMaxQualityToUse": 0,
 
@@ -135,5 +137,5 @@
     //"stashPageXYWH": [ 16, 127, 634, 634 ], // for 1920x1080 16:9
     //"stashPageXYWH": [ 12, 90, 450, 450 ], // for 1366x768 16:9
     //"stashPageXYWH": [ 12, 90, 450, 450 ], // for 1024x768 4:3
-    "stashPageVerticalOffset": 0, // see README.md
+    "stashPageVerticalOffset": 10, // see README.md
 }

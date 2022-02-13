@@ -130,10 +130,9 @@ namespace Process.NET.Utilities
 
             // Allocate the buffer
             var buffer = new byte[size];
-            int nbBytesRead;
 
             // Read the data from the target process
-            if (Kernel32.ReadProcessMemory(processHandle, address, buffer, size, out nbBytesRead) && size == nbBytesRead)
+            if (Kernel32.ReadProcessMemory(processHandle, address, buffer, size, out int nbBytesRead) && size == nbBytesRead)
                 return buffer;
 
             // Else the data couldn't be read, throws an exception
@@ -159,10 +158,9 @@ namespace Process.NET.Utilities
             HandleManipulator.ValidateAsArgument(address, "address");
 
             // Create the variable storing the old protection of the memory page
-            MemoryProtectionFlags oldProtection;
 
             // Change the protection in the target process
-            if (Kernel32.VirtualProtectEx(processHandle, address, size, protection, out oldProtection))
+            if (Kernel32.VirtualProtectEx(processHandle, address, size, protection, out MemoryProtectionFlags oldProtection))
                 // Return the old protection
                 return oldProtection;
 
@@ -183,11 +181,10 @@ namespace Process.NET.Utilities
         public static MemoryBasicInformation Query(SafeMemoryHandle processHandle, IntPtr baseAddress)
         {
             // Allocate the structure to store information of memory
-            MemoryBasicInformation memoryInfo;
 
             // Query the memory region
             if (
-                Kernel32.VirtualQueryEx(processHandle, baseAddress, out memoryInfo,
+                Kernel32.VirtualQueryEx(processHandle, baseAddress, out MemoryBasicInformation memoryInfo,
                     MarshalType<MemoryBasicInformation>.Size) != 0)
                 return memoryInfo;
 
@@ -223,10 +220,9 @@ namespace Process.NET.Utilities
             do
             {
                 // Allocate the structure to store information of memory
-                MemoryBasicInformation memoryInfo;
 
                 // Get the next memory page
-                ret = Kernel32.VirtualQueryEx(processHandle, new IntPtr(numberFrom), out memoryInfo,
+                ret = Kernel32.VirtualQueryEx(processHandle, new IntPtr(numberFrom), out MemoryBasicInformation memoryInfo,
                     MarshalType<MemoryBasicInformation>.Size);
 
                 // Increment the starting address with the size of the page
@@ -252,10 +248,9 @@ namespace Process.NET.Utilities
             HandleManipulator.ValidateAsArgument(address, "address");
 
             // Create the variable storing the number of bytes written
-            int nbBytesWritten;
 
             // Write the data to the target process
-            if (Kernel32.WriteProcessMemory(processHandle, address, byteArray, byteArray.Length, out nbBytesWritten))
+            if (Kernel32.WriteProcessMemory(processHandle, address, byteArray, byteArray.Length, out int nbBytesWritten))
                 // Check whether the length of the data written is equal to the inital array
                 if (nbBytesWritten == byteArray.Length)
                     return nbBytesWritten;

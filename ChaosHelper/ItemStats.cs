@@ -206,7 +206,7 @@ namespace ChaosHelper
                     seenDash = true;
                     continue;
                 }
-                else if (!seenDash || line.Contains(":"))
+                else if (!seenDash || line.Contains(':'))
                     continue;
                 else
                     CheckMod(line, fractured);
@@ -338,8 +338,8 @@ namespace ChaosHelper
                         var dashIndex = valueString.IndexOf("-");
                         if (dashIndex > 0)
                         {
-                            if (double.TryParse(valueString.Substring(0, dashIndex), out var value1)
-                                && double.TryParse(valueString.Substring(dashIndex+1), out var value2))
+                            if (double.TryParse(valueString.AsSpan(0, dashIndex), out var value1)
+                                && double.TryParse(valueString.AsSpan(dashIndex+1), out var value2))
                                 AddToTag(propDict[propType], (value1 + value2)/2.0);
                         }
                         else if (double.TryParse(valueString, out var value))

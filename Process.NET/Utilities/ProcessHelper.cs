@@ -158,14 +158,12 @@ namespace Process.NET.Utilities
 
         public static SystemProcess GetByProductName(string name)
         {
-            using (var firstOrDefault = FindProcessesByProductName(name).FirstOrDefault())
+            using var firstOrDefault = FindProcessesByProductName(name).FirstOrDefault();
+            if (firstOrDefault == null)
             {
-                if (firstOrDefault == null)
-                {
-                    throw new NullReferenceException($"Process {name} not found.");
-                }
-                return firstOrDefault;
+                throw new NullReferenceException($"Process {name} not found.");
             }
+            return firstOrDefault;
         }
 
         public static SystemProcess SelectFromName(string internalName)
@@ -206,21 +204,18 @@ namespace Process.NET.Utilities
 
         public static bool SetDebugPrivileges()
         {
-            IntPtr hToken;
-            LUID luidSeDebugNameValue;
-            TOKEN_PRIVILEGES tkpPrivileges;
-
             if (
                 !Advapi32.OpenProcessToken(Kernel32.GetCurrentProcess(),
-                    TokenObject.TOKEN_ADJUST_PRIVILEGES | TokenObject.TOKEN_QUERY, out hToken))
+                    TokenObject.TOKEN_ADJUST_PRIVILEGES | TokenObject.TOKEN_QUERY, out IntPtr hToken))
                 return false;
 
-            if (!Advapi32.LookupPrivilegeValue(null, SE_DEBUG_NAME, out luidSeDebugNameValue))
+            if (!Advapi32.LookupPrivilegeValue(null, SE_DEBUG_NAME, out LUID luidSeDebugNameValue))
             {
                 Kernel32.CloseHandle(hToken);
                 return false;
             }
 
+            TOKEN_PRIVILEGES tkpPrivileges;
             tkpPrivileges.PrivilegeCount = 1;
             tkpPrivileges.Luid = luidSeDebugNameValue;
             tkpPrivileges.Attributes = PrivilegeAttributes.SE_PRIVILEGE_ENABLED;

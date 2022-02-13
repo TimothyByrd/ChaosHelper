@@ -26,8 +26,9 @@ namespace ChaosHelper
         public string Name;
         public object JsonElement;
         public string BaseType;
+        public Cat Category;
 
-        public ItemPosition(int x, int y, int h, int w, int ilvl, bool identified, string name, string baseType, int tabIndex, int quality, object jsonElement)
+        public ItemPosition(int x, int y, int h, int w, int ilvl, bool identified, string name, string baseType, int tabIndex, int quality, object jsonElement, Cat category)
         {
             X = x;
             Y = y;
@@ -40,6 +41,7 @@ namespace ChaosHelper
             TabIndex = tabIndex;
             Quality = quality;
             JsonElement = jsonElement;
+            Category = category;
         }
 
         public static int Compare(ItemPosition ip1, ItemPosition ip2)
@@ -68,6 +70,7 @@ namespace ChaosHelper
         Amulets,
         Rings,
         Junk,
+        OffHand,
     }
 
     public enum BaseClass
@@ -130,7 +133,8 @@ namespace ChaosHelper
             new ItemClassForFilter("be", false, 45, Cat.Belts, "Belts", "Belts"),
             new ItemClassForFilter("am", false, 45, Cat.Amulets, "Amulets", "Amulets"),
             new ItemClassForFilter("ri", false, 45, Cat.Rings, "Rings", "Rings"),
-            new ItemClassForFilter("j",  true,  38, Cat.Junk, "Junk", null),
+            new ItemClassForFilter("j", true, 38, Cat.Junk, "Junk", null),
+            new ItemClassForFilter("oh",  true,  38, Cat.OffHand, "OffHand", null),
         };
     }
 
@@ -197,7 +201,7 @@ public static class Helpers
             s = nonColorCharRegex.Replace(s, " ").Trim();
             if (s.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
             {
-                if (int.TryParse(s.Substring(2), System.Globalization.NumberStyles.HexNumber, null, out var parsedInt))
+                if (int.TryParse(s.AsSpan(2), System.Globalization.NumberStyles.HexNumber, null, out var parsedInt))
                 {
                     var color = System.Drawing.Color.FromArgb(parsedInt);
                     return $"{color.R} {color.G} {color.B}";
@@ -235,6 +239,7 @@ public static class Helpers
             { Cat.Amulets, BaseClass.Amulet },
             { Cat.Rings, BaseClass.Ring },
             { Cat.Junk, BaseClass.Any },
+            { Cat.OffHand, BaseClass.Shield },
         };
 
         public static BaseClass ToBaseClass(this Cat c)
@@ -357,6 +362,9 @@ public static class Helpers
                     || item.GetIntOrDefault("h", 999) > 3)
                     category = Cat.Junk;
             }
+            else if (forChaosRecipe && category == Cat.OffHand)
+                category = Cat.Junk;
+
             return category;
         }
     }

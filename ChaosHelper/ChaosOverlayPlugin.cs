@@ -74,13 +74,13 @@ namespace ChaosHelper
         internal void SetCurrentItems(ItemSet currentItems)
         {
             _currentItems = currentItems;
-            _countsMsg = currentItems.GetCountsMsg();
+            _countsMsg = _currentItems?.GetCountsMsg() ?? "null";
         }
 
         internal void SetItemSetToSell(ItemSet itemSet)
         {
             _highlightSet = itemSet;
-            _countsMsg = _currentItems.GetCountsMsg(); // refresh the counts message from the current item set.
+            _countsMsg = _currentItems?.GetCountsMsg() ?? "null"; // refresh the counts message from the current item set.
         }
 
         public override void Initialize(IWindow targetWindow)

@@ -46,6 +46,7 @@ namespace ChaosHelper
         public static bool QualityIsQuadTab { get; private set; }
         public static int QualityFlaskRecipeSlop { get; private set; }
         public static int QualityGemRecipeSlop { get; private set; }
+        public static int QualityScrapRecipeSlop { get; private set; }
         public static int QualityVaalGemMaxQualityToUse { get; private set; }
         public static Dictionary<int, string> DumpTabDictionary { get; private set; } = new Dictionary<int, string>();
         public static bool AllowIDedSets { get; private set; }
@@ -455,6 +456,9 @@ namespace ChaosHelper
                     {
                         QualityTabIndex = i;
                         QualityIsQuadTab = string.Equals(tabType, "QuadStash", StringComparison.OrdinalIgnoreCase);
+                        QualityScrapRecipeSlop = rawConfig.GetInt("qualityScrapRecipeSlop");
+                        if (QualityScrapRecipeSlop >= 40)
+                            QualityScrapRecipeSlop -= 40;
                         QualityFlaskRecipeSlop = rawConfig.GetInt("qualityFlaskRecipeSlop");
                         if (QualityFlaskRecipeSlop >= 40)
                             QualityFlaskRecipeSlop -= 40;

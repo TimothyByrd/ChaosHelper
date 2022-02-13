@@ -28,7 +28,7 @@ namespace Process.NET.Memory
         /// </summary>
         public bool Equals(MemoryRegion other)
         {
-            if (ReferenceEquals(null, other)) return false;
+            if (other is null) return false;
             return ReferenceEquals(this, other) ||
                    (BaseAddress.Equals(other.BaseAddress) && Process.Equals(other.Process) &&
                     Information.RegionSize.Equals(other.Information.RegionSize));
@@ -51,7 +51,7 @@ namespace Process.NET.Memory
         /// </summary>
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
+            if (obj is null) return false;
             if (ReferenceEquals(this, obj)) return true;
             return obj.GetType() == GetType() && Equals((MemoryRegion) obj);
         }

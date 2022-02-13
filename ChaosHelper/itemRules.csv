@@ -2,7 +2,8 @@
 # each line is a rule name, the item class for the rule,
 # and then a set of terms the item must match to pass the rule.
 
-# These rules compared against the current character's equipped items.
+# These rules compare against the current character's equipped items.
+# 'X' is the current equipment value
 
 # Dyn Armour, BodyArmour, MaxLife + TotRes > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.5
 Dyn Helmet, Helmet, MaxLife + TotRes > X, MaxLife > X * 0.9, TotRes > X * 0.5
@@ -12,23 +13,19 @@ Dyn Belt, Belt, MaxLife + TotRes > X, MaxLife > X * 0.9, TotRes > X * 0.5
 Dyn Amulet, Amulet, MaxLife + TotRes > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.5
 # Dyn Ring, Ring, MaxLife + TotRes > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.5
 # Dyn Ring2, Ring, MaxLife + TotRes > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.5
-Dyn Shield, Shield, MaxLife + TotRes > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.5
+# Dyn Shield, Shield, MaxLife + TotRes > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.5
 
 # These rules also take the defense (Armour, ES, Evasion) into account.
 
 # DynamicA, BodyArmour, PropDef + MaxLife + TotRes > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.5
 DynamicA, Gloves, PropDef + MaxLife + TotRes + IAS > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.5
-# DynamicA, Boots, MoveSpeed >= 20, PropDef + MaxLife + TotRes > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.5
+DynamicA, Boots, MoveSpeed >= 20, PropDef + MaxLife + TotRes > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.5
 DynamicA, Helmet, PropDef + MaxLife + TotRes > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.5
 # DynamicA, Shield, PropDef + MaxLife + TotRes > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.5
 
-Dyn FR, OneHandWeapon, GemLvlChaos*20 + SpellPctChaos + CritChanceSpell * 0.4 + CritMult * 0.4 + AddMana * 0.2 >= X * 0.9
-Dyn loloppe FR, OneHandWeapon, GemLvlChaos*75 + SpellPctChaos * 1.4 + CritChanceSpell * 1.0 + CritMult * 3.0 + CastSpeed * 4 + ProjSpeed * 1.5 >= X * 0.75
-Dyn FR Shield, Shield, MaxLife + AddMana + TotRes + SpellPctChaos + NumTotems * 100 >= X * 0.9
-
 # weapon for a shak vortex build
 
-Vortex Weapon, OneHandWeapon, GemLvlCold*85 + DotCold*3.7 + SpellPctCold >= 150
+Vortex Weapon, OneHandWeapon, GemLvlCold*85 + DotMulCold*3.7 + SpellPctCold >= 150
 
 Minion, Helmet, GemLvlMinion >= 2, MaxLife + TotRes >= 90
 
@@ -63,11 +60,11 @@ Gem Level, Any, GemLvl >= 3
 Life Jewel, Jewel, PctLife >= 7
 ES Jewel, Jewel, ESRecoverStart + ESRecoverRate + PctES >= 10
 
-Stat Amulet, Amulet, TotRes >= 40, MaxLife >= 50, AddDex >= 24, AddStr >= 11
+# Stat Amulet, Amulet, TotRes >= 40, MaxLife >= 50, AddDex >= 24, AddStr >= 11
 
-Dot Cold, OneHandWeapon, DotCold >= 40
-Dot Fire, OneHandWeapon, DotFile >= 40
-Dot Chaos, OneHandWeapon, DotChaos >= 40
+Dot Cold, OneHandWeapon, DotMulCold >= 40
+Dot Fire, OneHandWeapon, DotMulFile >= 40
+Dot Chaos, OneHandWeapon, DotMulChaos >= 40
 ES Ring, Ring, TotRes >= 80, AddES >= 25
 ES Amulet, Amulet, TotRes >= 80, AddES >= 25
 Life Ring,  Ring, TotRes >= 80, MaxLife >= 60
@@ -89,8 +86,25 @@ Life Amulet, Amulet, TotRes >= 80, MaxLife >= 60
 
 # forbidden rite totem items
 
-FR Helmet, Helmet, MaxLife >= 70, AddMana >= 60, TotRes >= 60
-FR Gloves, Gloves, MaxLife >= 70, AddMana >= 60, TotRes >= 60
-FR Weapon, OneHandWeapon, GemLvlChaos*20 + SpellPctChaos >= 80, AddMana >= 60
-FR Shield, Shield, MaxLife >= 70, AddMana >= 50
+# FR Helmet, Helmet, MaxLife >= 70, AddMana >= 60, TotRes >= 60
+# FR Gloves, Gloves, MaxLife >= 70, AddMana >= 60, TotRes >= 60
+# FR Weapon, OneHandWeapon, GemLvlChaos*20 + SpellPctChaos >= 80, AddMana >= 60
+# FR Shield, Shield, MaxLife >= 70, AddMana >= 50
+# Dyn FR, OneHandWeapon, GemLvlChaos*20 + SpellPctChaos + CritChanceSpell * 0.4 + CritMult * 0.4 + AddMana * 0.2 >= X * 0.9
+# Dyn loloppe FR, OneHandWeapon, GemLvlChaos*75 + SpellPctChaos * 1.4 + CritChanceSpell * 1.0 + CritMult * 3.0 + CastSpeed * 4 + ProjSpeed * 1.5 >= X * 0.75
+# Dyn FR Shield, Shield, MaxLife + AddMana + TotRes + SpellPctChaos + NumTotems * 100 >= X * 0.9
 
+# Items for RF chieftain
+
+#Dyn RF Armour, BodyArmour, MaxLife + TotRes + ResChaos * 2 > X * 0.9, MaxLife > X * 0.9, PropArm > 0, PropES > 0
+Dyn RF Helmet, Helmet, MaxLife + TotRes + ResChaos * 2 > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.5
+Dyn RF Gloves, Gloves, MaxLife + TotRes + ResChaos * 2 > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.5
+Dyn RF Boots, Boots, MoveSpeed >= 25, MaxLife + TotRes + ResChaos * 2 > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.5
+Dyn RF Belt, Belt, MaxLife + TotRes + ResChaos * 2 > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.5
+Dyn RF Amulet, Amulet, AddDex + MaxLife + TotRes + ResChaos * 2 > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.5
+Dyn RF Ring, Ring, AddDex + MaxLife + TotRes + ResChaos * 2 > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.5
+# Dyn RF Shield, Shield, MaxLife + TotRes + ResChaos * 2 > X * 0.9, MaxLife > X * 0.9, TotRes > X * 0.5
+RF Stat Amulet, Amulet, TotRes + ResChaos * 2 >= 90, MaxLife >= 50, AddDex >= 34, AddInt >= 1
+RF Shield, Shield, TotRes + ResChaos * 2 > 75, MaxLife > 100; LifeRegenFlat + LifeRegenPct * 40 >= 25
+
+RF Weapon, OneHandWeapon, GemLvlFire*40 + DotMulFire*3.7 + DamPctFire + DamPctEle + DamPctBurn >= 130

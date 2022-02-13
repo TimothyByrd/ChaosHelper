@@ -61,7 +61,7 @@ namespace Process.NET.Threads
         /// </summary>
         public bool Equals(RemoteThread other)
         {
-            if (ReferenceEquals(null, other)) return false;
+            if (other is null) return false;
             return ReferenceEquals(this, other) || (Id == other.Id && ProcessPlus.Equals(other.ProcessPlus));
         }
 
@@ -195,7 +195,7 @@ namespace Process.NET.Threads
             // Get the exit code of the thread (can be nullable)
             var ret = ThreadHelper.GetExitCodeThread(Handle);
             // Return the exit code or the default value of T if there's no exit code
-            return ret.HasValue ? MarshalType<T>.PtrToObject(ProcessPlus, ret.Value) : default(T);
+            return ret.HasValue ? MarshalType<T>.PtrToObject(ProcessPlus, ret.Value) : default;
         }
 
         /// <summary>
@@ -213,31 +213,16 @@ namespace Process.NET.Threads
         /// <returns>A <see cref="IntPtr" /> pointer corresponding to the linear address of the segment.</returns>
         public IntPtr GetRealSegmentAddress(SegmentRegisters segment)
         {
-            // Get a selector entry for the segment
-            LdtEntry entry;
-            switch (segment)
+            var entry = segment switch
             {
-                case SegmentRegisters.Cs:
-                    entry = ThreadHelper.GetThreadSelectorEntry(Handle, Context.SegCs);
-                    break;
-                case SegmentRegisters.Ds:
-                    entry = ThreadHelper.GetThreadSelectorEntry(Handle, Context.SegDs);
-                    break;
-                case SegmentRegisters.Es:
-                    entry = ThreadHelper.GetThreadSelectorEntry(Handle, Context.SegEs);
-                    break;
-                case SegmentRegisters.Fs:
-                    entry = ThreadHelper.GetThreadSelectorEntry(Handle, Context.SegFs);
-                    break;
-                case SegmentRegisters.Gs:
-                    entry = ThreadHelper.GetThreadSelectorEntry(Handle, Context.SegGs);
-                    break;
-                case SegmentRegisters.Ss:
-                    entry = ThreadHelper.GetThreadSelectorEntry(Handle, Context.SegSs);
-                    break;
-                default:
-                    throw new InvalidEnumArgumentException("segment");
-            }
+                SegmentRegisters.Cs => ThreadHelper.GetThreadSelectorEntry(Handle, Context.SegCs),
+                SegmentRegisters.Ds => ThreadHelper.GetThreadSelectorEntry(Handle, Context.SegDs),
+                SegmentRegisters.Es => ThreadHelper.GetThreadSelectorEntry(Handle, Context.SegEs),
+                SegmentRegisters.Fs => ThreadHelper.GetThreadSelectorEntry(Handle, Context.SegFs),
+                SegmentRegisters.Gs => ThreadHelper.GetThreadSelectorEntry(Handle, Context.SegGs),
+                SegmentRegisters.Ss => ThreadHelper.GetThreadSelectorEntry(Handle, Context.SegSs),
+                _ => throw new InvalidEnumArgumentException("segment"),
+            };
             // Compute the linear address
             return new IntPtr(entry.BaseLow | (entry.BaseMid << 16) | (entry.BaseHi << 24));
         }
@@ -323,7 +308,7 @@ namespace Process.NET.Threads
         /// </summary>
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
+            if (obj is null) return false;
             if (ReferenceEquals(this, obj)) return true;
             return obj.GetType() == GetType() && Equals((RemoteThread) obj);
         }

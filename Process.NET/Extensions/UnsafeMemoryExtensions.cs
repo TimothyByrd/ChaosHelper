@@ -129,7 +129,7 @@ namespace Process.NET.Extensions
             {
                 Trace.WriteLine("Access Violation on " + address + " with type " + typeof(T).Name + Environment.NewLine +
                                 ex);
-                return default(T);
+                return default;
             }
         }
     }

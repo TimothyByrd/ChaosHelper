@@ -33,18 +33,12 @@ namespace Process.NET
             Native = native;
 
             Handle = MemoryHelper.OpenProcess(ProcessAccessFlags.AllAccess, Native.Id);
-            switch (type)
+            Memory = type switch
             {
-                case MemoryType.Local:
-                    Memory = new LocalProcessMemory(Handle);
-                    break;
-                case MemoryType.Remote:
-                    Memory = new ExternalProcessMemory(Handle);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(type), type, null);
-            }
-
+                MemoryType.Local => new LocalProcessMemory(Handle),
+                MemoryType.Remote => new ExternalProcessMemory(Handle),
+                _ => throw new ArgumentOutOfRangeException(nameof(type), type, null),
+            };
             native.ErrorDataReceived += OutputDataReceived;
             native.OutputDataReceived += OutputDataReceived;
 

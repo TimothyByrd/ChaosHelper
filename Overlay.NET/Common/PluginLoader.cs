@@ -16,7 +16,7 @@ namespace Overlay.NET.Common {
         /// <param name="types">The types to create instances from.</param>
         /// <returns>Instances of all the types that are instanciable plugins.</returns>
         public static IEnumerable<TPlugin> InstanciatePlugins<TPlugin>(IEnumerable<Type> types)
-            where TPlugin : PluginBase => InstanciatePlugins<TPlugin>(types, new object[0]);
+            where TPlugin : PluginBase => InstanciatePlugins<TPlugin>(types, Array.Empty<object>());
 
         /// <summary>
         ///     Creates instances of all the given Types that are instanciable plugins using the given arguments for the

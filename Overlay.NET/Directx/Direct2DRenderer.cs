@@ -70,7 +70,7 @@ namespace Overlay.NET.Directx {
         /// <summary>
         ///     The brush container
         /// </summary>
-        private List<SolidColorBrush> _brushContainer = new List<SolidColorBrush>(32);
+        private List<SolidColorBrush> _brushContainer = new(32);
 
         //thread safe resizing
         /// <summary>
@@ -81,12 +81,12 @@ namespace Overlay.NET.Directx {
         /// <summary>
         ///     The font container
         /// </summary>
-        private List<TextFormat> _fontContainer = new List<TextFormat>(32);
+        private List<TextFormat> _fontContainer = new(32);
 
         /// <summary>
         ///     The layout container
         /// </summary>
-        private List<TextLayoutBuffer> _layoutContainer = new List<TextLayoutBuffer>(32);
+        private List<TextLayoutBuffer> _layoutContainer = new(32);
 
         /// <summary>
         ///     The resize x

@@ -26,7 +26,7 @@ namespace Overlay.NET.Common {
         /// <summary>
         ///     The wait timer
         /// </summary>
-        private readonly WaitTimer _waitTimer = new WaitTimer();
+        private readonly WaitTimer _waitTimer = new();
 
         /// <summary>
         ///     Occurs when [pre tick].

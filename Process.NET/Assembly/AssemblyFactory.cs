@@ -355,9 +355,9 @@ namespace Process.NET.Assembly
         public T InjectAndExecute<T>(string asm)
         {
             // Inject the assembly code
-            using (var memory = Inject(asm))
-                // Execute the code
-                return Execute<T>(memory.BaseAddress);
+            using var memory = Inject(asm);
+            // Execute the code
+            return Execute<T>(memory.BaseAddress);
         }
 
         /// <summary>

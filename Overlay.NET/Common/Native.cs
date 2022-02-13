@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace Overlay.NET.Common {
     internal class Native {
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll", SetLastError = true)]
         public static extern IntPtr CreateWindowEx(
             uint dwExStyle,
             string lpClassName,

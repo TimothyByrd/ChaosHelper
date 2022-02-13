@@ -15,19 +15,14 @@ namespace Process.NET.Assembly.CallingConventions
         /// <returns>The return value is a singleton of a <see cref="ICallingConvention" /> child.</returns>
         public static ICallingConvention Get(Native.Types.CallingConventions callingConvention)
         {
-            switch (callingConvention)
+            return callingConvention switch
             {
-                case Native.Types.CallingConventions.Cdecl:
-                    return Singleton<CdeclCallingConvention>.Instance;
-                case Native.Types.CallingConventions.Stdcall:
-                    return Singleton<StdcallCallingConvention>.Instance;
-                case Native.Types.CallingConventions.Fastcall:
-                    return Singleton<FastcallCallingConvention>.Instance;
-                case Native.Types.CallingConventions.Thiscall:
-                    return Singleton<ThiscallCallingConvention>.Instance;
-                default:
-                    throw new ApplicationException("Unsupported calling convention.");
-            }
+                Native.Types.CallingConventions.Cdecl => Singleton<CdeclCallingConvention>.Instance,
+                Native.Types.CallingConventions.Stdcall => Singleton<StdcallCallingConvention>.Instance,
+                Native.Types.CallingConventions.Fastcall => Singleton<FastcallCallingConvention>.Instance,
+                Native.Types.CallingConventions.Thiscall => Singleton<ThiscallCallingConvention>.Instance,
+                _ => throw new ApplicationException("Unsupported calling convention."),
+            };
         }
     }
 }

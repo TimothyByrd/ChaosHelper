@@ -41,11 +41,10 @@ namespace Process.NET.Memory
 
         public void Dispose()
         {
-            int trash;
             if (_type == MemoryProtectionType.Local)
-                VirtualProtectEx(_hProcess, Address, _size, _oldProtect, out trash);
+                VirtualProtectEx(_hProcess, Address, _size, _oldProtect, out _);
             else
-                VirtualProtect(Address, _size, _oldProtect, out trash);
+                VirtualProtect(Address, _size, _oldProtect, out _);
         }
 
         [DllImport("kernel32.dll", SetLastError = true)]
