@@ -309,9 +309,9 @@ You can test the values by typing 't' in the ChaosHelper console to execute the 
 __`qualityTab`__ specifies a tab used to dump quality gems and flasks for the recipes to create gemcutter's prisms and glassblower's baubles.
 Only gems and flasks with qualities between 1 and 19 will be considered.
 
-__`qualityGemRecipeSlop`__ (0) and `qualityFlaskRecipeSlop` (0) specify how much slop to allow when making those recipes.
+__`qualityGemRecipeSlop`__ (0), `qualityFlaskRecipeSlop` (1) and `qualityScrapRecipeSlop` (3) specify how much slop to allow when making those recipes.
 For example, a value of 2 would allow making recipes using ingredients with a total value of 40 to 42.
-The tool will try for exactly 40% total quality first.
+The tool will always try for exactly 40% total quality first.
 
 __`qualityVaalGemMaxQualityToUse`__ (0) specifies the maximum quality of Vaal gems to consider for the gemcutter recipe.
 For example, setting this to 10 will use Vaal gems with a quality of up to 10 in the recipe.
