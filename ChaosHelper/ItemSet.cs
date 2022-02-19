@@ -51,6 +51,11 @@ namespace ChaosHelper
             }
         }
 
+        public bool HasAnyItems()
+        {
+            return itemsDict.Any(x => x.Value.Any());
+        }
+
         public string GetCountsMsg()
         {
             var msg = "";
@@ -217,7 +222,7 @@ namespace ChaosHelper
             var possible = int.MaxValue;
             foreach (var c in ItemClassForFilter.Iterator())
             {
-                if (c.Category == Cat.Junk || c.Category == Cat.TwoHandWeapons)
+                if (c.Category == Cat.Junk || c.Category == Cat.TwoHandWeapons || c.Category == Cat.OffHand)
                     continue;
 
                 var count = itemsDict[c.Category].Count(x => !x.Identified || ided);

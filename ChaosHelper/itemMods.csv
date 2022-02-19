@@ -345,6 +345,7 @@ The Ring's Cut reduced by 1%
 1 Added Passive Skill is Prismatic Heart
 1 Added Passive Skills are Jewel Sockets
 1 Physical Damage taken on Minion Death
+1 seconds between appearance of Wall sections
 1 to 1 Added Attack Physical Damage
 1 to 1 Added Cold Damage
 1 to 1 Added Cold Damage with Bow Attacks
@@ -438,6 +439,7 @@ The Ring's Cut reduced by 1%
 1% Global chance to Blind Enemies on hit
 1% increased Accuracy Rating per Frenzy Charge
 1% increased Accuracy Rating when on Low Life
+1% increased Amount Recovered
 1% increased Area Damage
 1% increased Area of Effect
 1% increased Area of Effect for Skills used by Totems
@@ -484,6 +486,7 @@ The Ring's Cut reduced by 1%
 1% increased Cold Damage while your Off Hand is empty
 1% increased Cold Damage with Attack Skills
 1% increased Cooldown Recovery Rate
+1% increased Cooldown Recovery Rate for each Normal or Magic Enemy in Area\n1% increased Cooldown Recovery Rate for each Rare or Unique Enemy in Area
 1% increased Cooldown Recovery Rate for throwing Traps
 1% increased Critical Strike Chance
 1% increased Critical Strike Chance against Blinded Enemies
@@ -588,6 +591,7 @@ The Ring's Cut reduced by 1%
 1% increased Life Recovery Rate per 1 Strength on Allocated Passives in Radius
 1% increased Life Regeneration rate
 1% increased Light Radius
+1% increased Mana Recovered
 1% increased Mana Recovery from Flasks
 1% increased Mana Regeneration Rate
 1% increased Mana Regeneration Rate per Power Charge
@@ -595,6 +599,7 @@ The Ring's Cut reduced by 1%
 1% increased Maximum Life per Abyss Jewel affecting you
 1% increased maximum Mana
 1% increased Maximum Mana per Abyss Jewel affecting you
+1% increased maximum travel distance
 1% increased Melee Critical Strike Chance
 1% increased Melee Damage
 1% increased Melee Damage against Bleeding Enemies
@@ -716,6 +721,7 @@ The Ring's Cut reduced by 1%
 1% of Physical Damage from Hits taken as Fire Damage
 1% of Physical Damage from Hits taken as Lightning Damage
 1% of Physical Damage is taken from Mana before Life
+1% reduced Amount Recovered
 1% reduced Attack Speed
 1% reduced Attribute Requirements
 1% reduced Bleeding Duration
@@ -749,6 +755,7 @@ The Ring's Cut reduced by 1%
 1% reduced maximum Mana
 1% reduced Maximum number of Summoned Raging Spirits
 1% reduced Mine Throwing Speed
+1% reduced Movement Speed
 1% reduced Movement Speed when on Low Life
 1% reduced Projectile Speed
 1% reduced Rarity of Items found
@@ -861,6 +868,7 @@ Attacks with this Weapon Penetrate 1% Fire Resistance
 Base Burning Damage is 1% of Overkill Damage
 Base duration is 1 seconds
 Base Duration of 1.1 seconds after being Placed
+Base secondary duration is 1 seconds
 Bleeding Enemies you Kill Explode, dealing 1% of\ntheir Maximum Life as Physical Damage
 Bleeding you inflict deals Damage 1% faster
 Blind does not affect your Light Radius
@@ -920,6 +928,10 @@ Damage Penetrates 1% Lightning Resistance
 Damaging Ailments deal damage 1% faster
 Damaging Hits always Stun Enemies that are on Full Life
 Deal no Physical Damage
+Deals 1 Base Chaos Damage per second
+Deals 1 to 1 Cold Damage
+Deals 1 to 1 Physical Damage
+Debuff can have up to 1 layers of Damage
 Debuff deals 1% of Damage per Charge
 Determination has 1% increased Aura Effect
 Determination has 1% reduced Reservation
@@ -943,6 +955,7 @@ Eye of Winter fires Shard projectiles with 1% increased Frequency during flight
 Feeding Frenzy base Duration is 1 seconds
 Fires 1 additional Projectiles
 Fires 1% more Projectiles per Steel Shard consumed
+Flask effect is not removed when Unreserved Mana is Filled\nFlask effect does not Queue
 Flasks applied to you have 1% increased Effect
 Focus has 1% increased Cooldown Recovery Rate
 Gain 1 Endurance Charge per 1 Power
@@ -971,7 +984,9 @@ Gems Socketed in Red Sockets have +1 to Level
 Golems grant 1 Life Regenerated per second
 Grants +1 to Maximum Life per 1% Quality
 Grants 1% increased Area of Effect per 1% Quality
+Grants 1% of Life Recovery to Minions
 Grants Fortify for 1 seconds on Melee hit
+Grants Immunity to Ignite for 1 seconds if used while Ignited\nRemoves all Burning when used
 Grants Level 1 Aspect of the Cat Skill
 Grants Level 1 Aspect of the Crab Skill
 Grants Level 1 Aspect of the Spider Skill
@@ -1001,6 +1016,7 @@ Increases and Reductions to Energy Shield in Radius are Transformed to apply to 
 Increases and Reductions to Physical Damage in Radius are Transformed to apply to Cold Damage
 Inflicts 1 Withered Debuffs the first time each Enemy enters the Area
 Inflicts a random Hex on you when your Totems die, with 1% more Effect
+Instant Recovery
 Intelligence from Passives in Radius is Transformed to Dexterity
 Iron Grip
 Knocks Enemies Back on Hit
@@ -1009,9 +1025,14 @@ Lightning Trap pierces 1 additional Targets
 Lose all Frenzy, Endurance, and Power Charges when you Move
 Lose all Power Charges on Critical Strike
 Magic Monster Packs each have a Bloodline Mod
+Mana Recovery occurs instantly at the end of the Flask effect
 Maximum 1 Summoned Golem
 Maximum 1 Summoned Holy Relic
 Melee Hits have 1% chance to Fortify
+Melee Skills deal 1% less Area Damage while in Sand Stance
+Melee Skills deal 1% more Area Damage while in Blood Stance
+Melee Skills have 1% less Area of Effect while in Blood Stance
+Melee Skills have 1% more Area of Effect while in Sand Stance
 Mines have 1% increased Detonation Speed
 Minions cannot Taunt Enemies
 Minions deal 1 to 1 additional Chaos Damage
@@ -1029,6 +1050,7 @@ Minions have 1% increased Movement Speed
 Minions Regenerate 1% of Life per second
 Minions' Hits can only Kill Ignited Enemies
 Mirror Arrow and Mirror Arrow Clones deal 1% increased Damage
+Modifiers to Spell Damage apply to this Skill's Damage Over Time effect
 Monsters cannot be Taunted
 Monsters deal 1% extra Physical Damage as Lightning
 Monsters fire 1 additional Projectiles
@@ -1065,8 +1087,10 @@ Players have 1% less Recovery Rate of Life and Energy Shield
 Players have 1% reduced Chance to Block
 Players have Point Blank
 Poisons you inflict deal Damage 1% faster
+Projectiles continuously lose Damage, up to 1% less Damage by the time they dissipate\nProjectiles have 1% chance to Freeze, which is lost over the first quarter of their flight
 Projectiles deal 1% less Damage
 Projectiles Pierce 1 additional Targets
+Projectiles Pierce all Targets
 Projectiles Pierce an additional Target
 Projectiles which Hit Cursed Enemies Split towards 1 additional targets
 Properties are doubled while in a Breach
@@ -1097,6 +1121,8 @@ Regenerate 1% of Energy Shield per second
 Regenerate 1% of Life per second if you have been Hit Recently
 Regenerate 1% of Life per second while Frozen
 Regenerate 1% of Life per second while on Low Life
+Removes 1% of Mana Recovered from Life when used
+Removes Curses on use
 Removes existing Elusive before granting a new Elusive Buff when used
 Resolute Technique
 Ruthless Blows with Supported Skills deal 1% more Damage with Bleeding caused by Melee Hits
@@ -1104,6 +1130,7 @@ Ruthless Blows with Supported Skills deal 1% more Melee Damage
 Ruthless Blows with Supported Skills have a base Stun Duration of 1 seconds
 Sacrifice 1% of your Life when you Use or Trigger a Spell Skill
 Share Endurance Charges with nearby party members
+Shockwave deals 1% less Damage
 Sigil of Power's Buff also grants 1% increased Critical Strike Chance per Stage
 Skills fire an additional Projectile
 Skills used by Traps have 1% increased Area of Effect
@@ -1189,6 +1216,7 @@ Trigger Level 1 Consecrate when you deal a Critical Strike
 Trigger Level 1 Gore Shockwave on Melee Hit if you have at least 1 Strength
 Trigger Level 1 Rain of Arrows when you Attack with a Bow
 Trigger Socketed Spells when you Focus, with a 1 second Cooldown
+Trigger this Skill when you Block
 Trigger Word of Flames on Hit
 Trigger Word of Ire when Hit
 Trigger Word of Reflection when Hit
@@ -1202,6 +1230,7 @@ Unique Boss has 1% increased Life
 Uses both hand slots
 Vaal Skills have 1% increased Critical Strike Chance during effect
 Vaal Skills used during effect have 1% reduced Soul Gain Prevention Duration
+Wall will be 1 units long
 Weapons you Animate create an additional copy
 When placed, 1% increased Area of Effect per Stage
 When placed, 1% increased Aura effect per Stage
@@ -1234,6 +1263,7 @@ You cannot be Hindered
 You cannot be Ignited for 1 seconds after being Ignited
 You cannot be Maimed
 You cannot be Shocked for 1 seconds after being Shocked
+You cannot use this Attack directly
 You gain a Life Flask Charge when you Hit Cursed Enemy, no more\nthan once every 1 seconds
 You gain a Mana Flask Charge when you Hit Cursed Enemy, no more\nthan once every 1 seconds
 You gain Onslaught for 1 seconds on Critical Strike
@@ -1254,3 +1284,21 @@ Your Hexes can affect Hexproof Enemies
 Your Lightning Damage can Freeze but not Shock
 Your Minions spread Caustic Ground on Death, dealing 1% of their maximum Life as Chaos Damage per second
 Your Skills deal you 1% of Mana Spent on Skill Mana Costs as Physical Damage
+Deals 1 to 1 Fire Damage
+1% chance to Ignite enemies
+1% chance to gain a Power Charge when Projectile Hits a Rare or Unique Enemy
+1% increased Critical Strike Chance per Power Charge
++1% to Critical Strike Multiplier per Power Charge
+Deals 1 to 1 Lightning Damage
+Chains +1 Times
+1% chance to Shock enemies
+1% more Damage for each remaining Chain
+Deals 1 to 1 Lightning Damage
+Chains +1 Times
+1% chance to Shock enemies
+1% more Damage for each remaining Chain
+Aftershock deals 1% more Damage with Hits and Ailments
+You and nearby allies gain 1% additional Cold Resistance
+Deals up to 1% more Damage to closer targets
+Can't use other Rings
+1% increased Damage with Bow Skills

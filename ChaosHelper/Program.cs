@@ -463,13 +463,16 @@ namespace ChaosHelper
                     }
                     else
                     {
-                        // only normal or magic flasks
-                        //
-                        if (frameType != 0 && frameType != 1)
-                            continue;
-
                         var w = item.GetIntOrDefault("w", 999);
                         var h = item.GetIntOrDefault("h", 999);
+
+                        // only normal or magic items (or rare for maps...)
+                        //
+                        var frameOk = frameType == 0
+                            || frameType == 1
+                            || frameType == 2 && h == 1 && w == 1;
+                        if (!frameOk)
+                            continue;
 
                         if (w == 1 && h == 1)
                         {
@@ -479,6 +482,8 @@ namespace ChaosHelper
                         }
                         else if (w != 1 || h != 2)
                         {
+                            // for non-flask quality items
+                            //
                             category = item.DetermineCategory();
                             if (category == Cat.Junk)
                                 continue;
@@ -950,6 +955,8 @@ namespace ChaosHelper
                         var qualitySet = qualityItems.MakeQualitySet();
                         overlay?.SetitemSetToSell(qualitySet);
                         overlay?.SendKey(ConsoleKey.Q);
+                        if (qualitySet == null || !qualitySet.HasAnyItems())
+                            overlay?.SetStatus("No quality sets", false);
                         highlightQualityToSell = false;
                     }
                     else if (logMatchingNames)
