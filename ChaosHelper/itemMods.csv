@@ -53,12 +53,21 @@
 1% increased Spell Damage; SpellPct; SpellPctChaos; SpellPctCold; SpellPctFire; SpellPctLight
 1% increased Burning Damage; DamPctBurn
 
-+1% to Chaos Damage over Time Multiplier; DotMulChaos
-+1% to Cold Damage over Time Multiplier; DotMulCold
-+1% to Fire Damage over Time Multiplier; DotMulFire
-+1% to Physical Damage over Time Multiplier; DotMulPhys
-+1% to Damage over Time Multiplier; DotAll; DotMulChaos; DotMulCold; DotMulFire; DotMulPhys
-1% increased Damage over Time; 
++1% to Chaos Damage over Time Multiplier; DotMulChaos; NumDot*0
++1% to Cold Damage over Time Multiplier; DotMulCold; NumDot*0
++1% to Fire Damage over Time Multiplier; DotMulFire; NumDot*0
++1% to Physical Damage over Time Multiplier; DotMulPhys; NumDot*0
++1% to Damage over Time Multiplier; DotAll; DotMulChaos; DotMulCold; DotMulFire; DotMulPhys; NumDot*0
+
+1% increased Damage over Time; NumDot*0
++1% to Damage over Time Multiplier for Bleeding; NumDot*0
++1% to Damage over Time Multiplier for Poison per Frenzy Charge; NumDot*0
++1% to Damage over Time Multiplier with Attack Skills; NumDot*0
+1% increased Damage over Time while Dual Wielding; NumDot*0
+1% increased Damage over Time while holding a Shield; NumDot*0
+1% increased Damage over Time while wielding a Two Handed Weapon; NumDot*0
+Cursed enemies take 1% increased Damage from Damage Over Time effects; NumDot*0
+Modifiers to Spell Damage apply to this Skill's Damage Over Time effect; NumDot*0
 
 +1 to Level of all Chaos Spell Skill Gems; GemLvl; GemLvlChaos
 +1 to Level of all Cold Spell Skill Gems; GemLvl; GemLvlCold
@@ -86,9 +95,71 @@
 +1 to Level of Socketed Trap or Mine Gems; GemLvl
 +1 to Level of Socketed Warcry Gems; GemLvl
 
-1% increased Critical Strike Chance for Spells; CritChanceSpell
-1% increased Global Critical Strike Chance; CritChanceSpell
-+1% to Global Critical Strike Multiplier; CritMult
+1% increased Critical Strike Chance for Spells; CritChanceSpell; NumCrit*0
+1% increased Global Critical Strike Chance; CritChanceSpell; NumCrit*0
++1% to Global Critical Strike Multiplier; CritMult; NumCrit*0
+
++1% Critical Strike Multiplier while a Rare or Unique Enemy is Nearby; NumCrit*0
++1% to Critical Strike Multiplier for Spell Damage; NumCrit*0
++1% to Critical Strike Multiplier for Spells; NumCrit*0
++1% to Critical Strike Multiplier if Dexterity is higher than Intelligence; NumCrit*0
++1% to Critical Strike Multiplier if you've Killed Recently; NumCrit*0
++1% to Critical Strike Multiplier per Power Charge; NumCrit*0
++1% to Critical Strike Multiplier while Dual Wielding; NumCrit*0
++1% to Critical Strike Multiplier with Bows; NumCrit*0
++1% to Critical Strike Multiplier with Cold Skills; NumCrit*0
++1% to Critical Strike Multiplier with Elemental Skills; NumCrit*0
++1% to Critical Strike Multiplier with Fire Skills; NumCrit*0
++1% to Critical Strike Multiplier with Lightning Skills; NumCrit*0
++1% to Critical Strike Multiplier with One Handed Melee Weapons; NumCrit*0
++1% to Critical Strike Multiplier with Two Handed Melee Weapons; NumCrit*0
++1% to Global Critical Strike Multiplier per Green Socket; NumCrit*0
++1% to Melee Critical Strike Multiplier; NumCrit*0
++1% to Monster Critical Strike Multiplier; NumCrit*0
+1% chance to Blind Enemies on Critical Strike; NumCrit*0
+1% chance to Cause Bleeding on Critical Strike; NumCrit*0
+1% chance to Cause Poison on Critical Strike; NumCrit*0
+1% Chance to Dodge Attack Hits if you've taken a Critical Strike Recently; NumCrit*0
+1% chance to Freeze, Shock and Ignite if you haven't Crit Recently; NumCrit*0
+1% chance to gain a Flask Charge when you deal a Critical Strike; NumCrit*0
+1% chance to gain a Frenzy Charge on Critical Strike; NumCrit*0
+1% chance to gain a Power Charge on Critical Strike; NumCrit*0
+1% increased Attack Critical Strike Chance while Dual Wielding; NumCrit*0
+1% increased Attack Speed if you've dealt a Critical Strike Recently; NumCrit*0
+1% increased Critical Strike Chance; NumCrit*0
+1% increased Critical Strike Chance against Blinded Enemies; NumCrit*0
+1% increased Critical Strike Chance against Enemies on Full Life; NumCrit*0
+1% increased Critical Strike Chance against Shocked Enemies; NumCrit*0
+1% increased Critical Strike Chance for each blade; NumCrit*0
+1% increased Critical Strike Chance for Spells per 1 Player Maximum Life; NumCrit*0
+1% increased Critical Strike Chance if you haven't Crit Recently; NumCrit*0
+1% increased Critical Strike Chance if you haven't gained a Power Charge Recently; NumCrit*0
+1% increased Critical Strike Chance per Power Charge; NumCrit*0
+1% increased Critical Strike Chance with Bows; NumCrit*0
+1% increased Critical Strike Chance with Cold Skills; NumCrit*0
+1% increased Critical Strike Chance with Elemental Skills; NumCrit*0
+1% increased Critical Strike Chance with Fire Skills; NumCrit*0
+1% increased Critical Strike Chance with Lightning Skills; NumCrit*0
+1% increased Critical Strike Chance with One Handed Melee Weapons; NumCrit*0
+1% increased Critical Strike Chance with Two Handed Melee Weapons; NumCrit*0
+1% increased Elemental Damage if you've dealt a Critical Strike Recently; NumCrit*0
+1% increased Global Critical Strike Chance when in Main Hand; NumCrit*0
+1% increased Melee Critical Strike Chance; NumCrit*0
+1% increased Rarity of Items Dropped by Enemies killed with a Critical Strike; NumCrit*0
+1% of Attack Damage Leeched as Life on Critical Strike; NumCrit*0
+1% reduced Critical Strike Chance per Power Charge; NumCrit*0
+Added Small Passive Skills grant: 1% increased Critical Strike Chance; NumCrit*0
+Adds 1 to 1 Chaos Damage if you've dealt a Critical Strike Recently; NumCrit*0
+Adds 1 to 1 Fire Damage if you've dealt a Critical Strike Recently; NumCrit*0
+Cannot Leech Life from Critical Strikes; NumCrit*0
+Gain 1% of Physical Damage as Extra Fire Damage if you've dealt a Critical Strike Recently; NumCrit*0
+Gain a Frenzy Charge on Critical Strike; NumCrit*0
+Nearby Enemies have 1% reduced Critical Strike Chance; NumCrit*0
+Trigger Level 1 Consecrate when you deal a Critical Strike; NumCrit*0
+Vaal Skills have 1% increased Critical Strike Chance during effect; NumCrit*0
+You and nearby allies have 1% increased Spell Critical Strike Chance; NumCrit*0
+You gain Onslaught for 1 seconds on Critical Strike; NumCrit*0
+You take 1% reduced Extra Damage from Critical Strikes; NumCrit*0
 
 +1 to maximum number of Summoned Totems; NumTotems
 
@@ -185,15 +256,19 @@ Regenerate 1% of Life per second; LifeRegenPct
 
 +1 seconds to Lockdown Timer
 +1 to Character Level
-+1% to Critical Strike Multiplier while area is not in Lockdown\nPlayers have +1% to Critical Strike Multiplier while area is not in Lockdown
++1% to Critical Strike Multiplier while area is not in Lockdown\nPlayers have +1% to Critical Strike Multiplier while area is not in Lockdown; NumCrit*0
 1 to 1 added Cold Damage\nPlayers and their Minions have 1 to 1 added Cold Damage
 1 to 1 added Fire Damage\nPlayers and their Minions have 1 to 1 added Fire Damage
 1 to 1 added Lightning Damage\nPlayers and their Minions have 1 to 1 added Lightning Damage
 1 to 1 added Physical Damage\nPlayers and their Minions have 1 to 1 added Physical Damage
+1% chance on completing a Heist to generate an additional Reveal with Whakano
+1% increased Critical Strike Chance while area is not in Lockdown\nPlayers have 1% increased Critical Strike Chance while area is not in Lockdown; NumCrit*0
+1% increased Damage while area is not in Lockdown\nPlayers deal 1% increased Damage while area is not in Lockdown
 1% increased Damage with Hits against Enemies on Full Life\nPlayers deal 1% increased Damage with Hits against Enemies on Full Life
 1% increased Movement Speed while area is not in Lockdown\nPlayers have 1% increased Movement Speed while area is not in Lockdown
 1% increased Quantity of Items dropped in Heists
 1% increased Rarity of Items dropped in Heists
+1% increased Rogue's Marker value of primary Heist Target
 1% increased time before Lockdown
 1% reduced Job speed
 1% reduced raising of Alert Level
@@ -208,8 +283,11 @@ Guards take 1% reduced Damage
 Heist Chests have a 1% chance to Duplicate contained Basic Currency
 Heist Chests have a 1% chance to Duplicate contained Blighted Maps and Catalysts
 Heist Chests have a 1% chance to Duplicate contained Breach Splinters
+Heist Chests have a 1% chance to Duplicate contained Delirium Orbs and Splinters
 Heist Chests have a 1% chance to Duplicate contained Divination Cards
+Heist Chests have a 1% chance to Duplicate contained Essences
 Heist Chests have a 1% chance to Duplicate contained Jewels
+Heist Chests have a 1% chance to Duplicate contained Legion Splinters
 Heist Chests have a 1% chance to Duplicate contained Map Fragments
 Heist Chests have a 1% chance to Duplicate contained Maps
 Heist Chests have a 1% chance to Duplicate contained Oils
@@ -218,13 +296,13 @@ Heist Chests have a 1% chance to Duplicate contained Sextants
 Monsters have 1% chance to gain a Frenzy Charge on Hit
 Monsters' skills Chain 1 additional times
 Patrolling Monsters deal 1% increased Damage
+Players and their Minions Regenerate 1% of Life per second
 Players gain 1% reduced Flask Charges
 Players gain 1% reduced Flask Charges per 1% Alert Level
 Players have 1% increased Flask Charges gained
 Players have 1% less Evasion per 1% Alert Level
 Players have 1% less Life Recovery Rate per 1% Alert Level
 Players have 1% less Mana Recovery Rate per 1% Alert Level
-Players and their Minions Regenerate 1% of Life per second
 Reinforcements have 1% increased Attack Speed
 Reinforcements have 1% increased Cast Speed
 Reinforcements have 1% increased Movement Speed
@@ -271,12 +349,15 @@ The Ring's Cut reduced by 1%
 +1 to Minimum Endurance Charges
 +1 to Minimum Power Charges
 +1 to radius
++1 to Radius for each Stage
++1 to radius per Stage
 +1 to Spectre maximum Life
 +1 to Total Mana Cost of Skills
 +1 to Ward
 +1% chance to be Ignited
 +1% Chance to Block
 +1% Chance to Block Attack Damage if you have Blocked Spell Damage Recently
++1% Chance to Block Attack Damage if you were Damaged by a Hit Recently
 +1% Chance to Block Attack Damage when in Off Hand
 +1% Chance to Block Attack Damage while Dual Wielding
 +1% Chance to Block Attack Damage while holding a Shield
@@ -292,7 +373,6 @@ The Ring's Cut reduced by 1%
 +1% chance to Dodge Attack Hits while Focused
 +1% chance to Suppress Spell Damage
 +1% chance to Suppress Spell Damage while your Off Hand is empty
-+1% Critical Strike Multiplier while a Rare or Unique Enemy is Nearby
 +1% Monster Chaos Resistance
 +1% Monster Elemental Resistance
 +1% Monster Physical Damage Reduction
@@ -301,29 +381,13 @@ The Ring's Cut reduced by 1%
 +1% to Chaos Resistance during any Flask Effect
 +1% to Chaos Resistance when on Low Life
 +1% to Cold Resistance when Socketed with a Green Gem
-+1% to Critical Strike Multiplier for Spells
-+1% to Critical Strike Multiplier if Dexterity is higher than Intelligence
-+1% to Critical Strike Multiplier while Dual Wielding
-+1% to Critical Strike Multiplier with Bows
-+1% to Critical Strike Multiplier with Cold Skills
-+1% to Critical Strike Multiplier with Elemental Skills
-+1% to Critical Strike Multiplier with Fire Skills
-+1% to Critical Strike Multiplier with Lightning Skills
-+1% to Critical Strike Multiplier with One Handed Melee Weapons
-+1% to Critical Strike Multiplier with Two Handed Melee Weapons
-+1% to Damage over Time Multiplier for Bleeding
-+1% to Damage over Time Multiplier for Poison per Frenzy Charge
-+1% to Damage over Time Multiplier with Attack Skills
 +1% to Fire Resistance when Socketed with a Red Gem
 +1% to Fire Resistance while on Low Life
-+1% to Global Critical Strike Multiplier per Green Socket
 +1% to Lightning Resistance when Socketed with a Blue Gem
 +1% to maximum Chance to Block Attack Damage
 +1% to maximum Chaos Resistance
 +1% to maximum Cold Resistance
 +1% to maximum Fire Resistance
-+1% to Melee Critical Strike Multiplier
-+1% to Monster Critical Strike Multiplier
 +1% to Quality
 +1% to Quality of Socketed Cold Gems
 +1% to Quality of Socketed Gems
@@ -339,39 +403,59 @@ The Ring's Cut reduced by 1%
 -1% to Fire Resistance
 -1% to maximum Chance to Block Attack Damage
 1 Added Passive Skill is a Jewel Socket
+1 Added Passive Skill is Broadside
+1 Added Passive Skill is Eldritch Inspiration
 1 Added Passive Skill is Iron Breaker
+1 Added Passive Skill is Practiced Caster
 1 Added Passive Skill is Precise Retaliation
 1 Added Passive Skill is Pressure Points
 1 Added Passive Skill is Prismatic Heart
+1 Added Passive Skill is Second Skin
 1 Added Passive Skills are Jewel Sockets
+1 maximum Stages
 1 Physical Damage taken on Minion Death
 1 seconds between appearance of Wall sections
 1 to 1 Added Attack Physical Damage
+1 to 1 Added Chaos Damage with Bow Attacks
+1 to 1 Added Chaos Damage with Dagger Attacks
 1 to 1 Added Cold Damage
 1 to 1 Added Cold Damage with Bow Attacks
+1 to 1 Added Cold Damage with Claw Attacks
 1 to 1 Added Cold Damage with Dagger Attacks
+1 to 1 Added Cold Damage with Staff Attacks
 1 to 1 Added Cold Damage with Sword Attacks
 1 to 1 Added Cold Damage with Wand Attacks
 1 to 1 Added Fire Damage
 1 to 1 added Fire Damage against Burning Enemies
+1 to 1 Added Fire Damage with Axe Attacks
 1 to 1 Added Fire Damage with Bow Attacks
 1 to 1 Added Fire Damage with Claw Attacks
 1 to 1 Added Fire Damage with Wand Attacks
+1 to 1 Added Lightning Damage
+1 to 1 Added Lightning Damage with Axe Attacks
 1 to 1 Added Lightning Damage with Bow Attacks
+1 to 1 Added Lightning Damage with Staff Attacks
 1 to 1 Added Lightning Damage with Wand Attacks
 1 to 1 Added Physical Damage with Bow Attacks
+1 to 1 Added Physical Damage with Claw Attacks
+1 to 1 Added Physical Damage with Sword Attacks
 1 to 1 Added Spell Chaos Damage while Dual Wielding
 1 to 1 Added Spell Chaos Damage while wielding a Two Handed Weapon
+1 to 1 Added Spell Cold Damage while Dual Wielding
 1 to 1 Added Spell Cold Damage while holding a Shield
+1 to 1 Added Spell Cold Damage while wielding a Two Handed Weapon
 1 to 1 Added Spell Fire Damage while Dual Wielding
+1 to 1 Added Spell Fire Damage while holding a Shield
 1 to 1 Added Spell Fire Damage while wielding a Two Handed Weapon
+1 to 1 Added Spell Lightning Damage while Dual Wielding
 1 to 1 Added Spell Physical Damage while Dual Wielding
+1 to 1 Added Spell Physical Damage while wielding a Two Handed Weapon
 1% additional Physical Damage Reduction
+1% additional Physical Damage Reduction against Abyssal Monsters
 1% additional Physical Damage Reduction if you weren't Damaged by a Hit Recently
 1% additional Physical Damage Reduction while Focused
 1% additional Physical Damage Reduction while stationary
 1% chance for Poisons inflicted with this Weapon to deal 1% more Damage
-1% chance on completing a Heist to generate an additional Reveal with Whakano
 1% chance to Avoid being Chilled
 1% chance to Avoid being Frozen
 1% chance to Avoid being Shocked
@@ -379,22 +463,19 @@ The Ring's Cut reduced by 1%
 1% chance to Avoid Bleeding
 1% chance to Avoid Elemental Ailments
 1% chance to Avoid Elemental Damage from Hits during Soul Gain Prevention
-1% chance to Blind Enemies on Critical Strike
 1% chance to Blind Enemies on hit
 1% chance to Blind Enemies on Hit with Attacks
 1% Chance to Block Attack Damage
 1% Chance to Block Spell Damage
-1% chance to Cause Bleeding on Critical Strike
+1% chance to cause Bleeding
 1% chance to cause Bleeding on Hit
 1% Chance to Cause Monster to Flee on Block
 1% chance to Cause Monsters to Flee
-1% chance to Cause Poison on Critical Strike
 1% chance to Chill Attackers for 1 seconds on Block
 1% chance to deal Double Damage
 1% chance to deal Double Damage while Focused
 1% chance to Dodge Attack and Spell Hits if you've\nbeen Hit Recently
 1% chance to Dodge Attack Hits
-1% Chance to Dodge Attack Hits if you've taken a Critical Strike Recently
 1% chance to Dodge Attack Hits while your Off Hand is empty
 1% chance to Dodge Spell Hits
 1% chance to Dodge Spell Hits if you've\ntaken Spell Damage Recently
@@ -403,12 +484,11 @@ The Ring's Cut reduced by 1%
 1% chance to Fortify on Melee hit
 1% chance to Freeze
 1% chance to Freeze, Shock and Ignite
-1% chance to Freeze, Shock and Ignite if you haven't Crit Recently
-1% chance to gain a Flask Charge when you deal a Critical Strike
-1% chance to gain a Frenzy Charge on Critical Strike
+1% chance to gain a Frenzy Charge on Hit
 1% chance to gain a Frenzy Charge on Kill
-1% chance to gain a Power Charge on Critical Strike
+1% chance to gain a Frenzy Charge when an Enemy Dies while in this Skill's Area
 1% chance to gain a Power Charge on Kill
+1% chance to gain a Power Charge when Projectile Hits a Rare or Unique Enemy
 1% chance to gain a Power Charge when you Throw a Trap
 1% chance to gain a Power, Frenzy or Endurance Charge on Kill
 1% chance to gain an Endurance Charge on Kill
@@ -417,11 +497,13 @@ The Ring's Cut reduced by 1%
 1% chance to gain Onslaught for 1 seconds on Kill
 1% chance to gain Phasing for 1 seconds on Kill
 1% chance to gain Unholy Might for 1 seconds on Kill
+1% chance to Gain Unholy Might for 1 seconds on Melee Kill
 1% chance to grant a Frenzy Charge to nearby Allies on Hit
 1% chance to grant a Power Charge to nearby Allies on Kill
 1% chance to grant Onslaught to nearby Enemies on Kill
 1% chance to grant Unholy Might to nearby Enemies on Kill
 1% chance to Ignite
+1% chance to Ignite enemies
 1% chance to Impale Enemies on Hit
 1% chance to Impale Enemies on Hit with Attacks
 1% chance to Knock Enemies Back on hit
@@ -430,8 +512,11 @@ The Ring's Cut reduced by 1%
 1% chance to Poison on Hit against Cursed Enemies
 1% chance to Shock
 1% chance to Shock Chilled Enemies
+1% chance to Shock enemies
 1% chance to Steal Power, Frenzy, and Endurance Charges on Hit
+1% Chance to Summon a Normal Sentinel of Dominance on Hitting a Unique Monster
 1% chance to Summon an additional Skeleton Warrior with Summon Skeleton
+1% chance to Taunt Enemies on Hit with Attacks
 1% chance to Trigger Level 1 Animate Weapon on Kill
 1% chance to Trigger Level 1 Blood Rage when you Kill an Enemy
 1% chance to Trigger Level 1 Shade Form when you Use a Socketed Skill
@@ -439,12 +524,14 @@ The Ring's Cut reduced by 1%
 1% Global chance to Blind Enemies on hit
 1% increased Accuracy Rating per Frenzy Charge
 1% increased Accuracy Rating when on Low Life
+1% increased Activation frequency
 1% increased Amount Recovered
 1% increased Area Damage
 1% increased Area of Effect
 1% increased Area of Effect for Skills used by Totems
 1% increased Area of Effect of Aura Skills
 1% increased Area of Effect of Hex Skills
+1% increased Area of Effect per 1 additional Melee Strike Range
 1% increased Area of Effect per 1 Intelligence
 1% increased Area of Effect per 1 Rampage Kills
 1% increased Armour
@@ -454,7 +541,6 @@ The Ring's Cut reduced by 1%
 1% increased Armour while not Ignited, Frozen or Shocked
 1% increased Assassin's Mark Duration
 1% increased Attack and Cast Speed while Focused
-1% increased Attack Critical Strike Chance while Dual Wielding
 1% increased Attack Damage
 1% increased Attack Damage against Bleeding Enemies
 1% increased Attack Damage while Dual Wielding
@@ -469,6 +555,7 @@ The Ring's Cut reduced by 1%
 1% increased Attributes
 1% increased Bleeding Duration
 1% increased Block Recovery
+1% increased Cast Speed if you've dealt a Critical Strike Recently
 1% increased Cast Speed if you've Killed Recently
 1% increased Cast Speed per Power Charge
 1% increased Cast Speed while Dual Wielding
@@ -488,24 +575,7 @@ The Ring's Cut reduced by 1%
 1% increased Cooldown Recovery Rate
 1% increased Cooldown Recovery Rate for each Normal or Magic Enemy in Area\n1% increased Cooldown Recovery Rate for each Rare or Unique Enemy in Area
 1% increased Cooldown Recovery Rate for throwing Traps
-1% increased Critical Strike Chance
-1% increased Critical Strike Chance against Blinded Enemies
-1% increased Critical Strike Chance against Enemies on Full Life
-1% increased Critical Strike Chance against Shocked Enemies
-1% increased Critical Strike Chance for Spells per 1 Player Maximum Life
-1% increased Critical Strike Chance if you haven't Crit Recently
-1% increased Critical Strike Chance if you haven't gained a Power Charge Recently
-1% increased Critical Strike Chance while area is not in Lockdown\nPlayers have 1% increased Critical Strike Chance while area is not in Lockdown
-1% increased Critical Strike Chance with Bows
-1% increased Critical Strike Chance with Cold Skills
-1% increased Critical Strike Chance with Elemental Skills
-1% increased Critical Strike Chance with Fire Skills
-1% increased Critical Strike Chance with Lightning Skills
-1% increased Critical Strike Chance with One Handed Melee Weapons
-1% increased Critical Strike Chance with Two Handed Melee Weapons
-1% increased Damage over Time while Dual Wielding
-1% increased Damage over Time while holding a Shield
-1% increased Damage over Time while wielding a Two Handed Weapon
+1% increased Damage against Abyssal Monsters
 1% increased Damage per 1% Chance to Block Attack Damage
 1% increased Damage per Endurance Charge
 1% increased Damage per Frenzy Charge
@@ -516,12 +586,12 @@ The Ring's Cut reduced by 1%
 1% increased Damage taken from Skeletons
 1% increased Damage taken while on Full Energy Shield
 1% increased Damage when on Low Life
-1% increased Damage while area is not in Lockdown\nPlayers deal 1% increased Damage while area is not in Lockdown
 1% increased Damage while Ignited
 1% increased Damage while on Consecrated Ground
 1% increased Damage while you have no Frenzy Charges
 1% increased Damage with Axes
 1% increased Damage with Bleeding
+1% increased Damage with Bow Skills
 1% increased Damage with Bows
 1% increased Damage with Claws
 1% increased Damage with Daggers
@@ -545,13 +615,15 @@ The Ring's Cut reduced by 1%
 1% increased Duration of Ailments you inflict while Focused
 1% increased Duration of Curses on you
 1% increased Duration of Lightning Ailments
+1% increased Duration of Shrine Effects on you
+1% increased Effect of Cold Ailments
 1% increased Effect of Fortify on you while Focused
 1% increased Effect of Fortify on you while Focussed
 1% increased Effect of Lightning Ailments
 1% increased effect of Non-Curse Auras from your Skills
 1% increased Effect of Non-Damaging Ailments
+1% increased Effect of Shrine Buffs on you
 1% increased Effect of your Curses
-1% increased Elemental Damage if you've dealt a Critical Strike Recently
 1% increased Elemental Damage per 1 Dexterity
 1% increased Elemental Damage per Frenzy Charge
 1% increased Elemental Damage with Attack Skills
@@ -572,15 +644,16 @@ The Ring's Cut reduced by 1%
 1% increased Flask Mana Recovery rate
 1% increased Freeze Duration on Enemies
 1% increased Frost Blades Projectile Speed
+1% increased Frost Wall Duration
 1% increased Global Accuracy Rating
 1% increased Global Attack Speed per Green Socket
-1% increased Global Critical Strike Chance when in Main Hand
 1% increased Global Damage
 1% increased Global Defences
 1% increased Global Defences per White Socket
 1% increased Global Evasion Rating when on Low Life
 1% increased Global Physical Damage with Weapons per Red Socket
 1% increased Herald of Ash Damage
+1% increased Hit Rate for each blade
 1% increased Ignite Duration on Enemies
 1% increased Impale Effect
 1% increased Intelligence
@@ -591,16 +664,18 @@ The Ring's Cut reduced by 1%
 1% increased Life Recovery Rate per 1 Strength on Allocated Passives in Radius
 1% increased Life Regeneration rate
 1% increased Light Radius
+1% increased Lightning Trap Lightning Ailment Effect
+1% increased Mana Cost of Skills
 1% increased Mana Recovered
 1% increased Mana Recovery from Flasks
 1% increased Mana Regeneration Rate
+1% increased Mana Regeneration Rate if you've cast a Spell Recently
 1% increased Mana Regeneration Rate per Power Charge
 1% increased maximum Energy Shield
 1% increased Maximum Life per Abyss Jewel affecting you
 1% increased maximum Mana
 1% increased Maximum Mana per Abyss Jewel affecting you
 1% increased maximum travel distance
-1% increased Melee Critical Strike Chance
 1% increased Melee Damage
 1% increased Melee Damage against Bleeding Enemies
 1% increased Mine Damage
@@ -609,7 +684,9 @@ The Ring's Cut reduced by 1%
 1% increased Minion Attack Speed per 1 Dexterity
 1% increased Minion Duration
 1% increased Minion Maximum Life
+1% increased Minion Movement Speed
 1% increased Minion Movement Speed per 1 Dexterity
+1% increased Molten Strike Damage
 1% increased Monster Attack Speed
 1% increased Monster Cast Speed
 1% increased Monster Damage
@@ -618,6 +695,7 @@ The Ring's Cut reduced by 1%
 1% increased Movement Speed for 1 seconds on Throwing a Trap
 1% increased Movement Speed for you and nearby Allies
 1% increased Movement Speed if you haven't been Hit Recently
+1% increased Movement Speed if you've Killed Recently
 1% increased Movement Speed per Frenzy Charge
 1% increased Movement Speed when on Full Life
 1% increased Movement Speed when on Low Life
@@ -636,16 +714,15 @@ The Ring's Cut reduced by 1%
 1% increased Projectile Damage
 1% increased Quantity of Items found
 1% increased Rallying Cry Buff Effect
-1% increased Rarity of Items Dropped by Enemies killed with a Critical Strike
 1% increased Rarity of Items Dropped by Frozen Enemies
 1% increased Rarity of Items Dropped by Slain Rare or Unique Enemies
 1% increased Rarity of Items found
 1% increased Rarity of Items found when on Low Life
 1% increased Reservation Efficiency of Skills
-1% increased Rogue's Marker value of primary Heist Target
 1% increased Scorching Ray Damage
 1% increased Searing Bond Damage
 1% increased Shock Duration on Enemies
+1% increased Skill Duration per Frenzy Charge removed
 1% increased Skill Effect Duration
 1% increased Spectral Shield Throw Damage
 1% increased Spell Damage per 1 Intelligence
@@ -661,6 +738,7 @@ The Ring's Cut reduced by 1%
 1% increased Stun and Block Recovery
 1% increased Stun Duration against Enemies that are on Full Life
 1% increased Stun Duration on Enemies
+1% increased teleport range
 1% increased Totem Damage
 1% increased Totem Life
 1% increased Totem Placement speed
@@ -671,33 +749,44 @@ The Ring's Cut reduced by 1%
 1% increased Warcry Speed
 1% increased Ward
 1% less Animate Weapon Duration
+1% less Area of Effect when Cast on Frostbolt
 1% less effect of Curses on Monsters
 1% less Elemental Damage taken per Raised Zombie
+1% less Movement Speed
+1% more Area of Effect for each stage
 1% more Attack Speed while Totem is Active
+1% more Attack Speed while you're in a Blood Bladestorm
 1% more Burning Damage
+1% more Damage for each blade
+1% more Damage for each remaining Chain
+1% more Damage with Ailments for each stage
+1% more Damage with Bleeding while in Blood Stance
 1% more Magic Monsters
 1% more Melee Damage while Totem is Active
+1% more Melee Physical Damage
 1% more Minion Movement Speed
 1% more Monster Life
 1% more Physical Damage with Unarmed Attacks
 1% more Physical Damage with Unarmed Melee Attacks
 1% more Rare Monsters
+1% more Spell Damage for each stage
 1% more Spell Fire Damage
 1% of Attack Damage Leeched as Life against Bleeding Enemies
 1% of Attack Damage Leeched as Life against Chilled Enemies
 1% of Attack Damage Leeched as Life against Maimed Enemies
-1% of Attack Damage Leeched as Life on Critical Strike
 1% of Attack Damage Leeched as Mana against Poisoned Enemies
 1% of Burning Arrow Physical Damage gained as Extra Fire Damage
 1% of Chaos Damage Leeched as Life
 1% of Cold Damage Converted to Fire Damage
 1% of Cold Damage Leeched as Life
 1% of Damage dealt by your Totems is Leeched to you as Life
+1% of Damage from Hits is taken from the Buff before your Life or Energy Shield\nBuff can take Damage equal to 1% of your Armour, up to a maximum of 1
 1% of Damage from Hits is taken from your Spectres' Life before you
 1% of Damage is taken from Mana before Life per Power Charge
 1% of Damage is taken from Mana before Life while Focused
 1% of Damage Leeched as Life if you've Killed Recently
 1% of Damage Leeched as Life while you have at least 1 total Endurance, Frenzy and Power Charges
+1% of Damage taken Recouped as Life
 1% of Damage taken Recouped as Mana
 1% of Damage you Reflect to Enemies when Hit is gained as Life
 1% of Evasion Rating is Regenerated as Life per second while Focused
@@ -729,7 +818,6 @@ The Ring's Cut reduced by 1%
 1% reduced Chaos Damage taken
 1% reduced Chaos Damage taken over time
 1% reduced Cold Damage taken
-1% reduced Critical Strike Chance per Power Charge
 1% reduced Damage when on Low Life
 1% reduced Duration
 1% reduced Effect of Chill and Shock on you
@@ -740,11 +828,13 @@ The Ring's Cut reduced by 1%
 1% reduced Enemy Stun Threshold with this Weapon
 1% reduced Experience gain
 1% reduced Flask Charges used
+1% reduced Flask Effect Duration
 1% reduced Freeze Duration on you
 1% reduced Frenzy Charge Duration
 1% reduced Frenzy Charge Duration per Frenzy Charge
 1% reduced Global Accuracy Rating
 1% reduced Ignite Duration on Enemies
+1% reduced Life Cost
 1% reduced Light Radius
 1% reduced Lightning Damage taken
 1% reduced Mana Cost of Minion Skills
@@ -765,50 +855,72 @@ The Ring's Cut reduced by 1%
 1% reduced Stun and Block Recovery
 1% reduced Totem Damage
 1% reduced Trap Duration
+Activates every 1 second while Attached
 Added Small Passive Skills also grant: +1 to All Attributes
 Added Small Passive Skills also grant: +1 to Armour
+Added Small Passive Skills also grant: +1 to Dexterity
 Added Small Passive Skills also grant: +1 to Evasion
 Added Small Passive Skills also grant: +1 to Maximum Energy Shield
+Added Small Passive Skills also grant: +1 to Maximum Life
 Added Small Passive Skills also grant: +1 to Strength
 Added Small Passive Skills also grant: +1% to Chaos Resistance
+Added Small Passive Skills also grant: +1% to Cold Resistance
+Added Small Passive Skills also grant: +1% to Elemental Resistance
 Added Small Passive Skills also grant: +1% to Fire Resistance
+Added Small Passive Skills also grant: +1% to Lightning Resistance
 Added Small Passive Skills also grant: 1% increased Attack and Cast Speed with Fire Skills
 Added Small Passive Skills also grant: 1% increased Mana Regeneration Rate
 Added Small Passive Skills also grant: Regenerate 1% of Life per Second
 Added Small Passive Skills grant: +1% to Cold Resistance
 Added Small Passive Skills grant: +1% to Lightning Resistance
+Added Small Passive Skills grant: 1% Chance to Block Spell Damage
 Added Small Passive Skills grant: 1% chance to Dodge Attack Hits
 Added Small Passive Skills grant: 1% increased Attack Damage
+Added Small Passive Skills grant: 1% increased Attack Damage while Dual Wielding
 Added Small Passive Skills grant: 1% increased Attack Damage while holding a Shield
-Added Small Passive Skills grant: 1% increased Critical Strike Chance
+Added Small Passive Skills grant: 1% increased Cold Damage
+Added Small Passive Skills grant: 1% increased Damage while affected by a Herald
+Added Small Passive Skills grant: 1% increased Damage with Bows\nAdded Small Passive Skills grant: 1% increased Damage Over Time with Bow Skills
+Added Small Passive Skills grant: 1% increased Damage with Two Handed Weapons
+Added Small Passive Skills grant: 1% increased Evasion Rating
 Added Small Passive Skills grant: 1% increased Fire Damage
 Added Small Passive Skills grant: 1% increased Lightning Damage
+Added Small Passive Skills grant: 1% increased maximum Life
+Added Small Passive Skills grant: 1% increased maximum Mana
 Added Small Passive Skills grant: 1% increased Physical Damage
+Added Small Passive Skills grant: 1% increased Projectile Damage
+Added Small Passive Skills grant: 1% increased Spell Damage
+Added Small Passive Skills grant: 1% increased Totem Damage
+Added Small Passive Skills grant: Exerted Attacks deal 1% increased Damage
 Added Small Passive Skills grant: Minions deal 1% increased Damage
 Adds 1 Passive Skills
 Adds 1 to 1 Chaos Damage
-Adds 1 to 1 Chaos Damage if you've dealt a Critical Strike Recently
 Adds 1 to 1 Chaos Damage in Off Hand
 Adds 1 to 1 Chaos Damage to Attacks
 Adds 1 to 1 Chaos Damage to Hits against Cursed Enemies
 Adds 1 to 1 Chaos Damage to Spells
 Adds 1 to 1 Chaos Damage to Spells and Attacks during any Flask Effect
 Adds 1 to 1 Cold Damage
+Adds 1 to 1 Cold Damage against Chilled Enemies
 Adds 1 to 1 Cold Damage against Chilled or Frozen Enemies
 Adds 1 to 1 Cold Damage to Attacks
 Adds 1 to 1 Cold Damage to Spells and Attacks
 Adds 1 to 1 Fire Damage
-Adds 1 to 1 Fire Damage if you've dealt a Critical Strike Recently
 Adds 1 to 1 Fire Damage in Main Hand
 Adds 1 to 1 Fire Damage to Attacks
+Adds 1 to 1 Fire Damage to Attacks against Ignited Enemies
 Adds 1 to 1 Fire Damage to Attacks with this Weapon per 1 Strength
 Adds 1 to 1 Fire Damage to Spells and Attacks
 Adds 1 to 1 Lightning Damage
+Adds 1 to 1 Lightning Damage if you haven't Killed Recently
 Adds 1 to 1 Lightning Damage to Attacks
 Adds 1 to 1 Lightning Damage to Spells and Attacks
 Adds 1 to 1 Physical Damage
+Adds 1 to 1 Physical Damage against Bleeding Enemies
 Adds 1 to 1 Physical Damage to Attacks
+Adds 1 to 1 Physical Damage to Hits against Cursed Enemies
 Adds 1 to 1 Physical Damage to Spells
+Aftershock deals 1% more Damage with Hits and Ailments
 All Monster Damage from Hits always Ignites
 All Sockets are White
 Allocates Arsonist
@@ -846,12 +958,15 @@ Allocates Vitality Extraction
 Allocates Volatile Mines
 Allocates Will of Blades
 Ancestral Protector Totem grants 1% increased Attack Speed while Active
+Applies beams to the closest 1 Enemies
 Area has increased monster variety
 Area has patches of Shocked Ground which increase Damage taken by 1%
 Area is inhabited by 1 additional Rogue Exiles
 Area is inhabited by Cultists of Kitava
 Area is inhabited by Ghosts
+Areas have patches of Consecrated Ground
 Armageddon Brand Damage Penetrates 1% of Branded Enemy's Fire Resistance
+Arrows fire Beams every 1 seconds
 Arrows Pierce all Targets
 Arrows Pierce an additional Target
 Attack Skills have +1 to maximum number of Summoned Totems
@@ -869,19 +984,29 @@ Base Burning Damage is 1% of Overkill Damage
 Base duration is 1 seconds
 Base Duration of 1.1 seconds after being Placed
 Base secondary duration is 1 seconds
+Bladestorm deals 1% less Damage with Hits and Ailments
 Bleeding Enemies you Kill Explode, dealing 1% of\ntheir Maximum Life as Physical Damage
 Bleeding you inflict deals Damage 1% faster
 Blind does not affect your Light Radius
 Blind you inflict is Reflected to you
 Bounces up to 1 times\nModifiers to number of Projectiles instead apply to the number of Bounces
 Bow Attacks fire an additional Arrow
+Buff Duration is refreshed after you spend a total of 1 Life
+Buff grants +1 to Armour
 Buff grants +1% to all Elemental Resistances per Endurance Charge
 Buff grants 1% additional Physical Damage Reduction per Endurance Charge
+Buff grants 1% increased Movement Speed
+Buff grants 1% increased Stealth
 Buff grants Phasing
 Call of Steel deals Reflected Damage with 1% increased Area of Effect
 Call of Steel has 1% increased Use Speed
+Can be Attached for a total Duration of 1 seconds
+Can be Detached for a total Duration of 1 seconds
+Can expand from up to 1 Frostbolt Projectiles
+Can have up to 1 active spinning blades
 Can roll Minion Modifiers
 Can't be Evaded
+Can't use other Rings
 Cannot be Chilled
 Cannot be Chilled during Onslaught
 Cannot be Chilled or Frozen if you have used a Fire Skill Recently
@@ -893,10 +1018,12 @@ Cannot Block
 Cannot Evade Enemy Attacks
 Cannot gain Mana during effect
 Cannot Leech Life
-Cannot Leech Life from Critical Strikes
 Cannot Leech Mana
 Cannot Leech when on Low Life
+Chains +1 Times
+Chaos Damage does not bypass Minions' Energy Shield
 Chaos Skills have 1% increased Skill Effect Duration
+Chills Enemies as though dealing 1% more Damage
 Conduit
 Consumes Frenzy Charges on use
 Consumes up to 1 Steel Shards
@@ -914,8 +1041,12 @@ Curse Enemies with Socketed Hex Curse Gem on Hit
 Curse Enemies with Vulnerability on Block, with 1% increased Effect
 Curse gains 1 Doom per second if you Cast this Spell yourself
 Curse Skills have 1% increased Skill Effect Duration
+Cursed enemies grant 1 Life when Hit by Attacks
+Cursed enemies grant 1 Mana when Hit by Attacks
 Cursed enemies have -1% to Chaos Resistance
-Cursed enemies take 1% increased Damage from Damage Over Time effects
+Cursed enemies have -1% to Lightning Resistance
+Cursed enemies have -1% to Physical Damage Reduction
+Cursed enemies have a 1% chance to grant a Frenzy Charge when slain
 Cursed enemies take 1% increased Damage from Projectile Hits
 Damage cannot be Reflected
 Damage of Enemies Hitting you is Unlucky while you are on Low Life
@@ -929,8 +1060,16 @@ Damaging Ailments deal damage 1% faster
 Damaging Hits always Stun Enemies that are on Full Life
 Deal no Physical Damage
 Deals 1 Base Chaos Damage per second
+Deals 1 Base Cold Damage per second
+Deals 1 Base Fire Damage per second
+Deals 1 Base Physical Damage per second
 Deals 1 to 1 Cold Damage
+Deals 1 to 1 Fire Damage
+Deals 1 to 1 Lightning Damage
 Deals 1 to 1 Physical Damage
+Deals 1% of your Maximum Energy Shield as Base Fire Damage per second
+Deals 1% of your Maximum Life as Base Fire Damage per second
+Deals up to 1% more Damage to closer targets
 Debuff can have up to 1 layers of Damage
 Debuff deals 1% of Damage per Charge
 Determination has 1% increased Aura Effect
@@ -938,9 +1077,11 @@ Determination has 1% reduced Reservation
 Detonate Dead has a 1% chance to detonate an additional corpse
 Divine Ire's beam has 1% increased width
 Drops Shocked Ground while moving, lasting 1 seconds
+Each Arrow can fire 1 Beams
 Earthshatter deals 1% increased Damage; LabEnchant
 Elemental Hit deals 1% increased Damage
 Enemies Cannot Leech Mana From you
+Enemies Ignited by Supported Skills have -1% to Fire Resistance
 Enemies Killed with Attack or Spell Hits Explode, dealing 1% of their Life as Fire Damage
 Enemies Maimed by Supported Skills take 1% increased Physical Damage
 Enemies Maimed by this Skill take 1% increased Physical Damage
@@ -953,8 +1094,13 @@ Explosion deals Fire Damage equal to 1% of the Monster's maximum Life
 Extra gore
 Eye of Winter fires Shard projectiles with 1% increased Frequency during flight
 Feeding Frenzy base Duration is 1 seconds
+Fires 1 additional Arrows
 Fires 1 additional Projectiles
 Fires 1% more Projectiles per Steel Shard consumed
+Fires Projectiles in a circle
+Fires Projectiles sequentially
+Fires tendrils at up to 1 Targets
+First Hit deals 1% less Damage
 Flask effect is not removed when Unreserved Mana is Filled\nFlask effect does not Queue
 Flasks applied to you have 1% increased Effect
 Focus has 1% increased Cooldown Recovery Rate
@@ -962,14 +1108,13 @@ Gain 1 Endurance Charge per 1 Power
 Gain 1 Life on Culling Strike
 Gain 1 Life when you lose an Endurance Charge
 Gain 1 Mana on Culling Strike
+Gain 1 Stage every 1 seconds while an Enemy is Nearby
 Gain 1 Stage when you Kill an Enemy while carrying the Banner
 Gain 1% of Lightning Damage as Extra Chaos Damage
 Gain 1% of Maximum Mana as Extra Maximum Energy Shield
-Gain 1% of Physical Damage as Extra Fire Damage if you've dealt a Critical Strike Recently
 Gain 1% of Weapon Physical Damage as Extra Damage of a random Element
 Gain 1% of your Physical Damage as Extra Fire Damage
 Gain a Frenzy Charge if an Attack Ignites an Enemy
-Gain a Frenzy Charge on Critical Strike
 Gain a Frenzy Charge on every 1th Rampage Kill
 Gain a Frenzy, Endurance, or Power Charge once per second while you are Stationary
 Gain a Power Charge after Spending a total of 1 Mana
@@ -977,13 +1122,17 @@ Gain a Power Charge on Non-Critical Strike
 Gain Adrenaline for 1 seconds per Stage on Placing the Banner
 Gain an Endurance Charge when you take a Critical Strike
 Gain Onslaught for 1 seconds per Frenzy Charge on use
+Gain Soul Eater during any Flask Effect
+Gains 1 Stage every 1 seconds while Channelling
 Gems can be Socketed in this Item ignoring Socket Colour
 Gems Socketed in Blue Sockets gain 1% increased Experience
 Gems Socketed in Green Sockets have +1% to Quality
 Gems Socketed in Red Sockets have +1 to Level
 Golems grant 1 Life Regenerated per second
+Golems Grant 1% increased Damage
 Grants +1 to Maximum Life per 1% Quality
 Grants 1% increased Area of Effect per 1% Quality
+Grants 1% more Spell Damage
 Grants 1% of Life Recovery to Minions
 Grants Fortify for 1 seconds on Melee hit
 Grants Immunity to Ignite for 1 seconds if used while Ignited\nRemoves all Burning when used
@@ -991,17 +1140,17 @@ Grants Level 1 Aspect of the Cat Skill
 Grants Level 1 Aspect of the Crab Skill
 Grants Level 1 Aspect of the Spider Skill
 Grants Level 1 Bear Trap Skill
+Grants Level 1 Blood Offering Skill
 Grants Level 1 Icestorm Skill
 Grants Level 1 Pride Skill
 Guards deal 1% increased Damage
 Has 1 Abyssal Socket
 Has 1 Socket
 Has no Attribute Requirements
-Heist Chests have a 1% chance to Duplicate contained Delirium Orbs and Splinters
-Heist Chests have a 1% chance to Duplicate contained Essences
 Herald of Thunder has 1% increased Buff Effect
 Hexes applied by Socketed Curse Skills are Reflected back to you
 Hits after the first on each Enemy deal 1% less Damage
+Hits against Cursed Enemies have +1% chance to Shock
 Hits can't be Evaded
 Hits from Supported Skills grant Cruelty
 Holy Relic's Nova Skill grants 1 Life regenerated per second to Allies
@@ -1011,9 +1160,11 @@ Ignited Enemies Killed by your Hits are destroyed
 Ignites you inflict with Attacks deal Damage 1% faster
 Immune to Freeze, Chill, Curses and Stuns during Flask Effect
 Implicit Modifier magnitudes are tripled
+Increases and Reductions to Cast Speed also apply to this Skill's Activation frequency
 Increases and Reductions to Cold Damage in Radius are Transformed to apply to Physical Damage
 Increases and Reductions to Energy Shield in Radius are Transformed to apply to Armour at 1% of their value
 Increases and Reductions to Physical Damage in Radius are Transformed to apply to Cold Damage
+Increases and Reductions to Projectile Speed also apply to\nthis Skill's Area of Effect
 Inflicts 1 Withered Debuffs the first time each Enemy enters the Area
 Inflicts a random Hex on you when your Totems die, with 1% more Effect
 Instant Recovery
@@ -1022,12 +1173,23 @@ Iron Grip
 Knocks Enemies Back on Hit
 Life Leech from Hits with this Weapon is instant
 Lightning Trap pierces 1 additional Targets
+Lose 1 Stage every 1 seconds while not Channelling
 Lose all Frenzy, Endurance, and Power Charges when you Move
 Lose all Power Charges on Critical Strike
+Lose Souls gained from Soul Eater when you use a Flask
 Magic Monster Packs each have a Bloodline Mod
 Mana Recovery occurs instantly at the end of the Flask effect
+Maximum 1 Arrows in the ground
+Maximum 1 Raised Zombies
+Maximum 1 Stages
 Maximum 1 Summoned Golem
 Maximum 1 Summoned Holy Relic
+Maximum 1 Summoned Magic Sentinels of Dominance
+Maximum 1 Summoned Normal Sentinels of Dominance
+Maximum 1 Summoned Rare Sentinel of Dominance
+Maximum 1 Summoned Skeletons
+Maximum of 1 Bladestorms at a time
+Maximum of 1 corpses allowed
 Melee Hits have 1% chance to Fortify
 Melee Skills deal 1% less Area Damage while in Sand Stance
 Melee Skills deal 1% more Area Damage while in Blood Stance
@@ -1035,33 +1197,52 @@ Melee Skills have 1% less Area of Effect while in Blood Stance
 Melee Skills have 1% more Area of Effect while in Sand Stance
 Mines have 1% increased Detonation Speed
 Minions cannot Taunt Enemies
+Minions Convert 1% of their Maximum Life to Maximum Energy\nShield per 1% Chaos Resistance they have
 Minions deal 1 to 1 additional Chaos Damage
 Minions deal 1 to 1 additional Cold Damage
+Minions deal 1 to 1 additional Fire Damage
 Minions deal 1 to 1 additional Lightning Damage
+Minions deal 1 to 1 additional Physical Damage
 Minions from Supported Skills are Aggressive
+Minions from Supported Skills deal 1% more Damage
+Minions from Supported Skills have 1% chance to deal Double Damage
 Minions from Supported Skills have 1% chance to grant Feeding Frenzy to you on Hit
+Minions from Supported Skills have 1% less Maximum Life
+Minions gain 1% more Added Damage
 Minions have +1 to Armour
 Minions have +1% Chance to Block Attack Damage
+Minions have +1% chance to Suppress Spell Damage
+Minions have +1% to Chaos Resistance
 Minions have 1% chance to deal Double Damage
+Minions have 1% chance to Hinder Enemies on Hit with Spells
 Minions have 1% chance to Hinder Enemies on Hit with Spells, with 1% reduced Movement Speed
 Minions have 1% chance to Taunt on Hit with Attacks
+Minions have 1% faster start of Energy Shield Recharge
 Minions have 1% increased Area of Effect
 Minions have 1% increased Movement Speed
 Minions Regenerate 1% of Life per second
 Minions' Hits can only Kill Ignited Enemies
 Mirror Arrow and Mirror Arrow Clones deal 1% increased Damage
-Modifiers to Spell Damage apply to this Skill's Damage Over Time effect
+Monsters are Hexproof
 Monsters cannot be Taunted
+Monsters deal 1% extra Physical Damage as Cold
+Monsters deal 1% extra Physical Damage as Fire
 Monsters deal 1% extra Physical Damage as Lightning
 Monsters fire 1 additional Projectiles
+Monsters gain 1% of Maximum Life as Extra Maximum Energy Shield
 Monsters gain an Endurance Charge on Hit
 Monsters have 1% chance to Avoid Elemental Ailments
+Monsters have 1% chance to gain a Power Charge on Hit
 Monsters have 1% chance to gain an Endurance Charge on Hit
+Monsters have 1% chance to Impale with Attacks
 Monsters have 1% increased Accuracy Rating
 Monsters have 1% increased Area of Effect
 Monsters have 1% increased Critical Strike Chance
+Monsters have a 1% chance to avoid Poison, Impale, and Bleeding
+Monsters Maim on Hit with Attacks
 Monsters Poison on Hit
 Monsters reflect 1% of Physical Damage
+Monsters steal Power, Frenzy and Endurance charges on Hit
 Monsters take 1% reduced Extra Damage from Critical Strikes
 Monsters' Action Speed cannot be modified to below base value
 Nearby allies gain 1% increased Damage
@@ -1075,11 +1256,15 @@ No Physical Damage
 Non-Channelling Skills have -1 to Total Mana Cost
 Overwhelm 1% Physical Damage Reduction
 Pain Attunement
+Patrol Packs have 1% increased chance to be replaced by an Elite Patrol Pack
+Patrol Packs take 1% reduced damage
 Pestilent Strike has 1% increased Area of Effect
 Player chance to Dodge is Unlucky
 Players and their Minions have 1% increased Mana Regeneration Rate
 Players are Cursed with Temporal Chains, with 1% increased Effect
 Players are Cursed with Vulnerability, with 1% increased Effect
+Players have -1% to amount of Suppressed Spell Damage Prevented
+Players have 1% less Accuracy Rating
 Players have 1% less Armour
 Players have 1% less Armour per 1% Alert Level
 Players have 1% less Energy Shield Recovery Rate per 1% Alert Level
@@ -1109,17 +1294,24 @@ Reflects 1 Fire Damage to Melee Attackers
 Reflects 1 Physical Damage to Attackers on Block
 Reflects 1 Physical Damage to Melee Attackers
 Reflects 1 to 1 Physical Damage to Attackers on Block
+Reflects 1% of Damage taken from Buff as Fire Damage when Buff expires or is depleted
 Regenerate 1 Energy Shield per second
 Regenerate 1 Energy Shield per second while a Rare or Unique Enemy is Nearby
 Regenerate 1 Life over 1 second
 Regenerate 1 Life over 1 second when you Cast a Spell
+Regenerate 1 Life per second for each affected Enemy
 Regenerate 1 Life per second per Endurance Charge
 Regenerate 1 Life per second per Level
+Regenerate 1 Life per second while any Enemy is affected
 Regenerate 1 Mana per second
+Regenerate 1 Mana per second for each affected Enemy
 Regenerate 1 Mana per Second per Power Charge
+Regenerate 1 Mana per second while any Enemy is affected
 Regenerate 1% of Energy Shield per second
 Regenerate 1% of Life per second if you have been Hit Recently
+Regenerate 1% of Life per second if you were Hit Recently
 Regenerate 1% of Life per second while Frozen
+Regenerate 1% of Life per second while moving
 Regenerate 1% of Life per second while on Low Life
 Removes 1% of Mana Recovered from Life when used
 Removes Curses on use
@@ -1129,6 +1321,8 @@ Ruthless Blows with Supported Skills deal 1% more Damage with Bleeding caused by
 Ruthless Blows with Supported Skills deal 1% more Melee Damage
 Ruthless Blows with Supported Skills have a base Stun Duration of 1 seconds
 Sacrifice 1% of your Life when you Use or Trigger a Spell Skill
+Sand Bladestorms grant 1% increased Movement Speed to you
+Second Stage deals 1% less Damage
 Share Endurance Charges with nearby party members
 Shockwave deals 1% less Damage
 Sigil of Power's Buff also grants 1% increased Critical Strike Chance per Stage
@@ -1167,20 +1361,27 @@ Socketed Gems have 1% increased Reservation Efficiency
 Socketed Gems have Elemental Equilibrium
 Socketed Skill Gems get a 1% Cost & Reservation Multiplier
 Soulrend deals 1% increased Damage
+Spawns corpses with Level 1
 Spirals through 1 rotations
 Storm Brand Damage Penetrates 1% of Branded Enemy's Lightning Resistance
 Stun Threshold is based on Energy Shield instead of Life
 Summoned Raging Spirits deal 1% increased Damage
 Summoned Raging Spirits' Hits always Ignite
 Summoned Raging Spirits' Melee Strikes deal Fire-only Splash\nDamage to Surrounding Targets
+Summons 1 Skeleton Warriors
+Summons a Totem which uses this Skill
 Supported Attacks deal 1 to 1 added Physical Damage with Weapons per 1 Rage
 Supported Attacks deal 1 to 1 added Physical Damage with Weapons while you have at least 1 Rage
 Supported Attacks have 1% chance to Maim on Hit
+Supported Skills deal 1% increased Area Damage
+Supported Skills deal 1% increased Damage while Leeching Life
+Supported Skills deal 1% increased Damage with Hits against Frozen Enemies
 Supported Skills deal 1% less Damage
 Supported Skills deal 1% less Damage to surrounding targets
 Supported Skills deal 1% less Projectile Damage
 Supported Skills deal 1% more Damage with Ailments caused by Melee Hits
 Supported Skills deal 1% more Damage with Hits
+Supported Skills deal 1% more Fire Damage
 Supported Skills deal 1% more Melee Damage
 Supported Skills deal 1% more Physical Damage
 Supported Skills deal 1% more Spell Damage
@@ -1190,29 +1391,40 @@ Supported Skills gain 1% of Physical Damage as Extra Fire Damage
 Supported Skills grant 1 Rage on Melee Hit, no more than once every 1 seconds
 Supported Skills grant Fortify on Melee hit
 Supported Skills have 1 to 1 added Cold Damage
+Supported Skills have 1 to 1 added Cold Damage per Frenzy Charge
+Supported Skills have 1% chance to Freeze
+Supported Skills have 1% chance to gain a Frenzy Charge on Killing a Frozen Enemy
 Supported Skills have 1% chance to grant Onslaught for 1 seconds on\ndealing a Killing Blow
 Supported Skills have 1% chance to grant Onslaught for 1 seconds when you Hit a Unique Enemy
+Supported Skills have 1% chance to Ignite
 Supported Skills have 1% increased Area of Effect
 Supported Skills have 1% increased Cast Speed
 Supported Skills have 1% increased Fortify duration
 Supported Skills have 1% less Critical Strike Chance
 Supported Skills have 1% more Melee Splash Area of Effect
+Supported Skills have 1% of Damage Leeched as Life
+Supported Spells gain Intensity when you Cast them, to a maximum of 1\nSupported Skills deal 1% more Area Damage with Hits per Intensity\nSupported Skills have 1% less Area of Effect per Intensity
+Supported Spells lose 1 Intensity every 1 seconds while moving, or immediately if you teleport
 Supported Strike Skills target 1 additional nearby Enemies
+Taunt nearby Enemies for 1 seconds per Stage on Placing the Banner\nEnemies Taunted this way deal 1% less Damage
 Temporal Chains has 1% reduced Effect on you
+Third Stage deals 1% less Damage
 This Skill's Cooldown does not recover during its effect
 Total Recovery per second from Life Leech is Doubled
 Totem lasts 1 seconds
 Totems fire 1 additional Projectiles
 Totems gain +1% to all Elemental Resistances
 Totems Reflect 1% of their maximum Life as Fire Damage to nearby Enemies when Hit
+Trap lasts 1 seconds
 Trigger a Socketed Spell on Using a Skill, with a 1 second Cooldown and 1% more Cost
 Trigger a Socketed Spell when you Use a Skill, with a 1 second Cooldown and 1% more Cost
 Trigger a Socketed Warcry Skill on losing Endurance Charges, with a 1 second Cooldown
 Trigger Commandment of Spite when Hit
 Trigger Decree of Fury on Hit
 Trigger Decree of War on Kill
+Trigger Edict of Blades on Hit
 Trigger Edict of Inferno on Kill
-Trigger Level 1 Consecrate when you deal a Critical Strike
+Trigger Level 1 Create Lesser Shrine when you Kill an Enemy
 Trigger Level 1 Gore Shockwave on Melee Hit if you have at least 1 Strength
 Trigger Level 1 Rain of Arrows when you Attack with a Bow
 Trigger Socketed Spells when you Focus, with a 1 second Cooldown
@@ -1228,15 +1440,18 @@ Unaffected by Chilled Ground
 Unique Boss has 1% increased Area of Effect
 Unique Boss has 1% increased Life
 Uses both hand slots
-Vaal Skills have 1% increased Critical Strike Chance during effect
 Vaal Skills used during effect have 1% reduced Soul Gain Prevention Duration
 Wall will be 1 units long
 Weapons you Animate create an additional copy
+When Dual Wielding, Deals 1% Damage from each Weapon combined
 When placed, 1% increased Area of Effect per Stage
 When placed, 1% increased Aura effect per Stage
 When you Kill a Rare Monster, 1% chance to gain one of its Modifiers for 1 seconds
+While Minions have Energy Shield, their Hits Ignore Monster Elemental Resistances
 With at least 1 Dexterity in Radius, Dual Strike deals Splash Damage\nto surrounding targets while wielding a Mace
 With at least 1 Dexterity in Radius, Dual Strike has 1% increased\nAccuracy Rating while wielding a Sword
+With at least 1 Dexterity in Radius, Ice Shot has 1% increased Area of Effect
+With at least 1 Dexterity in Radius, Ice Shot Pierces 1 additional Targets
 With at least 1 Intelligence in Radius, 1% increased Freezing Pulse Damage if\nyou've Shattered an Enemy Recently
 With at least 1 Intelligence in Radius, Cold Snap grants Power Charges instead of Frenzy Charges when Enemies die in its Area\nWith at least 1 Intelligence in Radius, Cold Snap's Cooldown can be bypassed by Power Charges instead of Frenzy Charges
 With at least 1 Intelligence in Radius, Freezing Pulse fires 1 additional Projectiles
@@ -1249,12 +1464,21 @@ Withered lasts 1 seconds
 Withering Step has 1% increased Elusive Effect
 Wrath has 1% reduced Reservation
 You and nearby allies deal 1% more Spell Damage
+You and nearby allies gain 1 additional Energy Shield
+You and nearby allies gain 1 additional Evasion Rating
+You and nearby allies gain 1% additional Cold Resistance
+You and nearby allies gain 1% additional Fire Resistance
+You and nearby allies gain 1% additional Lightning Resistance
 You and nearby allies gain 1% increased Accuracy Rating
-You and nearby allies have 1% increased Spell Critical Strike Chance
+You and nearby Allies gain 1% increased Energy Shield Recharge rate
+You and nearby allies gain 1% more Evasion rating
+You and nearby Allies have 1% increased Armour and Evasion Rating
 You and nearby Allies Regenerate 1 Mana per second
 You and nearby Non-Minion Allies have a 1% chance to create Consecrated Ground on Hitting a Rare or Unique Enemy, lasting 1 seconds
 You and your Minions take 1% reduced Reflected Elemental Damage
 You and your Totems Regenerate 1% of Life per second for each Summoned Totem
+You Burn for 1% of your Maximum Energy Shield per second as Fire Damage
+You Burn for 1% of your Maximum Life per second as Fire Damage
 You can apply an additional Curse
 You cannot be Chilled for 1 seconds after being Chilled
 You cannot be Cursed with Silence
@@ -1266,7 +1490,6 @@ You cannot be Shocked for 1 seconds after being Shocked
 You cannot use this Attack directly
 You gain a Life Flask Charge when you Hit Cursed Enemy, no more\nthan once every 1 seconds
 You gain a Mana Flask Charge when you Hit Cursed Enemy, no more\nthan once every 1 seconds
-You gain Onslaught for 1 seconds on Critical Strike
 You gain Onslaught for 1 seconds on Culling Strike
 You gain Onslaught for 1 seconds on Kill
 You gain Phasing for 1 seconds on using a Vaal Skill
@@ -1275,7 +1498,6 @@ You have Consecrated Ground around you while stationary
 You have Onslaught during Soul Gain Prevention
 You have Onslaught while at maximum Endurance Charges
 You lose all Endurance Charges on reaching maximum Endurance Charges
-You take 1% reduced Extra Damage from Critical Strikes
 Your Chaos Damage has 1% chance to Poison Enemies
 Your Cold Damage can Ignite but not Freeze or Chill
 Your Critical Strikes do not deal extra Damage
@@ -1284,21 +1506,20 @@ Your Hexes can affect Hexproof Enemies
 Your Lightning Damage can Freeze but not Shock
 Your Minions spread Caustic Ground on Death, dealing 1% of their maximum Life as Chaos Damage per second
 Your Skills deal you 1% of Mana Spent on Skill Mana Costs as Physical Damage
-Deals 1 to 1 Fire Damage
-1% chance to Ignite enemies
-1% chance to gain a Power Charge when Projectile Hits a Rare or Unique Enemy
-1% increased Critical Strike Chance per Power Charge
-+1% to Critical Strike Multiplier per Power Charge
-Deals 1 to 1 Lightning Damage
-Chains +1 Times
-1% chance to Shock enemies
-1% more Damage for each remaining Chain
-Deals 1 to 1 Lightning Damage
-Chains +1 Times
-1% chance to Shock enemies
-1% more Damage for each remaining Chain
-Aftershock deals 1% more Damage with Hits and Ailments
-You and nearby allies gain 1% additional Cold Resistance
-Deals up to 1% more Damage to closer targets
-Can't use other Rings
-1% increased Damage with Bow Skills
+1% increased Attack and Cast Speed if you've Killed Recently
+
+# sentinel
+
++1 seconds to Duration
++1 to Charge
+1% chance for Empowered Enemies to have a Weapon Reward
+1% chance for Empowered Enemies to have an Armour Reward
+1% increased chance to add Rewards
+1% increased Empowerment
+1% increased number of Empowered Enemies
+Can only empower Rare or Unique enemies
+Empowered Monsters grant 1% increased Sentinel Power
+Empowered Monsters have 1% increased Quantity of Items Found
+Empowered Monsters have 1% increased Rarity of Items Found
+Empowers +1 Enemies
+Empowers many enemies in one shot

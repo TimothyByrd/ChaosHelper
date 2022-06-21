@@ -59,6 +59,8 @@ Gem Level, Any, GemLvl >= 3
 
 Life Jewel, Jewel, PctLife >= 7
 ES Jewel, Jewel, ESRecoverStart + ESRecoverRate + PctES >= 10
+Crit Jewel, Jewel, NumCrit >= 2
+DoT Jewel, Jewel, NumDot >= 2
 
 # Stat Amulet, Amulet, TotRes >= 40, MaxLife >= 50, AddDex >= 24, AddStr >= 11
 

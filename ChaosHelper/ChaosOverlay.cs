@@ -50,7 +50,7 @@ namespace ChaosHelper
 
                         logger.Info($"found process '{process.ProcessName}', pid {process.Id}");
 
-                        int fps = 30;
+                        int fps = 10; // 30;
 
                         _processExited = false;
                         _plugin = new ChaosOverlayPlugin(fps);
@@ -65,7 +65,7 @@ namespace ChaosHelper
                             Thread.Sleep(2000);
                         }
 
-                        Config.SetProcessModule(process.MainModule.FileName);
+                        Config.SetProcessModule(process.MainModule.FileName, process.Id);
 
                         _plugin.Initialize(_processSharp.WindowFactory.MainWindow);
                         _plugin.Enable();

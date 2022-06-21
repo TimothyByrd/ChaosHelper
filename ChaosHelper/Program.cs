@@ -225,6 +225,7 @@ namespace ChaosHelper
             source.Cancel();
             if (overlayTask != null) await overlayTask;
             if (keyboardTask != null) await keyboardTask;
+            HotKeyManager.UnregisterAllHotKeys();
         }
 
         private static void CheckHotkeyRegistration()
@@ -246,6 +247,8 @@ namespace ChaosHelper
                 MaybeRegister(Config.ForceUpdateHotkey);
                 MaybeRegister(Config.CharacterCheckHotkey);
                 MaybeRegister(Config.TestPatternHotkey);
+                MaybeRegister(Config.ClosePortsHotkey);
+
                 if (!haveAddedHotkeyEventHandler)
                     HotKeyManager.HotKeyPressed += new EventHandler<HotKeyEventArgs>(HotKeyManager_HotKeyPressed);
                 haveAddedHotkeyEventHandler = true;
@@ -257,8 +260,10 @@ namespace ChaosHelper
             var activated = overlay.IsPoeWindowActivated();
             if (!activated)
                 return;
-            
-            if (Config.IsHighlightItemsHotkey(e))
+
+            if (Config.IsClosePortsHotkey(e))
+                Config.CloseTcpPorts();
+            else if (Config.IsHighlightItemsHotkey(e))
             {
                 logger.Info("Highlighting sets to sell");
                 highlightSetsToSell = true;
@@ -283,6 +288,8 @@ namespace ChaosHelper
 
         static async Task CheckForUpdate()
         {
+            Config.GetCloseTcpPortsArgument();
+
             if (isPaused && !forceFilterUpdate)
                 return;
 
@@ -363,12 +370,18 @@ namespace ChaosHelper
             string msg;
             var numSets = itemsCurrent.CountPossible(false);
             if (numSets > 0)
-                msg = $"you can make {numSets} un-IDed sets";
+            {
+                var s = numSets == 1 ? "" : "s";
+                msg = $"you can make {numSets} un-IDed set{s}";
+            }
             else
             {
                 numSets = Config.AllowIDedSets ? itemsCurrent.CountPossible(true) : 0;
                 if (numSets > 0)
-                    msg = $"you can make {numSets} IDed sets";
+                {
+                    var s = numSets == 1 ? "" : "s";
+                    msg = $"you can make {numSets} IDed set{s}";
+                }
                 else
                     msg = $"no sets, yet";
             }
@@ -401,6 +414,11 @@ namespace ChaosHelper
                 }
 
                 JsonElement json = await GetJsonByTabIndex(tabIndex);
+                if (json.ValueKind == JsonValueKind.Undefined)
+                {
+                    logger.Error("ERROR: empty stash returned");
+                    return 0;
+                }
                 foreach (var item in json.GetProperty("items").EnumerateArray())
                 {
                     var frameType = item.GetIntOrDefault("frameType", 0);
@@ -507,8 +525,10 @@ namespace ChaosHelper
 
             static int GetQuality(JsonElement item)
             {
+                if (!item.TryGetProperty("properties", out var properties))
+                    return 0;
                 var quality = 0;
-                foreach (var prop in item.GetProperty("properties").EnumerateArray())
+                foreach (var prop in properties.EnumerateArray())
                 {
                     var propType = prop.GetIntOrDefault("type", -1);
                     if (propType != 6)
@@ -894,9 +914,9 @@ namespace ChaosHelper
                     while (line != null)
                     {
                         var i = line.IndexOf(Config.AreaEnteredPattern);
-                        if (i > 0)
+                        if (i >= 0)
                             newArea = line.Substring(i + Config.AreaEnteredPattern.Length).Trim().TrimEnd('.');
-                        else if (line.IndexOf(loginPattern) > 0)
+                        else if (line.Contains(loginPattern, StringComparison.OrdinalIgnoreCase))
                             sawLoginLine = true;
                         line = await sr.ReadLineAsync();
                     }

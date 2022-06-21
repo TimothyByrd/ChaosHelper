@@ -8,7 +8,11 @@
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
     <ApplicationIcon />
     <StartupObject />
+    <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
   </PropertyGroup>
+  <ItemGroup>
+    <AdditionalFiles Remove="app.manifest" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="..\LICENCE.md">
       <Link>LICENCE.md</Link>
@@ -39,6 +43,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="base_items.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="filter_insert.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="itemMods.csv">
@@ -78,4 +85,7 @@
     <PackageReference Include="System.Runtime" Version="4.3.1" />
     <PackageReference Include="System.Text.Json" Version="5.0.2" />
   </ItemGroup>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="echo copy $(ProjectDir)..\x64\$(Configuration)\ClosePortsForPid.exe $(ProjectDir)$(OutDir)&#xD;&#xA;copy $(ProjectDir)..\x64\$(Configuration)\ClosePortsForPid.exe $(ProjectDir)$(OutDir)" />
+  </Target>
 </Project>

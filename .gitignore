@@ -7,6 +7,8 @@ bin/
 obj/
 packages/
 **/*.csproj.user
+**/*.vcxproj.user
+x64/
 
 #other
 ChaosHelper/settings.mine

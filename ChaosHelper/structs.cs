@@ -13,6 +13,7 @@ namespace ChaosHelper
     // This file contains some small data structures that don't merit their own files.
     //
 
+
     public class ItemPosition
     {
         public int X;
@@ -46,15 +47,53 @@ namespace ChaosHelper
 
         public static int Compare(ItemPosition ip1, ItemPosition ip2)
         {
-            if (ip1.X < ip2.X)
-                return 1;
-            if (ip1.X > ip2.X)
-                return -1;
-            if (ip1.Y < ip2.Y)
-                return 1;
-            if (ip1.Y > ip2.Y)
-                return -1;
-            return 0;
+            if (SortOrder == SortBy.ILvl || SortOrder == SortBy.IlvlBottomFirst)
+            {
+                if (ip1.iLvl > ip2.iLvl)
+                    return 1;
+                if (ip1.iLvl < ip2.iLvl)
+                    return -1;
+            }
+
+            if (SortOrder == SortBy.Default)
+            {
+                if (ip1.X < ip2.X)
+                    return 1;
+                if (ip1.X > ip2.X)
+                    return -1;
+                if (ip1.Y < ip2.Y)
+                    return 1;
+                if (ip1.Y > ip2.Y)
+                    return -1;
+                return 0;
+            }
+            else
+            {
+                if (ip1.Y < ip2.Y)
+                    return 1;
+                if (ip1.Y > ip2.Y)
+                    return -1;
+                if (ip1.X < ip2.X)
+                    return 1;
+                if (ip1.X > ip2.X)
+                    return -1;
+                return 0;
+            }
+        }
+
+        public bool Is75 { get { return iLvl >= 75; } }
+        public bool Is2x4 { get { return W == 2 && H == 4; } }
+        public bool Is1x4 { get { return W == 1 && H == 4; } }
+        public bool Is2x3 { get { return W == 2 && H == 3; } }
+
+        public static SortBy SortOrder = SortBy.Default;
+
+        public enum SortBy
+        {
+            Default,
+            ILvl,
+            BottomFirst,
+            IlvlBottomFirst,
         }
     }
 

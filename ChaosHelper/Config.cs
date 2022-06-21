@@ -14,7 +14,9 @@ namespace ChaosHelper
     {
         private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         private static RawJsonConfiguration rawConfig;
-        private static string exePath;
+        //private static string _poeExeName = null;
+        private static int _poeProcessId = 0;
+        private static string _closePortsArg = null;
 
         public enum StashReading
         {
@@ -65,11 +67,13 @@ namespace ChaosHelper
         public static HotKeyBinding ForceUpdateHotkey { get; private set; }
         public static HotKeyBinding CharacterCheckHotkey { get; private set; }
         public static HotKeyBinding TestPatternHotkey { get; private set; }
+        public static HotKeyBinding ClosePortsHotkey { get; private set; }
         public static bool ShouldHookMouseEvents { get; private set; }
         public static string RequiredProcessName { get; private set; }
         public static System.Drawing.Rectangle StashPageXYWH { get; private set; }
         public static int StashPageVerticalOffset { get; private set; }
         public static StashReading StashReadMode { get; private set; }
+        public static bool StashCanDoManualRead { get; private set; }
         public static bool ForceSteam { get; set; }
         public static int CurrencyTabIndex { get; set; } = -1;
         public static int QualityTabIndex { get; set; } = -1;
@@ -78,6 +82,9 @@ namespace ChaosHelper
         public static string FilterInsertFile { get; private set; }
         public static double DefenseVariance { get; private set; }
         public static bool ShowMinimumCurrency { get; private set; }
+        public static string ExePath { get; private set; }
+        public static string ClosePortsForPidPath { get; private set; }
+        public static bool RunningAsAdmin { get; private set; }
 
         public static bool IsTown(string newArea)
         {
@@ -132,6 +139,11 @@ namespace ChaosHelper
             return HotKeyMatches(TestPatternHotkey, e);
         }
 
+        public static bool IsClosePortsHotkey(ConsoleHotKey.HotKeyEventArgs e)
+        {
+            return HotKeyMatches(ClosePortsHotkey, e);
+        }
+
         public static bool LimitIlvl(ItemClassForFilter c)
         {
             var limitIlvl = MaxIlvl > 60 && MaxIlvl < 100 && IgnoreMaxIlvl.IndexOf(c.CategoryStr, StringComparison.OrdinalIgnoreCase) < 0;
@@ -140,8 +152,16 @@ namespace ChaosHelper
 
         public static async Task<bool> ReadConfigFile()
         {
-            exePath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            var configFile = Path.Combine(exePath, "settings.jsonc");
+            if (OperatingSystem.IsWindows())
+            {
+                var principal = new System.Security.Principal.WindowsPrincipal(System.Security.Principal.WindowsIdentity.GetCurrent());
+                RunningAsAdmin = principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
+            }
+            else
+                RunningAsAdmin = false;
+
+            ExePath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            var configFile = Path.Combine(ExePath, "settings.jsonc");
             if (!File.Exists(configFile))
             {
                 logger.Error("ERROR: config file 'settings.jsonc' not found");
@@ -158,11 +178,11 @@ namespace ChaosHelper
                 return false;
             }
 
-            FilterUpdateSound = Path.Combine(exePath, "FilterUpdateSound.wav");
+            FilterUpdateSound = Path.Combine(ExePath, "FilterUpdateSound.wav");
             var filterUpdateVolumeInt = rawConfig.GetInt("soundFileVolume", 50).Clamp(0, 100);
             FilterUpdateVolume = filterUpdateVolumeInt / 100.0f;
 
-            FilterInsertFile = Path.Combine(exePath, "filter_insert.txt");
+            FilterInsertFile = Path.Combine(ExePath, "filter_insert.txt");
             if (!File.Exists(FilterInsertFile))
                 FilterInsertFile = null;
 
@@ -193,6 +213,7 @@ namespace ChaosHelper
                 StashReadMode = stashReadMode;
             else
                 StashReadMode = StashReading.Normal;
+            StashCanDoManualRead = StashReadMode == StashReading.Manual || rawConfig.GetBoolean("stashCanDoManualRead", true);
 
             if (!await CheckAccount())
                 return false;
@@ -204,6 +225,13 @@ namespace ChaosHelper
             ChaosParanoiaLevel = rawConfig.GetInt("chaosParanoiaLevel", 0);
             IgnoreMaxSets = rawConfig["ignoreMaxSets"];
             IgnoreMaxIlvl = rawConfig["ignoreMaxIlvl"];
+            var sortOrderStr = rawConfig["itemSortOrder"];
+            if (Enum.TryParse<ItemPosition.SortBy>(sortOrderStr, true, out var sortOrder)
+                && Enum.IsDefined(typeof(ItemPosition.SortBy), sortOrder))
+                ItemPosition.SortOrder = sortOrder;
+            else
+                ItemPosition.SortOrder = MinIlvl < 60 ? ItemPosition.SortBy.IlvlBottomFirst : ItemPosition.SortBy.Default;
+            
             TownZones = rawConfig.GetStringList("townZones");
 
             AreaEnteredPattern = rawConfig["areaEnteredPattern "];
@@ -217,9 +245,7 @@ namespace ChaosHelper
             {
                 var result = rawConfig.GetHotKey(s);
                 if (result != null)
-                {
                     logger.Info($"hot key '{s}' is '{rawConfig[s]}'");
-                }
                 return result;
             }
 
@@ -229,6 +255,27 @@ namespace ChaosHelper
             ForceUpdateHotkey = GetHotKey("forceUpdateHotkey");
             CharacterCheckHotkey = GetHotKey("characterCheckHotkey");
             TestPatternHotkey = GetHotKey("testPatternHotkey");
+            ClosePortsHotkey = GetHotKey("closePortsHotkey");
+
+            if (ClosePortsHotkey != null)
+            {
+                if (!RunningAsAdmin)
+                {
+                    logger.Warn("Not running as admin - cannot close ports");
+                    ClosePortsForPidPath = null;
+                    ClosePortsHotkey = null;
+                }
+                else
+                {
+                    ClosePortsForPidPath = Path.Combine(ExePath, "ClosePortsForPid.exe");
+                    if (!File.Exists(ClosePortsForPidPath))
+                    {
+                        logger.Warn("ClosePortsForPid.exe not found - cannot close ports");
+                        ClosePortsForPidPath = null;
+                        ClosePortsHotkey = null;
+                    }
+                }
+            }
 
             ShouldHookMouseEvents = rawConfig.GetBoolean("hookMouseEvents", false);
             RequiredProcessName = rawConfig["processName"];
@@ -302,14 +349,14 @@ namespace ChaosHelper
                 return false;
             }
 
-            var itemModFile = Path.Combine(exePath, "itemMods.csv");
+            var itemModFile = Path.Combine(ExePath, "itemMods.csv");
             if (File.Exists(itemModFile))
             {
                 ItemMod.ReadItemModFile(itemModFile);
                 logger.Info($"item mod file - there are {ItemMod.PossibleMods.Count} mods");
             }
 
-            var itemRuleFile = Path.Combine(exePath, "itemRules.csv");
+            var itemRuleFile = Path.Combine(ExePath, "itemRules.csv");
             if (File.Exists(itemRuleFile))
             {
                 ItemRule.ReadRuleFile(itemRuleFile);
@@ -466,7 +513,7 @@ namespace ChaosHelper
                         if (QualityGemRecipeSlop >= 40)
                             QualityGemRecipeSlop -= 40;
                         QualityVaalGemMaxQualityToUse = rawConfig.GetInt("qualityVaalGemMaxQualityToUse");
-                        logger.Info($"found quality tab '{name}', index = {QualityTabIndex}");
+                        logger.Info($"found quality tab '{name}', index = {QualityTabIndex}, gem slop {QualityGemRecipeSlop}, flask slop = {QualityFlaskRecipeSlop}, scrap slop = {QualityScrapRecipeSlop}");
                     }
 
                     if (dumpTabNames.Contains(name))
@@ -538,12 +585,14 @@ namespace ChaosHelper
                 }
             }
 
+            if (!StashCanDoManualRead)
+                return new JsonElement();
             return await ManualGetUrlJson(theUrl);
         }
 
         public static string TabFileName(string tabName)
         {
-            return Path.Combine(exePath, $"json_{tabName}.json");
+            return Path.Combine(ExePath, $"json_{tabName}.json");
         }
 
         public static void MaybeSavePageJson(JsonElement json, string tabName)
@@ -583,12 +632,72 @@ namespace ChaosHelper
             return JsonSerializer.Deserialize<JsonElement>("{}");
         }
 
-        public static void SetProcessModule(string processModulePath)
+        public static void SetProcessModule(string processModulePath, int poeProcessId)
         {
             var path = Path.GetDirectoryName(processModulePath);
             var clientFile = Path.Combine(path, "logs\\Client.txt");
             if (File.Exists(clientFile))
                 ClientFileName = clientFile;
+            //_poeExeName = Path.GetFileName(processModulePath);
+            _poeProcessId = poeProcessId;
+            GetCloseTcpPortsArgument();
+        }
+
+        public static void GetCloseTcpPortsArgument()
+        {
+            // pre-compute the arguments to speed up closing the ports when the hotkey is pressed
+            //
+            if (_poeProcessId <= 0 || string.IsNullOrEmpty(ClosePortsForPidPath))
+                return;
+            try
+            {
+                var oldArg = _closePortsArg;
+                var arguments = $"{_poeProcessId} print args";
+                var processStartInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = ClosePortsForPidPath,
+                    Arguments = arguments,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                     CreateNoWindow = true,
+
+                };
+                using var process = System.Diagnostics.Process.Start(processStartInfo);
+                var output = process.StandardOutput.ReadToEnd();
+                process.WaitForExit();
+                if (process.ExitCode != 0 || output.StartsWith('*'))
+                    logger.Error($"Running ClosePortsForPid.exe to get arguments did not succeed: {output}");
+                else
+                {
+                    _closePortsArg = $"{output.Trim()} {_poeProcessId}";
+                    if (!string.Equals(_closePortsArg, oldArg))
+                        logger.Info($"ClosePortsForPid argument is '{_closePortsArg}'");
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Running ClosePortsForPid.exe to get arguments");
+            }
+        }
+
+        public static void CloseTcpPorts()
+        {
+            if (_poeProcessId <= 0 || string.IsNullOrEmpty(ClosePortsForPidPath) || string.IsNullOrEmpty(_closePortsArg))
+            {
+                logger.Warn("Could not run ClosePortsForPid");
+                return;
+            }
+            var arguments = _closePortsArg ?? $"{_poeProcessId}";
+            _closePortsArg = null;
+            try
+            {
+                using var exeProcess = System.Diagnostics.Process.Start(ClosePortsForPidPath, arguments);
+                exeProcess.WaitForExit();
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Running ClosePortsForPid.exe");
+            }
         }
     }
 }
