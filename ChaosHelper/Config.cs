@@ -47,13 +47,13 @@ namespace ChaosHelper
         public static bool IsQuadTab { get; private set; }
         public static bool QualityIsQuadTab { get; private set; }
         public static int QualityFlaskRecipeSlop { get; private set; }
-        public static int QualityGemRecipeSlop { get; private set; }
+        public static int QualityGemMapRecipeSlop { get; private set; }
         public static int QualityScrapRecipeSlop { get; private set; }
-        public static int QualityVaalGemMaxQualityToUse { get; private set; }
         public static Dictionary<int, string> DumpTabDictionary { get; private set; } = new Dictionary<int, string>();
         public static bool AllowIDedSets { get; private set; }
         public static int ChaosParanoiaLevel { get; private set; }
         public static string IgnoreMaxSets { get; private set; }
+        public static string IgnoreMaxSetsUnder75 { get; private set; }
         public static string IgnoreMaxIlvl { get; private set; }
         public static List<string> TownZones { get; private set; }
         public static List<int> HighlightColors { get; private set; }
@@ -144,12 +144,6 @@ namespace ChaosHelper
             return HotKeyMatches(ClosePortsHotkey, e);
         }
 
-        public static bool LimitIlvl(ItemClassForFilter c)
-        {
-            var limitIlvl = MaxIlvl > 60 && MaxIlvl < 100 && IgnoreMaxIlvl.IndexOf(c.CategoryStr, StringComparison.OrdinalIgnoreCase) < 0;
-            return limitIlvl;
-        }
-
         public static async Task<bool> ReadConfigFile()
         {
             if (OperatingSystem.IsWindows())
@@ -224,6 +218,7 @@ namespace ChaosHelper
             AllowIDedSets = rawConfig.GetBoolean("allowIDedSets", false);
             ChaosParanoiaLevel = rawConfig.GetInt("chaosParanoiaLevel", 0);
             IgnoreMaxSets = rawConfig["ignoreMaxSets"];
+            IgnoreMaxSetsUnder75 = rawConfig["ignoreMaxSetsUnder75"];
             IgnoreMaxIlvl = rawConfig["ignoreMaxIlvl"];
             var sortOrderStr = rawConfig["itemSortOrder"];
             if (Enum.TryParse<ItemPosition.SortBy>(sortOrderStr, true, out var sortOrder)
@@ -300,16 +295,13 @@ namespace ChaosHelper
             FilterDisplay = null;
             if (rawConfig.TryGetProperty("filterDisplay", out var filterDisplayElement))
                 FilterDisplay = ItemDisplay.Parse(filterDisplayElement);
-            if (FilterDisplay == null)
+            FilterDisplay ??= new ItemDisplay
             {
-                FilterDisplay = new ItemDisplay
-                {
-                    FontSize = 0,
-                    TextColor = "106 77 255",
-                    BackGroundColor = "70 70 70",
-                    BorderColor = "106 77 255",
-                };
-            }
+                FontSize = 0,
+                TextColor = "106 77 255",
+                BackGroundColor = "70 70 70",
+                BorderColor = "106 77 255",
+            };
 
             FilterMarker = rawConfig["filterMarker"];
             if (string.IsNullOrWhiteSpace(FilterMarker))
@@ -509,11 +501,10 @@ namespace ChaosHelper
                         QualityFlaskRecipeSlop = rawConfig.GetInt("qualityFlaskRecipeSlop");
                         if (QualityFlaskRecipeSlop >= 40)
                             QualityFlaskRecipeSlop -= 40;
-                        QualityGemRecipeSlop = rawConfig.GetInt("qualityGemRecipeSlop");
-                        if (QualityGemRecipeSlop >= 40)
-                            QualityGemRecipeSlop -= 40;
-                        QualityVaalGemMaxQualityToUse = rawConfig.GetInt("qualityVaalGemMaxQualityToUse");
-                        logger.Info($"found quality tab '{name}', index = {QualityTabIndex}, gem slop {QualityGemRecipeSlop}, flask slop = {QualityFlaskRecipeSlop}, scrap slop = {QualityScrapRecipeSlop}");
+                        QualityGemMapRecipeSlop = rawConfig.GetInt("qualityGemMapRecipeSlop");
+                        if (QualityGemMapRecipeSlop >= 40)
+                            QualityGemMapRecipeSlop -= 40;
+                        logger.Info($"found quality tab '{name}', index = {QualityTabIndex}, gem/map slop {QualityGemMapRecipeSlop}, flask slop = {QualityFlaskRecipeSlop}, scrap slop = {QualityScrapRecipeSlop}");
                     }
 
                     if (dumpTabNames.Contains(name))

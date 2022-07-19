@@ -339,6 +339,7 @@ The Ring's Cut reduced by 1%
 +1 to Level of Socketed Spell Gems
 +1 to Level of Socketed Support Gems
 +1 to Maximum Endurance Charges
++1 to maximum Fortification while Focused
 +1 to Maximum Life per 1 Intelligence
 +1 to maximum number of Raised Zombies
 +1 to maximum number of Skeletons
@@ -377,6 +378,7 @@ The Ring's Cut reduced by 1%
 +1% Monster Elemental Resistance
 +1% Monster Physical Damage Reduction
 +1% to all Elemental Resistances while you have at least 1 Strength
++1% to all maximum Resistances
 +1% to all maximum Resistances while you have no Endurance Charges
 +1% to Chaos Resistance during any Flask Effect
 +1% to Chaos Resistance when on Low Life
@@ -463,6 +465,7 @@ The Ring's Cut reduced by 1%
 1% chance to Avoid Bleeding
 1% chance to Avoid Elemental Ailments
 1% chance to Avoid Elemental Damage from Hits during Soul Gain Prevention
+1% chance to Avoid Lightning Damage from Hits
 1% chance to Blind Enemies on hit
 1% chance to Blind Enemies on Hit with Attacks
 1% Chance to Block Attack Damage
@@ -487,6 +490,7 @@ The Ring's Cut reduced by 1%
 1% chance to gain a Frenzy Charge on Hit
 1% chance to gain a Frenzy Charge on Kill
 1% chance to gain a Frenzy Charge when an Enemy Dies while in this Skill's Area
+1% Chance to gain a Power Charge on Critical Strike with Ice Spear
 1% chance to gain a Power Charge on Kill
 1% chance to gain a Power Charge when Projectile Hits a Rare or Unique Enemy
 1% chance to gain a Power Charge when you Throw a Trap
@@ -521,6 +525,7 @@ The Ring's Cut reduced by 1%
 1% chance to Trigger Level 1 Blood Rage when you Kill an Enemy
 1% chance to Trigger Level 1 Shade Form when you Use a Socketed Skill
 1% Chance to Trigger Level 1 Summon Spectral Wolf on Kill
+1% chance to Trigger this Skill when Hit
 1% Global chance to Blind Enemies on hit
 1% increased Accuracy Rating per Frenzy Charge
 1% increased Accuracy Rating when on Low Life
@@ -540,6 +545,7 @@ The Ring's Cut reduced by 1%
 1% increased Armour and Evasion
 1% increased Armour while not Ignited, Frozen or Shocked
 1% increased Assassin's Mark Duration
+1% increased Attack and Cast Speed if you've Killed Recently
 1% increased Attack and Cast Speed while Focused
 1% increased Attack Damage
 1% increased Attack Damage against Bleeding Enemies
@@ -575,6 +581,7 @@ The Ring's Cut reduced by 1%
 1% increased Cooldown Recovery Rate
 1% increased Cooldown Recovery Rate for each Normal or Magic Enemy in Area\n1% increased Cooldown Recovery Rate for each Rare or Unique Enemy in Area
 1% increased Cooldown Recovery Rate for throwing Traps
+1% increased Critical Strike Chance during any Flask Effect
 1% increased Damage against Abyssal Monsters
 1% increased Damage per 1% Chance to Block Attack Damage
 1% increased Damage per Endurance Charge
@@ -621,6 +628,7 @@ The Ring's Cut reduced by 1%
 1% increased Effect of Fortify on you while Focussed
 1% increased Effect of Lightning Ailments
 1% increased effect of Non-Curse Auras from your Skills
+1% increased Effect of Non-Curse Auras from your Skills on Enemies
 1% increased Effect of Non-Damaging Ailments
 1% increased Effect of Shrine Buffs on you
 1% increased Effect of your Curses
@@ -631,6 +639,7 @@ The Ring's Cut reduced by 1%
 1% increased Endurance Charge Duration
 1% increased Endurance, Frenzy and Power Charge Duration
 1% increased Energy Shield Recovery rate
+1% increased Ethereal Knives Projectile Speed
 1% increased Evasion and Energy Shield
 1% increased Evasion Rating
 1% increased Evasion Rating during Onslaught
@@ -671,6 +680,7 @@ The Ring's Cut reduced by 1%
 1% increased Mana Regeneration Rate
 1% increased Mana Regeneration Rate if you've cast a Spell Recently
 1% increased Mana Regeneration Rate per Power Charge
+1% increased Mana Reservation Efficiency of Skills
 1% increased maximum Energy Shield
 1% increased Maximum Life per Abyss Jewel affecting you
 1% increased maximum Mana
@@ -750,6 +760,7 @@ The Ring's Cut reduced by 1%
 1% increased Ward
 1% less Animate Weapon Duration
 1% less Area of Effect when Cast on Frostbolt
+1% less Burning Damage
 1% less effect of Curses on Monsters
 1% less Elemental Damage taken per Raised Zombie
 1% less Movement Speed
@@ -826,6 +837,7 @@ The Ring's Cut reduced by 1%
 1% reduced Effect of Shock on you
 1% reduced Enemy Stun Threshold
 1% reduced Enemy Stun Threshold with this Weapon
+1% reduced Energy Shield Recharge Rate
 1% reduced Experience gain
 1% reduced Flask Charges used
 1% reduced Flask Effect Duration
@@ -957,6 +969,7 @@ Allocates Vengeant Cascade
 Allocates Vitality Extraction
 Allocates Volatile Mines
 Allocates Will of Blades
+Ancestral Cry has a minimum of 1 Power
 Ancestral Protector Totem grants 1% increased Attack Speed while Active
 Applies beams to the closest 1 Enemies
 Area has increased monster variety
@@ -969,6 +982,7 @@ Armageddon Brand Damage Penetrates 1% of Branded Enemy's Fire Resistance
 Arrows fire Beams every 1 seconds
 Arrows Pierce all Targets
 Arrows Pierce an additional Target
+Artillery Ballista fires an additional Arrow
 Attack Skills have +1 to maximum number of Summoned Totems
 Attacks Chain an additional time when in Main Hand
 Attacks fire an additional Projectile when in Off Hand
@@ -1020,6 +1034,7 @@ Cannot gain Mana during effect
 Cannot Leech Life
 Cannot Leech Mana
 Cannot Leech when on Low Life
+Cast Level 1 Fire Burst on Hit
 Chains +1 Times
 Chaos Damage does not bypass Minions' Energy Shield
 Chaos Skills have 1% increased Skill Effect Duration
@@ -1032,6 +1047,7 @@ Counts as Dual Wielding
 Counts total Power of Enemies in Range
 Covers Enemies in Ash, causing 1% increased Fire Damage taken per 1 Power, up to 1%
 Creates a Smoke Cloud on Use
+Creates Chilled Ground on Use
 Creates Consecrated Ground on Use
 Creeping Frost's Chilling Area has 1% increased Movement Speed
 Cruelty has a Base Duration of 1 seconds
@@ -1080,6 +1096,7 @@ Drops Shocked Ground while moving, lasting 1 seconds
 Each Arrow can fire 1 Beams
 Earthshatter deals 1% increased Damage; LabEnchant
 Elemental Hit deals 1% increased Damage
+Elemental Resistances are Zero
 Enemies Cannot Leech Mana From you
 Enemies Ignited by Supported Skills have -1% to Fire Resistance
 Enemies Killed with Attack or Spell Hits Explode, dealing 1% of their Life as Fire Damage
@@ -1091,6 +1108,7 @@ Exerted Attacks Trigger Combust the first time they deal a Melee Hit
 Exerts the next 1 Melee Attacks you perform
 Explosion deals base Fire Damage equal to 1% of the corpse's Maximum Life
 Explosion deals Fire Damage equal to 1% of the Monster's maximum Life
+Explosive Arrow has 1% increased Duration
 Extra gore
 Eye of Winter fires Shard projectiles with 1% increased Frequency during flight
 Feeding Frenzy base Duration is 1 seconds
@@ -1104,6 +1122,7 @@ First Hit deals 1% less Damage
 Flask effect is not removed when Unreserved Mana is Filled\nFlask effect does not Queue
 Flasks applied to you have 1% increased Effect
 Focus has 1% increased Cooldown Recovery Rate
+Gain +1% to Critical Strike Chance for 1 seconds after Spending a total of 1 Mana
 Gain 1 Endurance Charge per 1 Power
 Gain 1 Life on Culling Strike
 Gain 1 Life when you lose an Endurance Charge
@@ -1293,6 +1312,7 @@ Reflects 1 Cold Damage to Melee Attackers
 Reflects 1 Fire Damage to Melee Attackers
 Reflects 1 Physical Damage to Attackers on Block
 Reflects 1 Physical Damage to Melee Attackers
+Reflects 1 to 1 Lightning Damage to Attackers on Block
 Reflects 1 to 1 Physical Damage to Attackers on Block
 Reflects 1% of Damage taken from Buff as Fire Damage when Buff expires or is depleted
 Regenerate 1 Energy Shield per second
@@ -1331,6 +1351,7 @@ Skills used by Traps have 1% increased Area of Effect
 Skills which throw Mines throw up to 1 additional Mine if you have at least 1 Dexterity
 Skills which throw Mines throw up to 1 additional Mine if you have at least 1 Intelligence
 Slaying Enemies close together has a 1% chance to attract monsters from Beyond
+Smite has 1% increased Aura Effect
 Socketed Curse Gems have 1% reduced Reservation
 Socketed Gems are Supported by Level 1 Added Chaos Damage
 Socketed Gems are Supported by Level 1 Added Fire Damage
@@ -1339,9 +1360,11 @@ Socketed Gems are supported by Level 1 Blind
 Socketed Gems are supported by Level 1 Cast on Death
 Socketed Gems are supported by Level 1 Chance to Flee
 Socketed Gems are Supported by Level 1 Cold to Fire
+Socketed Gems are Supported by Level 1 Concentrated Effect
 Socketed Gems are Supported by Level 1 Elemental Penetration
 Socketed Gems are Supported by Level 1 Elemental Proliferation
 Socketed Gems are Supported by Level 1 Faster Attacks
+Socketed Gems are Supported by Level 1 Faster Casting
 Socketed Gems are Supported by Level 1 Fire Penetration
 Socketed Gems are Supported by Level 1 Generosity
 Socketed Gems are Supported by Level 1 Inspiration
@@ -1365,6 +1388,7 @@ Spawns corpses with Level 1
 Spirals through 1 rotations
 Storm Brand Damage Penetrates 1% of Branded Enemy's Lightning Resistance
 Stun Threshold is based on Energy Shield instead of Life
+Summoned Carrion Golems deal 1% increased Damage
 Summoned Raging Spirits deal 1% increased Damage
 Summoned Raging Spirits' Hits always Ignite
 Summoned Raging Spirits' Melee Strikes deal Fire-only Splash\nDamage to Surrounding Targets
@@ -1373,11 +1397,13 @@ Summons a Totem which uses this Skill
 Supported Attacks deal 1 to 1 added Physical Damage with Weapons per 1 Rage
 Supported Attacks deal 1 to 1 added Physical Damage with Weapons while you have at least 1 Rage
 Supported Attacks have 1% chance to Maim on Hit
+Supported Skills Chain +1 times
 Supported Skills deal 1% increased Area Damage
 Supported Skills deal 1% increased Damage while Leeching Life
 Supported Skills deal 1% increased Damage with Hits against Frozen Enemies
 Supported Skills deal 1% less Damage
 Supported Skills deal 1% less Damage to surrounding targets
+Supported Skills deal 1% less Damage with Hits
 Supported Skills deal 1% less Projectile Damage
 Supported Skills deal 1% more Damage with Ailments caused by Melee Hits
 Supported Skills deal 1% more Damage with Hits
@@ -1399,6 +1425,7 @@ Supported Skills have 1% chance to grant Onslaught for 1 seconds when you Hit a 
 Supported Skills have 1% chance to Ignite
 Supported Skills have 1% increased Area of Effect
 Supported Skills have 1% increased Cast Speed
+Supported Skills have 1% increased Chaining range
 Supported Skills have 1% increased Fortify duration
 Supported Skills have 1% less Critical Strike Chance
 Supported Skills have 1% more Melee Splash Area of Effect
@@ -1417,10 +1444,13 @@ Totems gain +1% to all Elemental Resistances
 Totems Reflect 1% of their maximum Life as Fire Damage to nearby Enemies when Hit
 Trap lasts 1 seconds
 Trigger a Socketed Spell on Using a Skill, with a 1 second Cooldown and 1% more Cost
+Trigger a Socketed Spell on Using a Skill, with a 1 second Cooldown\nSpells Triggered this way have 1% more Cost
 Trigger a Socketed Spell when you Use a Skill, with a 1 second Cooldown and 1% more Cost
 Trigger a Socketed Warcry Skill on losing Endurance Charges, with a 1 second Cooldown
+Trigger Commandment of Frost on Kill
 Trigger Commandment of Spite when Hit
 Trigger Decree of Fury on Hit
+Trigger Decree of Ire when Hit
 Trigger Decree of War on Kill
 Trigger Edict of Blades on Hit
 Trigger Edict of Inferno on Kill
@@ -1480,6 +1510,7 @@ You and your Totems Regenerate 1% of Life per second for each Summoned Totem
 You Burn for 1% of your Maximum Energy Shield per second as Fire Damage
 You Burn for 1% of your Maximum Life per second as Fire Damage
 You can apply an additional Curse
+You can inflict an additional Ignite on an Enemy
 You cannot be Chilled for 1 seconds after being Chilled
 You cannot be Cursed with Silence
 You cannot be Frozen for 1 seconds after being Frozen
@@ -1506,7 +1537,6 @@ Your Hexes can affect Hexproof Enemies
 Your Lightning Damage can Freeze but not Shock
 Your Minions spread Caustic Ground on Death, dealing 1% of their maximum Life as Chaos Damage per second
 Your Skills deal you 1% of Mana Spent on Skill Mana Costs as Physical Damage
-1% increased Attack and Cast Speed if you've Killed Recently
 
 # sentinel
 
@@ -1523,3 +1553,4 @@ Empowered Monsters have 1% increased Quantity of Items Found
 Empowered Monsters have 1% increased Rarity of Items Found
 Empowers +1 Enemies
 Empowers many enemies in one shot
+Grants Level 1 Purity of Elements Aura

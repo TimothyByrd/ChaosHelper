@@ -12,7 +12,7 @@ It has two main functions:
 - It can highlight sets of items in your stash to make selling for chaos more efficient.
 
 Other stuff it can do:
-- Check a tab for quality gems/flasks for the 40% recipes, and highlight if found.
+- Check a tab for quality items for the 40% recipes, and highlight if found.
 - Check a set of dump tabs for interesting rare items. Where interesting can be defined by a set of item rules. It also checks for items with matching names for the chance recipe. Since multiple tabs are checked, results are not highlighted.
 
 ~~Compared to poe_qol, this tool has no UI. So if that matters, use poe_qol.~~ (Not being maintained.)
@@ -104,7 +104,7 @@ These are the commands you can send to the tool:
 
 1. Pause (P): Pauses getting data from the PoE site automatically on area change.
 2. Highlight items (H): (town only) To highlight sets of items to sell (it tries for two sets).
-3. Show quality items (Q): (town only) To highlight sets of quality gems/flasks to sell. It tries for one set of each. Only available if `qualityTab` is set in settings.jsonc. 
+3. Show quality items (Q): (town only) To highlight sets of quality gems/flasks/maps to sell. It tries for one set of each. Only available if `qualityTab` is set in settings.jsonc. 
 4. Show junk items (J): (town only) To toggle showing items in your stash tab that are not for the recipe, so you can clear them out.
 5. Force update (F): To force a re-read of the stash tab and a write of the filter file.
 6. Character check (C): Recheck your character and league. (This should happen automatically when you switch chararacters.)
@@ -113,6 +113,7 @@ These are the commands you can send to the tool:
 9. Currency list (Z): Get currency prices from Poe Ninja, then print a listing of the contents of the currency tab in the ChaosHelper console window, with a total value. The listing should be copy-pastable into a spreadsheet.
 10. Check dump tabs (D): Check dump tabs for interesting items (see "Item rules" below) and for items with matching names for chance recipe. Must have `dumpTabs` configured in settings.jsonc. 
 11. Check item from clipboard (S): After doing Ctrl-C on an item in PoE, this command will check it against configured item rules (see "Item rules" below). Mostly useful for testing rules.
+12. Close TCP ports (none): Close the TCP ports currently being used by the PoE process. This will cause an instant logout. Requires running ChaosHelper as an Admin.
 
 The commands can be invoked:
 
@@ -126,8 +127,9 @@ The commands can be invoked:
         - Force update: `Alt-F`
         - Character check: `Alt-C` but disabled by default
         - Test pattern: `Alt-T` but disabled by default
+        - Close Ports: `Alt-Q` but disabled by default (and requires running as Admin)
     - These hotkeys can be rebound or disabled in settings.jsonc by commenting them out.
-    - When definining a hotkey, for modifiers, use '^' for Ctrl, '+' for Shift and '!' for Alt.
+    - When defining a hotkey, for modifiers, use '^' for Ctrl, '+' for Shift and '!' for Alt.
     - For a list of key names/numbers, see https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys
     - Remember, these set **global** hotkeys, so be careful not to bork your other programs.
     - Other commands do not have hot keys. They must be invoked from the ChaosHelper console window or by sending a key to the ChaosHelper console. 
@@ -154,8 +156,9 @@ You can set the place in the filter where the chaos recipe code will go by confi
 For example, if you have your own custom loot filter and want to use it, you could set `filterMarker` to "%%" and then add a line to your filter in the appropriate place reading "#%%".
 Your filter will still work as before, and the tool will be able to use it as a template.
 
-By default, the tool looks for a line containing the text "section displays 20% quality rares" in the template file.
+By default, the tool currently looks for a line containing the text "Override 270" in the template file.
 For Neversink filters, this seems to put the chaos recipe section in a good place.
+(Another value that seems to work is "Having this list too long".)
 
 **NOTE:** Make sure the text specified in `filterMarker` only occurs once in the filter template, at the place you want the chaos recipe code to go.
 For example, when using a Neversink filter in 3.14 it would be tempting to use something like "[[2300]] Endgame - Rare - Gear - T4 - rest" as the `filterMarker'.
@@ -224,20 +227,25 @@ For example, if the stash contains one ilvl 74 glove and one ilvl 74 helmet and 
 This will tend to cause hoarding of identified ilvl 60-74 items in the stash tab.
 
 __`ignoreMaxSets`__ causes the specified item classes to ignore the `maxSets` setting.
-For example, setting `ignoreMaxSets` to "Rings,Amulets,Belts" when `maxSets` is 12,
-will cause the filter to keep highlighting rings, amulets and belts even when there are 12 or more of them in the stash tab.
+For example, setting `ignoreMaxSets` to "Rings,Amulets" when `maxSets` is 12,
+will cause the filter to keep highlighting rings and amulets even when there are 12 or more of them in the stash tab.
+Possible item classes are BodyArmours, Helmets, Gloves, Boots, OneHandWeapons, Belts, Amulets, and Rings
+
+__`ignoreMaxSetsUnder75`__ causes the specified item classes to ignore the `maxSets` setting for items with ilvl under 75.
+For example, setting `ignoreMaxSetsUnder75` to "Belts" when `maxSets` is 12,
+will cause the filter to keep highlighting belts with ilvl < 75 even when there are 12 or more of them in the stash tab, but not highlight belts of ilvl 75 or above in that case.
 Possible item classes are BodyArmours, Helmets, Gloves, Boots, OneHandWeapons, Belts, Amulets, and Rings
 
 __`ignoreMaxIlvl`__ causes the specified item classes to ignore the `maxIlvl` setting, if it is set.
-For example, setting `ignoreMaxIlvl` to "Rings,Amulets,Belts" when `maxIlvl` is 74
-will cause the filter to keep highlighting rings, amulets and belts at higher ilvls.
+For example, setting `ignoreMaxIlvl` to "Rings,Amulets" when `maxIlvl` is 74
+will cause the filter to keep highlighting rings and amulets at higher ilvls.
 Possible item classes are BodyArmours, Helmets, Gloves, Boots, OneHandWeapons, Belts, Amulets, and Rings
 
 __`highlightColors`__ ([ "0xffffff", "0xffff00", "0x00ff00", "0x0000ff" ]) is an array of color values (as strings)
 to specify stash highlight colours for armour/weapons, helmets/gloves/boots, belts, and rings/amulets, respectively.
 There must be four strings in the array and they can be hex numbers ("0xRRGGBB") or loot filter colors ("RRR GGG BBB").
 
-__`highlightItemsHotkey`__, __`showQualityItemsHotkey`__, __`showJunkItemsHotkey`__, __`forceUpdateHotkey`__, __`characterCheckHotkey`__ and __`testPatternHotkey`__
+__`highlightItemsHotkey`__, __`showQualityItemsHotkey`__, __`showJunkItemsHotkey`__, __`forceUpdateHotkey`__, __`characterCheckHotkey`__, __`testPatternHotkey`__ and __`closePortsHotkey`__
 can be set to enable global hotkeys to execute ChaosHelper commands.
 If not defined, the hotkeys are not enabled.
 See "Commands and hotkeys" for more info.
@@ -306,15 +314,12 @@ If you need to set a custom value, take a screenshot of your stash tab,then open
 Make a select rectangle over the grid part of the tab, and determine the X,Y,Height,Width of the selection.
 You can test the values by typing 't' in the ChaosHelper console to execute the test pattern command.
 
-__`qualityTab`__ specifies a tab used to dump quality gems and flasks for the recipes to create gemcutter's prisms and glassblower's baubles.
-Only gems and flasks with qualities between 1 and 19 will be considered.
+__`qualityTab`__ specifies a tab used to dump quality items for the 40% recipes.
+For normal items, Only item with qualities between 1 and 19 will be considered, since a 20% quality normal item matches the recipe by itself.
 
-__`qualityGemRecipeSlop`__ (0), `qualityFlaskRecipeSlop` (1) and `qualityScrapRecipeSlop` (3) specify how much slop to allow when making those recipes.
+__`qualityGemMapRecipeSlop`__ (0), `qualityFlaskRecipeSlop` (1) and `qualityScrapRecipeSlop` (3) specify how much slop to allow when making those recipes.
 For example, a value of 2 would allow making recipes using ingredients with a total value of 40 to 42.
 The tool will always try for exactly 40% total quality first.
-
-__`qualityVaalGemMaxQualityToUse`__ (0) specifies the maximum quality of Vaal gems to consider for the gemcutter recipe.
-For example, setting this to 10 will use Vaal gems with a quality of up to 10 in the recipe.
 
 ## Item rules
 <a name="h08" />
@@ -375,10 +380,10 @@ Building the tool is pretty easy once you clone the git repo:
 - You should be able to open ChaosHelper.sln and then build/run the tool
     - Still need to configure setting.jsonc, though.
 
-## Questions
+## Potential questions
 <a name="h11" />
 
-**What does the filter when you have enough of an item slot? Are they hidden entirely?**
+**What does the filter do when you have enough of an item slot? Are they hidden entirely?**
 
 ChaosHelper will never hide items your filter would show anyway.
 It only inserts a set of SHOW blocks for the categories of items you don't have enough of in your dump tab.
@@ -410,6 +415,20 @@ The `processName` setting may also have to be configured.
 For example, I am using a Neversink filter, but I'd like to insert lines to highlight items to craft for a Shak Vortex build. Put the custom text into a file named `filter_insert.txt` and put that file into the same folder as ChaosHelper.exe.
 The contents of filter_insert.txt will be inserted into the generated filter just before the chaos recipe entries.
 Note that `Hide` entries in filter_insert.txt will take precedence over entries later in the filter file.
+
+**What's this about closing ports?**
+
+Some players who play in the hardcore leagues use a "logout macro" as a panic button when they think their character is about to die and want to disconnect as quickly as possible.
+The belief is that force closing the TCP ports used by PoE is the fastest way to do this.
+
+The ClosePortsForPid utility in this repo can close all the TCP entries for a process.
+Beyond that, it can directly close a specified TCP entry - doing so in a single Windows API call.
+
+When port closing is enabled, ChaosHelper checks what TCP entry PoE is using whenever a new area is entered.
+(PoE uses a different entry for each area instance.)
+On executing the closePorts hotkey, it will try to directly close that TCP entry, with a fallback to closing all ports for the PoE process.
+
+Using the SetTcpEntry API requires running ChaosHelper as Administrator. If you are going to do this, I strongly recommend building the binaries yourself.
 
 ## Links
 <a name="h12" />

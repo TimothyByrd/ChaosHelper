@@ -20,11 +20,21 @@ namespace ChaosHelper
             public int NumIded { get { return NumIded60 + NumIded75; } }
             public int NumUnIded { get { return NumUnIded60 + NumUnIded75; } }
             public int Total { get { return NumIded + NumUnIded; } }
+            public bool ShouldShowInFilter { get; set; }
+            public int MaxItemLevelToShow { get; set; }
+
+            public void ResetCounts()
+            {
+                NumIded60 = 0;
+                NumUnIded60 = 0;
+                NumIded75 = 0;
+                NumUnIded75 = 0;
+            }
         }
 
         readonly Dictionary<Cat, List<ItemPosition>> itemsDict = new();
         readonly Dictionary<Cat, ItemCounts> countsDict = new();
-        readonly Dictionary<Cat, bool> showDict = new();
+        private string _ShowCatsSignature;
 
         public ItemSet()
         {
@@ -39,7 +49,25 @@ namespace ChaosHelper
         {
             foreach (var c in ItemClassForFilter.Iterator())
             {
-                countsDict[c.Category] = Counts(c.Category);
+                var counts = countsDict[c.Category];
+                counts.ResetCounts();
+                foreach (var i in itemsDict[c.Category])
+                {
+                    if (i.Is75)
+                    {
+                        if (i.Identified)
+                            ++counts.NumIded75;
+                        else
+                            ++counts.NumUnIded75;
+                    }
+                    else
+                    {
+                        if (i.Identified)
+                            ++counts.NumIded60;
+                        else
+                            ++counts.NumUnIded60;
+                    }
+                }
             }
         }
 
@@ -74,86 +102,70 @@ namespace ChaosHelper
             return msg;
         }
 
-        public ItemCounts Counts(Cat category)
+        public void CalculateClassesToShow()
         {
-            var result = new ItemCounts();
-            foreach (var i in itemsDict[category])
-            {
-                if (i.Is75)
-                {
-                    if (i.Identified)
-                        ++result.NumIded75;
-                    else
-                        ++result.NumUnIded75;
-                }
-                else
-                {
-                    if (i.Identified)
-                        ++result.NumIded60;
-                    else
-                        ++result.NumUnIded60;
-                }
-            }
-
-            return result;
-        }
-
-        public void CalculateClassesToShow(int maxSets, string ignoreMaxSets)
-        {
+            var maxSets = Config.MaxSets;
+            var maxIlvl = Config.MaxIlvl;
+            if (maxIlvl >= 100 || maxIlvl < 60)
+                maxIlvl = 0;
+            var ignoreMaxSets = Config.IgnoreMaxSets;
+            var ignoreMaxIlvl = Config.IgnoreMaxIlvl;
+            var ignoreMaxSetsUnder75 = Config.IgnoreMaxSetsUnder75;
+            _ShowCatsSignature = string.Empty;
+            
             foreach (var c in ItemClassForFilter.Iterator())
             {
                 if (c.Skip)
                     continue;
 
+                var counts = countsDict[c.Category];
+                counts.MaxItemLevelToShow = ignoreMaxIlvl.Contains(c.CategoryStr, StringComparison.OrdinalIgnoreCase) ? 0 : maxIlvl;
+
                 if (ignoreMaxSets.Contains(c.CategoryStr, StringComparison.OrdinalIgnoreCase))
                 {
-                    showDict[c.Category] = true;
+                    counts.ShouldShowInFilter = true;
                     continue;
                 }
-
-                var wanted = maxSets;
-                var haveSoFar = countsDict[c.Category].NumUnIded;
-                if (c.Category == Cat.OneHandWeapons)
+                else
                 {
-                    wanted *= 2;
-                    var num2hd = countsDict[Cat.TwoHandWeapons].NumUnIded;
-                    if (num2hd > 0)
+                    var wanted = maxSets;
+                    var haveSoFar = counts.NumUnIded;
+                    if (c.Category == Cat.Rings)
+                        wanted *= 2;
+                    else if (c.Category == Cat.OneHandWeapons)
                     {
-                        // can only use one 2x4 2hd-weapon per recipe inventory
-                        var unIded2x4 = itemsDict[Cat.TwoHandWeapons].Count(x => !x.Identified && x.Is2x4);
-                        haveSoFar += (num2hd - unIded2x4) * 2;
-                        unIded2x4 = Math.Min(haveSoFar / 2, unIded2x4);
-                        haveSoFar += unIded2x4 * 2;
+                        wanted *= 2;
+                        var num2hd = countsDict[Cat.TwoHandWeapons].NumUnIded;
+                        if (num2hd > 0)
+                        {
+                            // can only use one 2x4 2hd-weapon per recipe inventory
+                            var unIded2x4 = itemsDict[Cat.TwoHandWeapons].Count(x => !x.Identified && x.Is2x4);
+                            haveSoFar += (num2hd - unIded2x4) * 2;
+                            unIded2x4 = Math.Min(haveSoFar / 2, unIded2x4);
+                            haveSoFar += unIded2x4 * 2;
+                        }
+                    }
+                    counts.ShouldShowInFilter = haveSoFar < wanted;
+
+                    if (!counts.ShouldShowInFilter && ignoreMaxSetsUnder75.Contains(c.CategoryStr, StringComparison.OrdinalIgnoreCase))
+                    {
+                        counts.ShouldShowInFilter = true;
+                        counts.MaxItemLevelToShow = 74;
                     }
                 }
-                else if (c.Category == Cat.Rings)
-                {
-                    wanted *= 2;
-                }
-                showDict[c.Category] = haveSoFar < wanted;
+                if (counts.ShouldShowInFilter)
+                    _ShowCatsSignature += c.CategoryStr;
             }
         }
 
         public bool SameClassesToShow(ItemSet other)
         {
-            var keys = showDict.Keys;
-            var keysOther = other.showDict.Keys;
-
-            if (keys.Count != keysOther.Count || keys.Any(x => !keysOther.Contains(x)))
-                return false;
-
-            foreach (var key in keys)
-            {
-                if (showDict[key] != other.showDict[key])
-                    return false;
-            }
-
-            return true;
+            return string.Equals(_ShowCatsSignature, other._ShowCatsSignature);
         }
 
-        public bool ShouldShow(Cat category)
+        public ItemCounts GetCounts(Cat category)
         {
-            return showDict[category];
+            return countsDict[category];
         }
 
         public List<ItemPosition> GetCategory(Cat category)
@@ -172,6 +184,7 @@ namespace ChaosHelper
                 e.GetProperty("identified").GetBoolean(),
                 e.GetProperty("name").GetString(),
                 e.GetProperty("baseType").GetString(),
+                e.GetIntOrDefault("frameType", 0),
                 tabIndex,
                 quality,
                 e,
@@ -331,13 +344,24 @@ namespace ChaosHelper
             {
                 var xDivs = x.Quality == 10 || x.Quality == 8 || x.Quality == 5;
                 var yDivs = y.Quality == 10 || y.Quality == 8 || y.Quality == 5;
-                if (xDivs == yDivs)
-                    return x.Quality > y.Quality ? -1 : x.Quality == y.Quality ? 0 : 1;
-                else if (xDivs)
+                if (xDivs && !yDivs)
                     return 1;
-                else
+                if (yDivs && !xDivs)
                     return -1;
-            }
+                if (x.Quality > y.Quality)
+                    return -1;
+                if (y.Quality > x.Quality)
+                    return 1;
+                if (x.X > y.X)
+                    return 1;
+                if (y.X > x.X)
+                    return -1;
+                if (x.Y > y.Y)
+                    return 1;
+                if (y.Y > x.Y)
+                    return -1;
+                return 0;
+           }
         }
 
         public ItemSet MakeQualitySet()
@@ -347,8 +371,13 @@ namespace ChaosHelper
             var gems = itemsDict[Cat.Junk].Where(x => x.W == 1 && x.H == 1 && IsGem(x))
                 .Where(x => x.Quality > 0).OrderBy(x => x, new QualityComparer());
             //ShowSet("gem", gems);
-            var gemSet = MakeAQualitySet(gems, Config.QualityGemRecipeSlop);
+            var gemSet = MakeAQualitySet(gems, Config.QualityGemMapRecipeSlop);
             AddToResult(gemSet);
+
+            var maps = itemsDict[Cat.Junk].Where(x => x.W == 1 && x.H == 1 && !IsGem(x))
+                .Where(x => x.Quality > 0).OrderBy(x => x, new QualityComparer());
+            var mapSet = MakeAQualitySet(maps, Config.QualityGemMapRecipeSlop);
+            AddToResult(mapSet);
 
             var flasks = itemsDict[Cat.Junk].Where(x => x.W == 1 && x.H == 2)
                 .Where(x => x.Quality > 0).OrderBy(x => x, new QualityComparer());
@@ -356,11 +385,6 @@ namespace ChaosHelper
             var flaskSet = MakeAQualitySet(flasks, Config.QualityFlaskRecipeSlop);
             AddToResult(flaskSet);
 
-            var maps = itemsDict[Cat.Junk].Where(x => x.W == 1 && x.H == 1 && !IsGem(x))
-                .Where(x => x.Quality > 0).OrderBy(x => x, new QualityComparer());
-            var mapSet = MakeAQualitySet(maps, Config.QualityGemRecipeSlop);
-            AddToResult(mapSet);
-            
             var weapons = itemsDict[Cat.OneHandWeapons].Concat(itemsDict[Cat.TwoHandWeapons])
                 .Where(x => x.Quality > 0).OrderBy(x => x, new QualityComparer());
             var weaponSet = MakeAQualitySet(weapons, Config.QualityScrapRecipeSlop);
@@ -453,6 +477,7 @@ namespace ChaosHelper
             {
                 foreach (var item in itemsDict[c.Category])
                 {
+                    if (item.FrameType != 2) continue;
                     if (string.IsNullOrWhiteSpace(item.Name)) continue;
                     if (!nameDict.ContainsKey(item.Name))
                         nameDict[item.Name] = item;
@@ -816,8 +841,7 @@ namespace ChaosHelper
                     found2hd = w2Source.FirstOrDefault(x => x.Identified == ided && x.Is75 && x.Is2x4);
                 if (found2hd == null && !mustBe60 && ided && w2H4_75 > 0)
                     found2hd = w2Source.FirstOrDefault(x => !x.Identified && x.Is75 && x.Is2x4);
-                if (found2hd == null)
-                    found2hd = w2Source.FirstOrDefault(x => x.Identified == ided && !x.Is75 && x.Is2x4);
+                found2hd ??= w2Source.FirstOrDefault(x => x.Identified == ided && !x.Is75 && x.Is2x4);
                 if (found2hd == null && ided && w2H4_60 > 0)
                     found2hd = w2Source.FirstOrDefault(x => !x.Identified && !x.Is75 && x.Is2x4);
             }
@@ -895,8 +919,7 @@ namespace ChaosHelper
             // check for 60 2x3s
             //
             found2hd = W2NotPicked().FirstOrDefault(x => x.Identified == ided && !x.Is75 && x.Is2x3);
-            if (found2hd == null)
-                found2hd = W2NotPicked().FirstOrDefault(x => x.Identified == ided && !x.Is75 && x.Is1x4);
+            found2hd ??= W2NotPicked().FirstOrDefault(x => x.Identified == ided && !x.Is75 && x.Is1x4);
             if (found2hd == null && ided)
                 found2hd = W2NotPicked().FirstOrDefault(x => !x.Identified && !x.Is75 && x.Is2x3);
             if (found2hd == null && ided)

@@ -24,12 +24,13 @@ namespace ChaosHelper
         public bool Identified;
         public int TabIndex;
         public int Quality;
+        public int FrameType;
         public string Name;
         public object JsonElement;
         public string BaseType;
         public Cat Category;
 
-        public ItemPosition(int x, int y, int h, int w, int ilvl, bool identified, string name, string baseType, int tabIndex, int quality, object jsonElement, Cat category)
+        public ItemPosition(int x, int y, int h, int w, int ilvl, bool identified, string name, string baseType, int frameType, int tabIndex, int quality, object jsonElement, Cat category)
         {
             X = x;
             Y = y;
@@ -41,6 +42,7 @@ namespace ChaosHelper
             BaseType = baseType;
             TabIndex = tabIndex;
             Quality = quality;
+            FrameType = frameType;
             JsonElement = jsonElement;
             Category = category;
         }

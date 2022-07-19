@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 
 using ConsoleHotKey;
 
@@ -203,7 +204,7 @@ namespace ChaosHelper
             await Task.Delay(500);
             await GetCurrencyTabContents();
             itemsCurrent.RefreshCounts();
-            itemsCurrent.CalculateClassesToShow(Config.MaxSets, Config.IgnoreMaxSets);
+            itemsCurrent.CalculateClassesToShow();
             overlay?.SetCurrentItems(itemsCurrent);
 
             if (overlayTask != null && !overlayTask.IsCompleted)
@@ -302,7 +303,7 @@ namespace ChaosHelper
             await Task.Delay(500);
             await GetCurrencyTabContents();
             itemsCurrent.RefreshCounts();
-            itemsCurrent.CalculateClassesToShow(Config.MaxSets, Config.IgnoreMaxSets);
+            itemsCurrent.CalculateClassesToShow();
 
             SetOverlayStatusMessage();
 
@@ -469,28 +470,16 @@ namespace ChaosHelper
                     var frameType = item.GetIntOrDefault("frameType", 0);
                     var identified = item.GetProperty("identified").GetBoolean();
                     var ilvl = item.GetIntOrDefault("ilvl", 0);
-                    var isVaal = false;
                     var category = Cat.Junk;
 
-                    // Gem
+                    var maxQuality = 19;
+
+                    // normal, magic, rare
                     //
-                    if (frameType == 4)
-                    {
-                        var typeLine = item.GetStringOrDefault("typeLine");
-                        isVaal = typeLine.StartsWith("Vaal", StringComparison.OrdinalIgnoreCase);
-                    }
-                    else
+                    if (frameType == 0 || frameType == 1 || frameType == 2)
                     {
                         var w = item.GetIntOrDefault("w", 999);
                         var h = item.GetIntOrDefault("h", 999);
-
-                        // only normal or magic items (or rare for maps...)
-                        //
-                        var frameOk = frameType == 0
-                            || frameType == 1
-                            || frameType == 2 && h == 1 && w == 1;
-                        if (!frameOk)
-                            continue;
 
                         if (w == 1 && h == 1)
                         {
@@ -506,14 +495,19 @@ namespace ChaosHelper
                             if (category == Cat.Junk)
                                 continue;
                         }
+
+                        maxQuality = frameType == 0 ? 19 : 20; // magic/rare items can be q20
                     }
-                                        
+                    // otherwise, skip all non-gems
+                    //
+                    else if (frameType != 4)
+                    {
+                        continue;
+                    }
+
                     var quality = GetQuality(item);
                     if (quality == 0) continue;
 
-                    var maxQuality = frameType == 1 ? 20 : 19; // only include magic items with q20
-                    if (isVaal)
-                        maxQuality = Math.Min(maxQuality, Config.QualityVaalGemMaxQualityToUse);
                     if (quality <= maxQuality)
                         items.Add(category, item, tabIndex, quality);
                 }
@@ -775,12 +769,15 @@ namespace ChaosHelper
 
                     foreach (var c in ItemClassForFilter.Iterator())
                     {
-                        if (c.Skip || !items.ShouldShow(c.Category))
+                        if (c.Skip)
+                            continue;
+
+                        var counts = items.GetCounts(c.Category);
+
+                        if (!counts.ShouldShowInFilter)
                             continue;
 
                         var canBeIded = Config.AllowIDedSets && (c.Category == Cat.Rings || c.Category == Cat.Amulets);
-                        var limitIlvl = Config.LimitIlvl(c);
-
                         var fontSize = Config.FilterDisplay.FontSize > 10 ? Config.FilterDisplay.FontSize : c.DefaultFontSize;
 
                         yield return $"# {c.Category} for chaos";
@@ -794,8 +791,8 @@ namespace ChaosHelper
                         if (!canBeIded)
                             yield return "Identified False";
                         yield return $"ItemLevel >= {Config.MinIlvl}";
-                        if (limitIlvl)
-                            yield return $"ItemLevel <= {Config.MaxIlvl}";
+                        if (counts.MaxItemLevelToShow > 0)
+                            yield return $"ItemLevel <= {counts.MaxItemLevelToShow}";
                         if (c.Category == Cat.OneHandWeapons)
                         {
                             yield return "Height = 3";
@@ -823,8 +820,8 @@ namespace ChaosHelper
                             if (!canBeIded)
                                 yield return "Identified False";
                             yield return $"ItemLevel >= {Config.MinIlvl}";
-                            if (limitIlvl)
-                                yield return $"ItemLevel <= {Config.MaxIlvl}";
+                            if (counts.MaxItemLevelToShow > 0)
+                                yield return $"ItemLevel <= {counts.MaxItemLevelToShow}";
                             yield return "Height = 3";
                             yield return "";
 
@@ -840,8 +837,8 @@ namespace ChaosHelper
                             if (!canBeIded)
                                 yield return "Identified False";
                             yield return $"ItemLevel >= {Config.MinIlvl}";
-                            if (limitIlvl)
-                                yield return $"ItemLevel <= {Config.MaxIlvl}";
+                            if (counts.MaxItemLevelToShow > 0)
+                                yield return $"ItemLevel <= {counts.MaxItemLevelToShow}";
                             yield return "Width = 1";
                             yield return "";
                         }

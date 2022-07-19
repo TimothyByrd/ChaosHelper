@@ -23,8 +23,9 @@
 
     // Items classes that can ignore the maxSets and maxIlvl settings.
     // Possible classes are BodyArmours, Helmets, Gloves, Boots, OneHandWeapons, Belts, Amulets, and Rings
-    "ignoreMaxSets": "Rings,Amulets,Belts",
-    "ignoreMaxIlvl": "Rings,Amulets,Belts",
+    "ignoreMaxIlvl": "Rings,Amulets",
+    "ignoreMaxSets": "Rings,Amulets",
+    "ignoreMaxSetsUnder75": "Belts",
 
     // stash highlight colours for armour/weapons, helmets/gloves/boots, belts, and rings/amulets
     // can be hex numbers 0xRRGGBB or loot filter colors "RRR GGG BBB"
@@ -120,8 +121,7 @@
     "qualityTab": "", // see README.md
     "qualityScrapRecipeSlop": 3,
     "qualityFlaskRecipeSlop": 1,
-    "qualityGemRecipeSlop": 0,
-    "qualityVaalGemMaxQualityToUse": 0,
+    "qualityGemMapRecipeSlop": 0,
 
     // "dumpTabs": [ "dump", "dump2", ], // if you want to configure dump tab scanning, set your dump tabs here
 
