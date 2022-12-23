@@ -1,3 +1,5 @@
+using Process.NET.Native.Types;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -48,7 +50,12 @@ namespace ChaosHelper
 
         public bool GetBoolean(string s, bool defaultValue = false)
         {
-            if (rawConfig.TryGetProperty(s, out var value))
+            return GetBoolean(rawConfig, s, defaultValue);
+        }
+
+        public static bool GetBoolean(JsonElement e, string s, bool defaultValue = false)
+        {
+            if (e.TryGetProperty(s, out var value))
             {
                 if (value.ValueKind == JsonValueKind.True) return true;
                 if (value.ValueKind == JsonValueKind.False) return false;
@@ -100,42 +107,34 @@ namespace ChaosHelper
             return new System.Drawing.Rectangle(x, y, w, h);
         }
 
-        public HotKeyBinding GetHotKey(string s)
+        public List<HotkeyEntry> GetHotkeys()
         {
-            if (rawConfig.TryGetProperty(s, out var value))
+            var result = new List<HotkeyEntry>();
+            var array = GetArray("hotkeys");
+            while (array.MoveNext())
             {
-                var valueStr = value.GetString();
-                int modifiers = 0;
-                while (valueStr.Length > 0 && "^+!".Contains(valueStr[0]))
-                {
-                    switch (valueStr[0])
-                    {
-                    case '^': // ctrl
-                        modifiers |= 2;
-                        break;
-                    case '+': // shift
-                        modifiers |= 4;
-                        break;
-                    case '!': // alt
-                        modifiers |= 1;
-                        break;
-                    }
-                    valueStr = valueStr.Substring(1);
-                }
+                var enabled = GetBoolean(array.Current, "enabled", true);
+                if (!enabled) continue;
 
-                if (Enum.TryParse(valueStr, true, out System.Windows.Forms.Keys key)
-                    && Enum.IsDefined(typeof(System.Windows.Forms.Keys), key))
-                {
+                var key = array.Current.GetStringOrDefault("key");
+                var binding = HotKeyBinding.FromString(key);
+                if (binding == null)
+                    continue;
 
-                    return new HotKeyBinding
-                    {
-                        Key = key,
-                        Modifiers = (ConsoleHotKey.KeyModifiers)modifiers,
-                    };
-                }
+                var command = array.Current.GetStringOrDefault("command");
+                var text = array.Current.GetStringOrDefault("text");
+                if (string.IsNullOrEmpty(command) && string.IsNullOrEmpty(text))
+                    continue;
+                var entry = new HotkeyEntry()
+                {
+                    Binding = binding,
+                    Command = command,
+                    Text = text,
+                    Enabled = enabled,
+                };
+                result.Add(entry);
             }
-
-           return null;
+            return result;
         }
 
         public bool TryGetProperty(string propertyName, out JsonElement value)
@@ -143,9 +142,66 @@ namespace ChaosHelper
             return rawConfig.TryGetProperty(propertyName, out value);
         }
     }
+
+    public class HotkeyEntry
+    {
+        public HotKeyBinding Binding { get; set; }
+        public string Command { get; set; }
+        public string Text { get; set; }
+        public bool Enabled { get; set; } = true;
+        public Keys[] Keys { get; set; }
+
+        public bool Matches(ConsoleHotKey.HotKeyEventArgs e)
+        {
+            return e.Key == Binding.Key && e.Modifiers == Binding.Modifiers;
+        }
+
+        public bool CommandIs(string command)
+        {
+            return string.Equals(Command, command, StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
     public class HotKeyBinding
     {
         public System.Windows.Forms.Keys Key { get; set; }
         public ConsoleHotKey.KeyModifiers Modifiers { get; set; }
+
+        public static HotKeyBinding FromString(string valueStr)
+        {
+            ConsoleHotKey.KeyModifiers modifiers = ConsoleHotKey.KeyModifiers.None;
+            while (valueStr.Length > 0 && "^+!#".Contains(valueStr[0]))
+            {
+                switch (valueStr[0])
+                {
+                    case '!': // alt
+                        modifiers |= ConsoleHotKey.KeyModifiers.Alt;
+                        break;
+                    case '^': // ctrl
+                        modifiers |= ConsoleHotKey.KeyModifiers.Control;
+                        break;
+                    case '+': // shift
+                        modifiers |= ConsoleHotKey.KeyModifiers.Shift;
+                        break;
+                    case '#': // windows
+                        modifiers |= ConsoleHotKey.KeyModifiers.Windows;
+                        break;
+                }
+                valueStr = valueStr.Substring(1);
+            }
+
+            if (Enum.TryParse(valueStr, true, out System.Windows.Forms.Keys key)
+                && Enum.IsDefined(typeof(System.Windows.Forms.Keys), key))
+            {
+
+                return new HotKeyBinding
+                {
+                    Key = key,
+                    Modifiers = modifiers,
+                };
+            }
+
+            return null;
+        }
     }
 }

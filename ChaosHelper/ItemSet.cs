@@ -465,13 +465,13 @@ namespace ChaosHelper
             return MakeAQualitySetRecurse(items.Skip(1), minNeeded, allowedSlop);
         }
 
-        public void LogMatchingNames(Dictionary<int, string> dumpTabDict)
+        public List<string> LogMatchingNames(Dictionary<int, string> dumpTabDict)
         {
             string DumpTabName(int tabIndex)
             {
                 return dumpTabDict.ContainsKey(tabIndex) ? dumpTabDict[tabIndex] : "<unknown>";
             }
-
+            List<string> result = new();
             var nameDict = new Dictionary<string, ItemPosition>();
             foreach (var c in ItemClassForFilter.Iterator())
             {
@@ -488,11 +488,14 @@ namespace ChaosHelper
                         var item2 = item.TabIndex < otherItem.TabIndex ? otherItem : item;
                         var tab1 = DumpTabName(item1.TabIndex);
                         var tab2 = DumpTabName(item2.TabIndex);
-                        logger.Info($"name match: '{tab1}'({item1.X},{item1.Y}), '{tab2}'({item2.X},{item2.Y}) - {item.Name} - tabs {tab1}, {tab2}");
+                        var s = $"name match: '{tab1}'({item1.X},{item1.Y}), '{tab2}'({item2.X},{item2.Y}) - {item.Name} - tabs {tab1}, {tab2}";
+                        logger.Info(s);
+                        result.Add(s);
                         nameDict.Remove(item.Name);
                     }
                 }
             }
+            return result;
         }
 
         public void CheckMods(Dictionary<int, string> dumpTabDict)

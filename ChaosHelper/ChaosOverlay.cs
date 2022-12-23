@@ -7,6 +7,9 @@ using Overlay.NET.Common;
 
 using Process.NET;
 using Process.NET.Memory;
+using Process.NET.Windows.Keyboard;
+using Process.NET.Windows;
+using System.Windows.Input;
 
 namespace ChaosHelper
 {
@@ -57,12 +60,13 @@ namespace ChaosHelper
                         _processSharp = new ProcessSharp(process, MemoryType.Remote);
                         _processSharp.ProcessExited += ProcessExitedDelegate;
 
-                        while (!_processExited && !cancellationToken.IsCancellationRequested
-                            && (_processSharp.WindowFactory.MainWindow == null
-                             || _processSharp.WindowFactory.MainWindow.Handle == IntPtr.Zero))
+                        if (_processExited ||
+                            cancellationToken.IsCancellationRequested
+                            || !HaveMainWindow(_processSharp))
                         {
-                            logger.Info("waiting for window");
+                            logger.Info("no main window");
                             Thread.Sleep(2000);
+                            continue;
                         }
 
                         Config.SetProcessModule(process.MainModule.FileName, process.Id);
@@ -90,6 +94,18 @@ namespace ChaosHelper
             {
                 // do nothing
             }
+
+            static bool HaveMainWindow(ProcessSharp process)
+            {
+                try
+                {
+                    return process.WindowFactory.MainWindow != null
+                        && process.WindowFactory.MainWindow.Handle != IntPtr.Zero
+                        && process.WindowFactory.MainWindow.Width > 640
+                        && process.WindowFactory.MainWindow.Height > 480;
+                }
+                catch { return false; }
+            }
         }
 
         private void ProcessExitedDelegate(object sender, EventArgs e)
@@ -110,12 +126,9 @@ namespace ChaosHelper
             else
             {
                 process = System.Diagnostics.Process.GetProcessesByName("PathOfExile").FirstOrDefault();
-                if (process == null)
-                    process = System.Diagnostics.Process.GetProcessesByName("PathOfExileSteam").FirstOrDefault();
-                if (process == null)
-                    process = System.Diagnostics.Process.GetProcessesByName("PathOfExileEGS").FirstOrDefault();
-                if (process == null)
-                    process = System.Diagnostics.Process.GetProcessesByName("PathOfExile_KG").FirstOrDefault();
+                process ??= System.Diagnostics.Process.GetProcessesByName("PathOfExileSteam").FirstOrDefault();
+                process ??= System.Diagnostics.Process.GetProcessesByName("PathOfExileEGS").FirstOrDefault();
+                process ??= System.Diagnostics.Process.GetProcessesByName("PathOfExile_KG").FirstOrDefault();
             }
             return process;
         }
@@ -148,9 +161,36 @@ namespace ChaosHelper
                 _plugin?.SendKey(key);
         }
 
+        public bool SendTextToPoE(IEnumerable<Process.NET.Native.Types.Keys> keys)
+        {
+            if (keys == null || !keys.Any())
+                return false;
+            if (_processSharp?.WindowFactory?.MainWindow == null)
+                return false;
+            var keyboard = new MessageKeyboard(_processSharp.WindowFactory.MainWindow);
+            foreach (var key in keys)
+            {
+                if (key == Process.NET.Native.Types.Keys.None)
+                    Thread.Sleep(2);
+                else
+                {
+                    keyboard.Press(key);
+                    Thread.Sleep(2);
+                    keyboard.Release(key);
+                    //Thread.Sleep(2);
+                }
+            }
+            return true;
+        }
+
+        public void DrawTextMessages(IEnumerable<string> lines)
+        {
+            _plugin?.DrawTextMessages(lines);
+        }
+
         public bool IsPoeWindowActivated()
         {
-            return _processSharp?.WindowFactory.MainWindow.IsActivated ?? false;
+            return _processSharp?.WindowFactory?.MainWindow?.IsActivated ?? false;
         }
     }
 }

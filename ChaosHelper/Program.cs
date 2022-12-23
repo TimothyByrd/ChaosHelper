@@ -1,14 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Reflection.Metadata.Ecma335;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using System.Windows.Interop;
 
 using ConsoleHotKey;
 
@@ -236,19 +240,12 @@ namespace ChaosHelper
             {
                 logger.Info("registering hotkeys");
 
-                static void MaybeRegister(HotKeyBinding x)
+                foreach (HotkeyEntry hotkey in Config.Hotkeys)
                 {
-                    if (x != null)
-                        HotKeyManager.RegisterHotKey(x.Key, x.Modifiers);
+                    if (hotkey.CommandIs(Constants.ShowQualityItems) && Config.QualityTabIndex == 0)
+                        continue;
+                    HotKeyManager.RegisterHotKey(hotkey.Binding.Key, hotkey.Binding.Modifiers);
                 }
-                MaybeRegister(Config.HighlightItemsHotkey);
-                if (Config.QualityTabIndex >= 0)
-                    MaybeRegister(Config.ShowQualityItemsHotkey);
-                MaybeRegister(Config.ShowJunkItemsHotkey);
-                MaybeRegister(Config.ForceUpdateHotkey);
-                MaybeRegister(Config.CharacterCheckHotkey);
-                MaybeRegister(Config.TestPatternHotkey);
-                MaybeRegister(Config.ClosePortsHotkey);
 
                 if (!haveAddedHotkeyEventHandler)
                     HotKeyManager.HotKeyPressed += new EventHandler<HotKeyEventArgs>(HotKeyManager_HotKeyPressed);
@@ -264,28 +261,188 @@ namespace ChaosHelper
 
             if (Config.IsClosePortsHotkey(e))
                 Config.CloseTcpPorts();
-            else if (Config.IsHighlightItemsHotkey(e))
+
+            var hotkey = Config.GetHotKey(e);
+            if (hotkey == null || !hotkey.Enabled) return;
+
+            if (string.IsNullOrEmpty(hotkey.Command))
             {
+                try
+                {
+                    hotkey.Keys ??= StringToKeys(hotkey.Text).ToArray();
+                    var keyStrings = string.Join("; ", hotkey.Keys.Select(x => x.ToString()));
+                    logger.Info($"sending keys: {keyStrings}");
+                    overlay?.SendTextToPoE(hotkey.Keys);
+                }
+                catch
+                {
+                    logger.Warn($"disabling hotkey after error sending keys: {hotkey.Text}");
+                    hotkey.Enabled = false;
+                    hotkey.Keys = null;
+                }
+
+                return;
+            }
+
+            switch (hotkey.Command)
+            {
+            case Constants.ClosePorts:
+                Config.CloseTcpPorts();
+                break;
+            case Constants.HighlightItems:
                 logger.Info("Highlighting sets to sell");
                 highlightSetsToSell = true;
-            }
-            else if (Config.IsShowQualityItemsHotkey(e))
+                break;
+            case Constants.ShowQualityItems:
                 highlightQualityToSell = true;
-            else if (Config.IsShowJunkItemsHotkey(e))
+                break;
+            case Constants.ShowJunkItems:
                 overlay?.SendKey(ConsoleKey.J);
-            else if (Config.IsForceUpdateHotkey(e))
-            {
+                break;
+            case Constants.ForceUpdate:
                 logger.Info("Forcing a filter update");
                 forceFilterUpdate = true;
-            }
-            else if (Config.IsCharacterCheckHotkey(e))
-            {
+                break;
+            case Constants.CharacterCheck:
                 logger.Info("Rechecking character and league");
                 checkCharacter = true;
-            }
-            else if (Config.IsTestPatternHotkey(e))
+                break;
+            case Constants.TestPattern:
                 overlay?.SendKey(ConsoleKey.T);
+                break;
+            default:
+                logger.Warn($"Unknown command {hotkey.Command}");
+                break;
+            }
         }
+
+        private static IEnumerable<Process.NET.Native.Types.Keys> StringToKeys(string s)
+        {
+#if false
+            return s.Select(x => ToKey(x));
+#else
+            var span = s.AsSpan();
+
+            var result = new List<Process.NET.Native.Types.Keys>();
+            int i = 0;
+            int len = s.Length;
+            while (i < len)
+            {
+                if (i < len - 2 && span[i] == '{')
+                {
+                    if (span[i + 1] == '{') // use "{{" for an open brace
+                    {
+                        result.Add(Process.NET.Native.Types.Keys.OemOpenBrackets|Process.NET.Native.Types.Keys.Shift);
+                        i += 2;
+                        continue;
+                    }
+                    if (span[i + 1] == '}' && span[i + 2] == '}') // use "{}}" for a close brace
+                    {
+                        result.Add(Process.NET.Native.Types.Keys.OemCloseBrackets | Process.NET.Native.Types.Keys.Shift);
+                        i += 3;
+                        continue;
+                    }
+
+                    int j = s.IndexOf('}', i + 2);
+                    if (j != -1)
+                    {
+                        (int i2, Process.NET.Native.Types.Keys modifiers) = ParseKeyModifiers(s, i + 1);
+                        var subspan = span.Slice(i2, j - i2);
+                        if (Enum.TryParse<Process.NET.Native.Types.Keys>(subspan, true, out var key))
+                        {
+                            result.Add(key | modifiers);
+                            if (modifiers != Process.NET.Native.Types.Keys.None)
+                                result.Add(Process.NET.Native.Types.Keys.None);
+                            i = j + 1;
+                            continue;
+                        }
+                    }
+                }
+
+                result.Add(ToKey(s[i]));
+                ++i;
+            }
+
+            return result;
+
+            static (int pos, Process.NET.Native.Types.Keys modifiers) ParseKeyModifiers(string s, int pos)
+            {
+                Process.NET.Native.Types.Keys modifiers = Process.NET.Native.Types.Keys.None;
+                var len = s.Length;
+                while (pos < len && "^+!#".Contains(s[pos]))
+                {
+                    switch (s[pos])
+                    {
+                    case '!': // alt
+                        modifiers |= Process.NET.Native.Types.Keys.Alt;
+                        break;
+                    case '^': // ctrl
+                        modifiers |= Process.NET.Native.Types.Keys.Control;
+                        break;
+                    case '+': // shift
+                        modifiers |= Process.NET.Native.Types.Keys.Shift;
+                        break;
+                    }
+                    ++pos;
+                }
+                return (pos, modifiers);
+            }
+#endif
+        }
+
+        static Process.NET.Native.Types.Keys ToKey(char c)
+        {
+            if (c >= 'a' && c <= 'z')
+                return (Process.NET.Native.Types.Keys)(c - 'a' + 'A');
+            if (c >= 'A' && c <= 'Z')
+                return (Process.NET.Native.Types.Keys)(c)| Process.NET.Native.Types.Keys.Shift;
+            if (c >= '0' && c <= '9')
+                return (Process.NET.Native.Types.Keys)(c);
+
+            if (c == '\r' || c == '\n')
+                return Process.NET.Native.Types.Keys.Enter;
+            if (c == ' ')
+                return Process.NET.Native.Types.Keys.Space;
+            if (c == '/')
+                return Process.NET.Native.Types.Keys.Divide;
+            if (c == '{')
+                return Process.NET.Native.Types.Keys.OemOpenBrackets | Process.NET.Native.Types.Keys.Shift;
+            if (c == '}')
+                return Process.NET.Native.Types.Keys.OemCloseBrackets | Process.NET.Native.Types.Keys.Shift;
+            if (c == '[')
+                return Process.NET.Native.Types.Keys.OemOpenBrackets;
+            if (c == ']')
+                return Process.NET.Native.Types.Keys.OemCloseBrackets;
+            if (c == ':')
+                return Process.NET.Native.Types.Keys.Oem1 | Process.NET.Native.Types.Keys.Shift;
+            if (c == ';')
+                return Process.NET.Native.Types.Keys.Oem1;
+            if (c == '+')
+                return Process.NET.Native.Types.Keys.OemPlus;
+            if (c == ',')
+                return Process.NET.Native.Types.Keys.OemComma;
+            if (c == '-')
+                return Process.NET.Native.Types.Keys.OemMinus;
+            if (c == '?')
+                    return Process.NET.Native.Types.Keys.Oem2 | Process.NET.Native.Types.Keys.Shift;
+            if (c == '/')
+                return Process.NET.Native.Types.Keys.Oem2;
+            if (c == '~')
+                    return Process.NET.Native.Types.Keys.Oem3 | Process.NET.Native.Types.Keys.Shift;
+            if (c == '`')
+                return Process.NET.Native.Types.Keys.Oem3;
+            if (c == '|')
+                return Process.NET.Native.Types.Keys.Oem5 | Process.NET.Native.Types.Keys.Shift;
+            if (c == '\\')
+                return Process.NET.Native.Types.Keys.Oem5;
+            if (c == '"')
+                return Process.NET.Native.Types.Keys.Oem7 | Process.NET.Native.Types.Keys.Shift;
+            if (c == '\'')
+                return Process.NET.Native.Types.Keys.Oem7;
+
+            return (Process.NET.Native.Types.Keys)c;
+        }
+
 
         static async Task CheckForUpdate()
         {
@@ -355,7 +512,8 @@ namespace ChaosHelper
             }
 
             dumpTabItems.CheckMods(Config.DumpTabDictionary);
-            dumpTabItems.LogMatchingNames(Config.DumpTabDictionary);
+            var matches = dumpTabItems.LogMatchingNames(Config.DumpTabDictionary);
+            overlay?.DrawTextMessages(matches);
             logger.Info("done checking dump tabs");
         }
 

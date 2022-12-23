@@ -1,4 +1,5 @@
 ﻿// This code is originally from https://stackoverflow.com/questions/3654787/global-hotkey-in-console-application/3654821
+//
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -42,7 +43,7 @@ namespace ConsoleHotKey
 
         private static void RegisterHotKeyInternal(IntPtr hwnd, int id, uint modifiers, uint key)
         {
-            RegisterHotKey(hwnd, id, modifiers, key);
+            var result = RegisterHotKey(hwnd, id, modifiers, key);
         }
 
         private static void UnRegisterHotKeyInternal(IntPtr hwnd, int id)
@@ -135,6 +136,7 @@ namespace ConsoleHotKey
     [Flags]
     public enum KeyModifiers
     {
+        None = 0,
         Alt = 1,
         Control = 2,
         Shift = 4,

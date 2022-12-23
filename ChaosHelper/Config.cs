@@ -61,13 +61,8 @@ namespace ChaosHelper
         //public static string FilterColor { get; private set; }
         public static ItemDisplay FilterDisplay { get; private set; }
         public static string AreaEnteredPattern { get; private set; }
-        public static HotKeyBinding HighlightItemsHotkey { get; private set; }
-        public static HotKeyBinding ShowQualityItemsHotkey { get; private set; }
-        public static HotKeyBinding ShowJunkItemsHotkey { get; private set; }
-        public static HotKeyBinding ForceUpdateHotkey { get; private set; }
-        public static HotKeyBinding CharacterCheckHotkey { get; private set; }
-        public static HotKeyBinding TestPatternHotkey { get; private set; }
-        public static HotKeyBinding ClosePortsHotkey { get; private set; }
+        public static List<HotkeyEntry> Hotkeys { get; private set; }
+        public static HotkeyEntry ClosePortsHotkey { get; private set; }
         public static bool ShouldHookMouseEvents { get; private set; }
         public static string RequiredProcessName { get; private set; }
         public static System.Drawing.Rectangle StashPageXYWH { get; private set; }
@@ -95,53 +90,17 @@ namespace ChaosHelper
 
         public static bool HaveAHotKey()
         {
-            var haveAHotKey = HighlightItemsHotkey != null
-                || ShowQualityItemsHotkey != null
-                || ShowJunkItemsHotkey != null
-                || ForceUpdateHotkey != null
-                || CharacterCheckHotkey != null
-                || TestPatternHotkey != null;
-            return haveAHotKey;
+            return Hotkeys.Count > 0;
         }
 
-        private static bool HotKeyMatches(HotKeyBinding hk, ConsoleHotKey.HotKeyEventArgs e)
+        public static HotkeyEntry GetHotKey(ConsoleHotKey.HotKeyEventArgs e)
         {
-            return (e.Key == hk?.Key && e.Modifiers == hk?.Modifiers);
-        }
-
-        public static bool IsHighlightItemsHotkey(ConsoleHotKey.HotKeyEventArgs e)
-        {
-            return HotKeyMatches(HighlightItemsHotkey, e);
-        }
-
-        public static bool IsShowQualityItemsHotkey(ConsoleHotKey.HotKeyEventArgs e)
-        {
-            return HotKeyMatches(ShowQualityItemsHotkey, e);
-        }
-
-        public static bool IsShowJunkItemsHotkey(ConsoleHotKey.HotKeyEventArgs e)
-        {
-            return HotKeyMatches(ShowJunkItemsHotkey, e);
-        }
-
-        public static bool IsForceUpdateHotkey(ConsoleHotKey.HotKeyEventArgs e)
-        {
-            return HotKeyMatches(ForceUpdateHotkey, e);
-        }
-
-        public static bool IsCharacterCheckHotkey(ConsoleHotKey.HotKeyEventArgs e)
-        {
-            return HotKeyMatches(CharacterCheckHotkey, e);
-        }
-
-        public static bool IsTestPatternHotkey(ConsoleHotKey.HotKeyEventArgs e)
-        {
-            return HotKeyMatches(TestPatternHotkey, e);
+            return Hotkeys.FirstOrDefault(x => x.Enabled && x.Matches(e));
         }
 
         public static bool IsClosePortsHotkey(ConsoleHotKey.HotKeyEventArgs e)
         {
-            return HotKeyMatches(ClosePortsHotkey, e);
+            return ClosePortsHotkey != null && ClosePortsHotkey.Matches(e);
         }
 
         public static async Task<bool> ReadConfigFile()
@@ -236,22 +195,9 @@ namespace ChaosHelper
             ShowMinimumCurrency = rawConfig.GetBoolean("showMinimumCurrency", false);
             Currency.SetArray(rawConfig.GetArray("currency"));
 
-            static HotKeyBinding GetHotKey(string s)
-            {
-                var result = rawConfig.GetHotKey(s);
-                if (result != null)
-                    logger.Info($"hot key '{s}' is '{rawConfig[s]}'");
-                return result;
-            }
+            Hotkeys = rawConfig.GetHotkeys();
 
-            HighlightItemsHotkey = GetHotKey("highlightItemsHotkey");
-            ShowQualityItemsHotkey = GetHotKey("showQualityItemsHotkey");
-            ShowJunkItemsHotkey = GetHotKey("showJunkItemsHotkey");
-            ForceUpdateHotkey = GetHotKey("forceUpdateHotkey");
-            CharacterCheckHotkey = GetHotKey("characterCheckHotkey");
-            TestPatternHotkey = GetHotKey("testPatternHotkey");
-            ClosePortsHotkey = GetHotKey("closePortsHotkey");
-
+            ClosePortsHotkey = Hotkeys.FirstOrDefault(x => x.CommandIs(Constants.ClosePorts));
             if (ClosePortsHotkey != null)
             {
                 if (!RunningAsAdmin)
@@ -270,6 +216,8 @@ namespace ChaosHelper
                         ClosePortsHotkey = null;
                     }
                 }
+                if (ClosePortsHotkey == null)
+                    Hotkeys = Hotkeys.Where(x => !x.CommandIs(Constants.ClosePorts)).ToList();
             }
 
             ShouldHookMouseEvents = rawConfig.GetBoolean("hookMouseEvents", false);
@@ -690,5 +638,16 @@ namespace ChaosHelper
                 logger.Error(ex, $"Running ClosePortsForPid.exe");
             }
         }
+    }
+
+    static class Constants
+    {
+        public const string ClosePorts = "closePorts";
+        public const string HighlightItems = "highlightItems";
+        public const string ShowQualityItems = "showQualityItems";
+        public const string ShowJunkItems = "showJunkItems";
+        public const string ForceUpdate = "forceUpdate";
+        public const string CharacterCheck = "characterCheck";
+        public const string TestPattern = "testPattern";
     }
 }
