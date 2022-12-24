@@ -5,7 +5,6 @@ This tool eases the completion of chaos recipes in Path of Exile.
 ![](./sample1.png?raw=true)
 
 It was inspired by a similar tool promoted by Path Of Matth,
-except this tool does not manipulate the PoE game client in any way.
 
 It has two main functions:
 - It can automatically write an updated loot filter file as you accumulate chaos recipe items. You still need to refresh your filter in PoE, but it tells you when to.
@@ -87,15 +86,6 @@ The Chaos Helper tool can do the following automatically:
     - Deal with 2hd weapons as well as 1x3 1hd weapons. The loot filter code will include 2x3 bows when weapons are highlighted, and it will make recipes with one 2x4 weapon since that will fit in the character inventory.
     - Do IDed sets as well as un-IDed sets. An IDed set must have both rings IDed, and it prefers IDed items for the other slots.
     - Optimise recipes to give chaos orbs instead of regal orbs. It does this by making sure that the items for at least one slot are ilvl 60-74 and then preferring ilvl 75+ for the other slots. You can take advantage of this by saving lots of ilvl 60-74 belts and amulets.
-
-What the Chaos Helper tool does not / cannot do is manipulate the PoE game client.
-It sends neither keystrokes nor mouse clicks to the game client.
-The defined hotkeys are to send input *to the tool*, not to PoE.
-
-As a contrast, the poe_qol tool, when highlighting a set to sell, creates a window above the PoE client for each highlighted item.
-When the user clicks on "an item", they are really clicking on that window, which then hides itself and *sends a mouse click in the same screen position to PoE*.
-This method makes it easy for anyone with access to the Python source code for poe_qol (and it's been put up on github) to convert it
-to "fully automatic" - having the first click in a highlight window do a loop to cause clicks for all the highlighted items to go to PoE.
 
 ## Commands and hotkeys
 <a name="h04" />
@@ -437,6 +427,8 @@ Using the SetTcpEntry API requires running ChaosHelper as Administrator. If you 
 - The overlay code comes from [Overlay.NET](https://github.com/lolp1/Overlay.NET). I copied in this code because there are posts in the project that the published Nuget package is not up to date with source code.
 - The hotkey code is originally from [StackOverflow](https://stackoverflow.com/questions/3654787/global-hotkey-in-console-application/3654821).
 - Using `base_items.json` from the [RePoE project](https://github.com/brather1ng/RePoE) to map item base types to categories. (At some point, I should grab the data from the ggpk file, like they do.)
+- Using [GregsStack/InputSimulatorStandard](https://github.com/GregsStack/InputSimulatorStandard) for send chat commands to PoE.
+- And it all started with [POE-TradeMacro](https://github.com/PoE-TradeMacro/POE-TradeMacro)
 
 ## Donation
 <a name="h13" />

@@ -8,7 +8,7 @@ using System.Windows.Forms;
 
 namespace ConsoleHotKey
 {
-    public static class HotKeyManager
+    public static partial class HotKeyManager
     {
         public static event EventHandler<HotKeyEventArgs> HotKeyPressed;
 
@@ -43,7 +43,7 @@ namespace ConsoleHotKey
 
         private static void RegisterHotKeyInternal(IntPtr hwnd, int id, uint modifiers, uint key)
         {
-            var result = RegisterHotKey(hwnd, id, modifiers, key);
+            RegisterHotKey(hwnd, id, modifiers, key);
         }
 
         private static void UnRegisterHotKeyInternal(IntPtr hwnd, int id)
@@ -104,8 +104,9 @@ namespace ConsoleHotKey
             private const int WM_HOTKEY = 0x312;
         }
 
-        [DllImport("user32", SetLastError = true)]
-        private static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
+        [LibraryImport("user32", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static partial bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
 
         [DllImport("user32", SetLastError = true)]
         private static extern bool UnregisterHotKey(IntPtr hWnd, int id);

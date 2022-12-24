@@ -15,6 +15,11 @@ namespace ChaosHelper
 {
     class ChaosOverlay
     {
+        private const string ProcessNameStandAlone = "PathOfExile";
+        private const string ProcessNameOnSteam = "PathOfExileSteam";
+        private const string ProcessNameOnEpic = "PathOfExileEGS";
+        private const string ProcessNameKorean = "PathOfExile_KG";
+
         private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
         private ChaosOverlayPlugin _plugin;
@@ -27,7 +32,7 @@ namespace ChaosHelper
         {
             _requiredProcessName = Config.RequiredProcessName;
             if (Config.ForceSteam)
-                _requiredProcessName = "PathOfExileSteam";
+                _requiredProcessName = ProcessNameOnSteam;
 
             try
             {
@@ -125,10 +130,10 @@ namespace ChaosHelper
                 process = System.Diagnostics.Process.GetProcessesByName(_requiredProcessName).FirstOrDefault();
             else
             {
-                process = System.Diagnostics.Process.GetProcessesByName("PathOfExile").FirstOrDefault();
-                process ??= System.Diagnostics.Process.GetProcessesByName("PathOfExileSteam").FirstOrDefault();
-                process ??= System.Diagnostics.Process.GetProcessesByName("PathOfExileEGS").FirstOrDefault();
-                process ??= System.Diagnostics.Process.GetProcessesByName("PathOfExile_KG").FirstOrDefault();
+                process = System.Diagnostics.Process.GetProcessesByName(ProcessNameStandAlone).FirstOrDefault();
+                process ??= System.Diagnostics.Process.GetProcessesByName(ProcessNameOnSteam).FirstOrDefault();
+                process ??= System.Diagnostics.Process.GetProcessesByName(ProcessNameOnEpic).FirstOrDefault();
+                process ??= System.Diagnostics.Process.GetProcessesByName(ProcessNameKorean).FirstOrDefault();
             }
             return process;
         }
@@ -159,28 +164,6 @@ namespace ChaosHelper
                 _processExited = true;
             else
                 _plugin?.SendKey(key);
-        }
-
-        public bool SendTextToPoE(IEnumerable<Process.NET.Native.Types.Keys> keys)
-        {
-            if (keys == null || !keys.Any())
-                return false;
-            if (_processSharp?.WindowFactory?.MainWindow == null)
-                return false;
-            var keyboard = new MessageKeyboard(_processSharp.WindowFactory.MainWindow);
-            foreach (var key in keys)
-            {
-                if (key == Process.NET.Native.Types.Keys.None)
-                    Thread.Sleep(2);
-                else
-                {
-                    keyboard.Press(key);
-                    Thread.Sleep(2);
-                    keyboard.Release(key);
-                    //Thread.Sleep(2);
-                }
-            }
-            return true;
         }
 
         public void DrawTextMessages(IEnumerable<string> lines)

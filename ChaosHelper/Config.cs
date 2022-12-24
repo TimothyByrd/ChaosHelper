@@ -80,6 +80,7 @@ namespace ChaosHelper
         public static string ExePath { get; private set; }
         public static string ClosePortsForPidPath { get; private set; }
         public static bool RunningAsAdmin { get; private set; }
+        public static string ConfigFileOverride { get; set; }
 
         public static bool IsTown(string newArea)
         {
@@ -105,6 +106,7 @@ namespace ChaosHelper
 
         public static async Task<bool> ReadConfigFile()
         {
+            ExePath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
             if (OperatingSystem.IsWindows())
             {
                 var principal = new System.Security.Principal.WindowsPrincipal(System.Security.Principal.WindowsIdentity.GetCurrent());
@@ -113,8 +115,7 @@ namespace ChaosHelper
             else
                 RunningAsAdmin = false;
 
-            ExePath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            var configFile = Path.Combine(ExePath, "settings.jsonc");
+            string configFile = GetConfigFilePath();
             if (!File.Exists(configFile))
             {
                 logger.Error("ERROR: config file 'settings.jsonc' not found");
@@ -185,7 +186,7 @@ namespace ChaosHelper
                 ItemPosition.SortOrder = sortOrder;
             else
                 ItemPosition.SortOrder = MinIlvl < 60 ? ItemPosition.SortBy.IlvlBottomFirst : ItemPosition.SortBy.Default;
-            
+
             TownZones = rawConfig.GetStringList("townZones");
 
             AreaEnteredPattern = rawConfig["areaEnteredPattern "];
@@ -312,6 +313,13 @@ namespace ChaosHelper
             PutFilterLineAtTop = false;
 
             return true;
+        }
+
+        private static string GetConfigFilePath()
+        {
+            if (!string.IsNullOrWhiteSpace(ConfigFileOverride) && File.Exists(ConfigFileOverride))
+                return ConfigFileOverride;
+            return Path.Combine(ExePath, "settings.jsonc");
         }
 
         public static async Task<bool> CheckAccount(bool forceWebCheck = false)

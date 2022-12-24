@@ -12,13 +12,14 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using System.Windows.Forms;
 using System.Windows.Interop;
 
 using ConsoleHotKey;
 
 namespace ChaosHelper
 {
-    class Program
+    partial class Program
     {
         private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
@@ -47,7 +48,13 @@ namespace ChaosHelper
                 //ItemRule.RuleEntry.ShowMatch("ES*0.5>=150");
                 //ItemRule.RuleEntry.ShowMatch("LvlCold*85+DotCold*3.7+SpellPctCold>=100");
 
-                Config.ForceSteam = args.Any(x => string.Equals(x, "steam", StringComparison.OrdinalIgnoreCase));
+                foreach (var arg in args)
+                {
+                    if (string.Equals(arg, "steam", StringComparison.OrdinalIgnoreCase))
+                        Config.ForceSteam = true;
+                    else if (File.Exists(arg))
+                        Config.ConfigFileOverride = arg;
+                }
 
                 Console.Title = "ChaosHelper.exe";
 
@@ -238,14 +245,17 @@ namespace ChaosHelper
             HotKeyManager.UnregisterAllHotKeys();
             if (Config.HaveAHotKey())
             {
-                logger.Info("registering hotkeys");
-
+                int numRegistered = 0;
                 foreach (HotkeyEntry hotkey in Config.Hotkeys)
                 {
+                    if (!hotkey.Enabled)
+                        continue;
                     if (hotkey.CommandIs(Constants.ShowQualityItems) && Config.QualityTabIndex == 0)
                         continue;
                     HotKeyManager.RegisterHotKey(hotkey.Binding.Key, hotkey.Binding.Modifiers);
+                    ++numRegistered;
                 }
+                logger.Info($"registered {numRegistered}/{Config.Hotkeys.Count} hotkeys");
 
                 if (!haveAddedHotkeyEventHandler)
                     HotKeyManager.HotKeyPressed += new EventHandler<HotKeyEventArgs>(HotKeyManager_HotKeyPressed);
@@ -253,7 +263,7 @@ namespace ChaosHelper
             }
         }
 
-        static void HotKeyManager_HotKeyPressed(object sender, ConsoleHotKey.HotKeyEventArgs e)
+        static void HotKeyManager_HotKeyPressed(object sender, HotKeyEventArgs e)
         {
             var activated = overlay.IsPoeWindowActivated();
             if (!activated)
@@ -265,14 +275,20 @@ namespace ChaosHelper
             var hotkey = Config.GetHotKey(e);
             if (hotkey == null || !hotkey.Enabled) return;
 
-            if (string.IsNullOrEmpty(hotkey.Command))
+            if (!string.IsNullOrEmpty(hotkey.Command))
+            {
+                ProcessHotkeyCommand(hotkey);
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(hotkey.Text))
             {
                 try
                 {
-                    hotkey.Keys ??= StringToKeys(hotkey.Text).ToArray();
-                    var keyStrings = string.Join("; ", hotkey.Keys.Select(x => x.ToString()));
-                    logger.Info($"sending keys: {keyStrings}");
-                    overlay?.SendTextToPoE(hotkey.Keys);
+                    var (keyEntries, didSubstitution) = KeyboardUtils.StringToKeys(hotkey.Text);
+                    KeyboardUtils.SendKeys(keyEntries);
+                    var sent = KeyboardUtils.ToString(keyEntries);
+                    logger.Info($"sent {sent}");
                 }
                 catch
                 {
@@ -283,7 +299,10 @@ namespace ChaosHelper
 
                 return;
             }
+        }
 
+        private static void ProcessHotkeyCommand(HotkeyEntry hotkey)
+        {
             switch (hotkey.Command)
             {
             case Constants.ClosePorts:
@@ -315,134 +334,6 @@ namespace ChaosHelper
                 break;
             }
         }
-
-        private static IEnumerable<Process.NET.Native.Types.Keys> StringToKeys(string s)
-        {
-#if false
-            return s.Select(x => ToKey(x));
-#else
-            var span = s.AsSpan();
-
-            var result = new List<Process.NET.Native.Types.Keys>();
-            int i = 0;
-            int len = s.Length;
-            while (i < len)
-            {
-                if (i < len - 2 && span[i] == '{')
-                {
-                    if (span[i + 1] == '{') // use "{{" for an open brace
-                    {
-                        result.Add(Process.NET.Native.Types.Keys.OemOpenBrackets|Process.NET.Native.Types.Keys.Shift);
-                        i += 2;
-                        continue;
-                    }
-                    if (span[i + 1] == '}' && span[i + 2] == '}') // use "{}}" for a close brace
-                    {
-                        result.Add(Process.NET.Native.Types.Keys.OemCloseBrackets | Process.NET.Native.Types.Keys.Shift);
-                        i += 3;
-                        continue;
-                    }
-
-                    int j = s.IndexOf('}', i + 2);
-                    if (j != -1)
-                    {
-                        (int i2, Process.NET.Native.Types.Keys modifiers) = ParseKeyModifiers(s, i + 1);
-                        var subspan = span.Slice(i2, j - i2);
-                        if (Enum.TryParse<Process.NET.Native.Types.Keys>(subspan, true, out var key))
-                        {
-                            result.Add(key | modifiers);
-                            if (modifiers != Process.NET.Native.Types.Keys.None)
-                                result.Add(Process.NET.Native.Types.Keys.None);
-                            i = j + 1;
-                            continue;
-                        }
-                    }
-                }
-
-                result.Add(ToKey(s[i]));
-                ++i;
-            }
-
-            return result;
-
-            static (int pos, Process.NET.Native.Types.Keys modifiers) ParseKeyModifiers(string s, int pos)
-            {
-                Process.NET.Native.Types.Keys modifiers = Process.NET.Native.Types.Keys.None;
-                var len = s.Length;
-                while (pos < len && "^+!#".Contains(s[pos]))
-                {
-                    switch (s[pos])
-                    {
-                    case '!': // alt
-                        modifiers |= Process.NET.Native.Types.Keys.Alt;
-                        break;
-                    case '^': // ctrl
-                        modifiers |= Process.NET.Native.Types.Keys.Control;
-                        break;
-                    case '+': // shift
-                        modifiers |= Process.NET.Native.Types.Keys.Shift;
-                        break;
-                    }
-                    ++pos;
-                }
-                return (pos, modifiers);
-            }
-#endif
-        }
-
-        static Process.NET.Native.Types.Keys ToKey(char c)
-        {
-            if (c >= 'a' && c <= 'z')
-                return (Process.NET.Native.Types.Keys)(c - 'a' + 'A');
-            if (c >= 'A' && c <= 'Z')
-                return (Process.NET.Native.Types.Keys)(c)| Process.NET.Native.Types.Keys.Shift;
-            if (c >= '0' && c <= '9')
-                return (Process.NET.Native.Types.Keys)(c);
-
-            if (c == '\r' || c == '\n')
-                return Process.NET.Native.Types.Keys.Enter;
-            if (c == ' ')
-                return Process.NET.Native.Types.Keys.Space;
-            if (c == '/')
-                return Process.NET.Native.Types.Keys.Divide;
-            if (c == '{')
-                return Process.NET.Native.Types.Keys.OemOpenBrackets | Process.NET.Native.Types.Keys.Shift;
-            if (c == '}')
-                return Process.NET.Native.Types.Keys.OemCloseBrackets | Process.NET.Native.Types.Keys.Shift;
-            if (c == '[')
-                return Process.NET.Native.Types.Keys.OemOpenBrackets;
-            if (c == ']')
-                return Process.NET.Native.Types.Keys.OemCloseBrackets;
-            if (c == ':')
-                return Process.NET.Native.Types.Keys.Oem1 | Process.NET.Native.Types.Keys.Shift;
-            if (c == ';')
-                return Process.NET.Native.Types.Keys.Oem1;
-            if (c == '+')
-                return Process.NET.Native.Types.Keys.OemPlus;
-            if (c == ',')
-                return Process.NET.Native.Types.Keys.OemComma;
-            if (c == '-')
-                return Process.NET.Native.Types.Keys.OemMinus;
-            if (c == '?')
-                    return Process.NET.Native.Types.Keys.Oem2 | Process.NET.Native.Types.Keys.Shift;
-            if (c == '/')
-                return Process.NET.Native.Types.Keys.Oem2;
-            if (c == '~')
-                    return Process.NET.Native.Types.Keys.Oem3 | Process.NET.Native.Types.Keys.Shift;
-            if (c == '`')
-                return Process.NET.Native.Types.Keys.Oem3;
-            if (c == '|')
-                return Process.NET.Native.Types.Keys.Oem5 | Process.NET.Native.Types.Keys.Shift;
-            if (c == '\\')
-                return Process.NET.Native.Types.Keys.Oem5;
-            if (c == '"')
-                return Process.NET.Native.Types.Keys.Oem7 | Process.NET.Native.Types.Keys.Shift;
-            if (c == '\'')
-                return Process.NET.Native.Types.Keys.Oem7;
-
-            return (Process.NET.Native.Types.Keys)c;
-        }
-
 
         static async Task CheckForUpdate()
         {
@@ -586,8 +477,8 @@ namespace ChaosHelper
 
                     // only check category for rares of ilvl 60+
                     //
-                    var getCat = (!forChaosRecipe && identified && (frameType == 1 || frameType == 2))
-                        || (forChaosRecipe && frameType == 2 && ilvl >= Config.MinIlvl && (Config.AllowIDedSets || !identified));
+                    var getCat = !forChaosRecipe && identified && (frameType == 1 || frameType == 2)
+                        || forChaosRecipe && frameType == 2 && ilvl >= Config.MinIlvl && (Config.AllowIDedSets || !identified);
 
                     var category = !getCat ? Cat.Junk : item.DetermineCategory(forChaosRecipe);
 
@@ -688,8 +579,7 @@ namespace ChaosHelper
 
                     var valueString = prop.GetProperty("values").ToString();
 
-                    var regex = new System.Text.RegularExpressions.Regex("\\+(\\d+)%");
-                    var m = regex.Match(valueString);
+                    var m = RegexPlusDigitsPercent().Match(valueString);
                     if (m.Success)
                     {
                         var qualityString = m.Groups[1].Captures[0].Value;
@@ -1065,7 +955,7 @@ namespace ChaosHelper
                 while (!token.IsCancellationRequested && string.Equals(savedClientFileName, Config.ClientFileName))
                 {
                     string newArea = null;
-                    string line = await sr.ReadLineAsync();
+                    string line = await sr.ReadLineAsync(token);
                     while (line != null)
                     {
                         var i = line.IndexOf(Config.AreaEnteredPattern);
@@ -1073,7 +963,7 @@ namespace ChaosHelper
                             newArea = line.Substring(i + Config.AreaEnteredPattern.Length).Trim().TrimEnd('.');
                         else if (line.Contains(loginPattern, StringComparison.OrdinalIgnoreCase))
                             sawLoginLine = true;
-                        line = await sr.ReadLineAsync();
+                        line = await sr.ReadLineAsync(token);
                     }
 
                     if (reloadConfig)
@@ -1107,7 +997,7 @@ namespace ChaosHelper
                     else if (forceFilterUpdate)
                         logger.Info("forcing filter update");
 
-                    if ((newArea != null && wasTown) || forceFilterUpdate)
+                    if (newArea != null && wasTown || forceFilterUpdate)
                         await CheckForUpdate();
                     else if (newArea != null)
                         SetOverlayStatusMessage();
@@ -1153,5 +1043,8 @@ namespace ChaosHelper
                 // do nothing
             }
         }
+
+        [GeneratedRegex("\\+(\\d+)%")]
+        private static partial Regex RegexPlusDigitsPercent();
     }
 }

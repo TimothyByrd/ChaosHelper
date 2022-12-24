@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0-windows7.0</TargetFramework>
+    <TargetFramework>net7.0-windows10.0.17763.0</TargetFramework>
     <OutputType>Exe</OutputType>
 	<DisableWinExeOutputInference>true</DisableWinExeOutputInference>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
@@ -9,6 +9,8 @@
     <ApplicationIcon />
     <StartupObject />
     <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <AdditionalFiles Remove="app.manifest" />
@@ -77,6 +79,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="GregsStack.InputSimulatorStandard" Version="1.3.5" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Primitives" Version="5.0.1" />
     <PackageReference Include="NLog" Version="4.7.10" />
