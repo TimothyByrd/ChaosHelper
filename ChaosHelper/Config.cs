@@ -573,8 +573,9 @@ namespace ChaosHelper
                                 delta = TimeSpan.FromSeconds(delaySeconds);
                             }
 
+                            delta = delta.Add(TimeSpan.FromSeconds(30));
                             logger.Warn($"Got response 429 too many requests(1) - delaying for {delta.TotalSeconds} seconds");
-                            await Task.Delay(delta.Add(TimeSpan.FromSeconds(10)));
+                            await Task.Delay(delta);
                             continue;
                         }
                         else if (!response.IsSuccessStatusCode)
