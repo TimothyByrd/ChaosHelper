@@ -1,21 +1,17 @@
-﻿using System;
+﻿using ConsoleHotKey;
+
+using System;
 using System.Collections.Generic;
-using System.Diagnostics.Metrics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Reflection.Metadata.Ecma335;
+using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Controls;
-using System.Windows.Forms;
-using System.Windows.Interop;
-
-using ConsoleHotKey;
 
 namespace ChaosHelper
 {
@@ -40,6 +36,14 @@ namespace ChaosHelper
         static ItemSet qualityItems = null;
         static string currentArea = string.Empty;
 
+        private class Settings
+        {
+            public bool ForceSingleUpdate { get; set; } = false;
+            public bool RunOverlay { get; set; } = true;
+            public bool StartPaused { get; set; } = false;
+            public string ChaosSetFileToCheck { get; set; }
+        }
+
         static void Main(string[] args)
         {
             try
@@ -48,17 +52,50 @@ namespace ChaosHelper
                 //ItemRule.RuleEntry.ShowMatch("ES*0.5>=150");
                 //ItemRule.RuleEntry.ShowMatch("LvlCold*85+DotCold*3.7+SpellPctCold>=100");
 
+                var settings = new Settings();
+
+                bool nextArgIsPoeDir = false;
+                bool nextArgIsChaosSetFile = false;
                 foreach (var arg in args)
                 {
-                    if (string.Equals(arg, "steam", StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(arg, "-steam", StringComparison.Ordinal))
                         Config.ForceSteam = true;
-                    else if (File.Exists(arg))
-                        Config.ConfigFileOverride = arg;
+                    else if (string.Equals(arg, "-once", StringComparison.Ordinal) || string.Equals(arg, "-1", StringComparison.Ordinal))
+                        settings.ForceSingleUpdate = true;
+                    else if (string.Equals(arg, "-nooverlay", StringComparison.Ordinal) || string.Equals(arg, "-no", StringComparison.Ordinal))
+                        settings.RunOverlay = false;
+                    else if (string.Equals(arg, "-pause", StringComparison.Ordinal) || string.Equals(arg, "-p", StringComparison.Ordinal))
+                        settings.StartPaused = true;
+                    else if (string.Equals(arg, "-autoexit", StringComparison.Ordinal) || string.Equals(arg, "-x", StringComparison.Ordinal))
+                        Config.ForceExitWhenPoeExits = true;
+                    else if (string.Equals(arg, "-poe", StringComparison.Ordinal))
+                        nextArgIsPoeDir = true;
+                    else if (string.Equals(arg, "-check", StringComparison.Ordinal))
+                        nextArgIsChaosSetFile = true;
+                    else if (nextArgIsPoeDir)
+                    {
+                        nextArgIsPoeDir = false;
+                        if (Directory.Exists(arg))
+                            Config.SetPoeDir(arg);
+                    }
+                    else if (nextArgIsChaosSetFile)
+                    {
+                        nextArgIsChaosSetFile = false;
+                        if (File.Exists(arg))
+                        {
+                            settings.ChaosSetFileToCheck = arg;
+                            Config.OfflineMode = true;
+                        }
+                        else
+                            logger.Warn($"file not found to check for chaos sets '{arg}'");
+                    }
+                    else if (Directory.Exists(arg))
+                        Config.ConfigDir = arg;
                 }
 
                 Console.Title = "ChaosHelper.exe";
 
-                MainAsync().Wait();
+                MainAsync(settings).Wait();
 
                 //Console.WriteLine();
                 //Console.WriteLine("Press 'Enter' to end program");
@@ -70,12 +107,50 @@ namespace ChaosHelper
             }
         }
 
-        static async Task MainAsync()
+        static async Task MainAsync(Settings settings)
         {
             logger.Info("******************************************** Startup");
 
             if (!await Config.ReadConfigFile())
                 return;
+
+            if (!string.IsNullOrWhiteSpace(settings.ChaosSetFileToCheck))
+            {
+                logger.Info($"Checking file for chaos sets '{settings.ChaosSetFileToCheck}'");
+                try
+                {
+                    ItemSet.DetailedLogging = true;
+                    logger.Info($"config: AllowIDedSets {Config.AllowIDedSets}, ChaosParanoiaLevel: {Config.ChaosParanoiaLevel}");
+                    var json = JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(settings.ChaosSetFileToCheck), RawJsonConfiguration.SerializerOptions);
+                    var items = new ItemSet();
+                    var count = AddItemsToItemSetFromJson(json, items);
+                    logger.Info($"set has {count} items");
+                    items.RefreshCounts();
+
+                    ItemSet setToSell = null;
+                    do
+                    {
+                        setToSell = items.GetSetToSell(Config.AllowIDedSets, Config.ChaosParanoiaLevel);
+
+                    } while ( setToSell != null && setToSell.HasAnyItems());
+                }
+                catch (Exception ex)
+                {
+                    logger.Error(ex, $"Reading save tab data for '{settings.ChaosSetFileToCheck}'");
+                }
+
+                logger.Info("Exiting after checking json file");
+                return;
+            }
+
+            if (settings.ForceSingleUpdate)
+            {
+                logger.Info("Forcing a single filter update");
+                forceFilterUpdate = true;
+                await CheckForUpdate();
+                logger.Info("Exiting after single filter update");
+                return;
+            }
 
 #if DEBUG
             //var qualityItems = new ItemSet();
@@ -101,10 +176,10 @@ namespace ChaosHelper
             //return;
 #endif
 
-
             // Define the cancellation token.
             var source = new CancellationTokenSource();
             CancellationToken cancellationToken = source.Token;
+            isPaused = Config.StartPaused || settings.StartPaused;
 
             var keyboardTask = Task.Run(async () =>
             {
@@ -158,7 +233,7 @@ namespace ChaosHelper
                         }
                         else if (keyInfo.Key == ConsoleKey.D)
                         {
-                            if (Config.DumpTabDictionary.Any())
+                            if (Config.DumpTabDictionary.Count != 0)
                             {
                                 logger.Info("Checking items in dump tabs");
                                 logMatchingNames = true;
@@ -187,7 +262,7 @@ namespace ChaosHelper
                             logger.Info("\t't' to toggle stash test mode (to make sure the rectangle is good)");
                             logger.Info("\t'r' to reload configuration");
                             logger.Info("\t'z' to list contents of currency stash tab (with prices from poe ninja)");
-                            if (Config.DumpTabDictionary.Any())
+                            if (Config.DumpTabDictionary.Count != 0)
                                 logger.Info("\t'd' to check dump tabs for interesting items");
                             logger.Info("\t's' to check an item copied on the clipboard");
                         }
@@ -201,12 +276,15 @@ namespace ChaosHelper
             });
 
             Task overlayTask = null;
-            overlayTask = Task.Run(() =>
+            if (settings.RunOverlay)
             {
-                overlay = new ChaosOverlay();
-                overlay.RunOverLay(cancellationToken);
-                overlay = null;
-            });
+                overlayTask = Task.Run(() =>
+                {
+                    overlay = new ChaosOverlay();
+                    overlay.RunOverLay(cancellationToken);
+                    overlay = null;
+                });
+            }
 
             // get initial counts
             itemsCurrent = new ItemSet();
@@ -218,14 +296,19 @@ namespace ChaosHelper
             itemsCurrent.CalculateClassesToShow();
             overlay?.SetCurrentItems(itemsCurrent);
 
-            if (overlayTask != null && !overlayTask.IsCompleted)
+            bool CheckOverlayTask()
+            {
+                return !settings.RunOverlay || (overlayTask != null && !overlayTask.IsCompleted);
+            }
+
+            if (CheckOverlayTask())
             {
                 try
                 {
                     CheckHotkeyRegistration();
 
                     // This will check for updates as zones are entered
-                    while (!cancellationToken.IsCancellationRequested)
+                    while (!cancellationToken.IsCancellationRequested && CheckOverlayTask())
                         await TailClientTxt(cancellationToken);
                 }
                 finally
@@ -265,8 +348,7 @@ namespace ChaosHelper
 
         static void HotKeyManager_HotKeyPressed(object sender, HotKeyEventArgs e)
         {
-            var activated = overlay.IsPoeWindowActivated();
-            if (!activated)
+            if (!PoeIsActiveWindow())
                 return;
 
             if (Config.IsClosePortsHotkey(e))
@@ -288,7 +370,7 @@ namespace ChaosHelper
                     var (keyEntries, didSubstitution) = KeyboardUtils.StringToKeys(hotkey.Text);
                     KeyboardUtils.SendKeys(keyEntries);
                     var sent = KeyboardUtils.ToString(keyEntries);
-                    logger.Info($"sent {sent}");
+                    logger.Debug($"sent {sent}");
                 }
                 catch
                 {
@@ -359,13 +441,20 @@ namespace ChaosHelper
             {
                 if (File.Exists(Config.TemplateFileName))
                 {
-                    var msg = itemsCurrent.GetCountsMsg();
-                    logger.Info($"updating filter - {msg}");
+                    logger.Info($"updating filter - {itemsCurrent.GetCountsMsg()}");
                     File.WriteAllLines(Config.FilterFileName, NewFilterContents(itemsCurrent));
 
                     if (Config.FilterUpdateVolume > 0.0f && File.Exists(Config.FilterUpdateSound))
                     {
                         SharpDxSoundPlayer.PlaySoundFile(Config.FilterUpdateSound, Config.FilterUpdateVolume);
+                    }
+                    if (Config.FilterAutoReload && PoeIsActiveWindow())
+                    {
+                        var keyString = $"{{Enter}}/itemfilter {Config.FilterFileBaseName}{{Enter}}";
+                        var (keyEntries, _) = KeyboardUtils.StringToKeys(keyString);
+                        KeyboardUtils.SendKeys(keyEntries);
+                        var sent = KeyboardUtils.ToString(keyEntries);
+                        logger.Debug($"sent {sent}");
                     }
                 }
                 else
@@ -374,11 +463,17 @@ namespace ChaosHelper
                 overlay?.SendKey(ConsoleKey.Spacebar);
                 forceFilterUpdate = false;
             }
+            else if (overlay == null)
+            {
+                logger.Info($"item counts - {itemsCurrent.GetCountsMsg()}");
+            }
         }
 
         private static async Task CheckDumpTabs()
         {
-            if (!Config.DumpTabDictionary.Any())
+            await Config.DetermineTabIndicies(forceWebCheck: true);
+
+            if (Config.DumpTabDictionary.Count == 0)
             {
                 logger.Warn("cannot check dump tabs - not configured/found");
                 return;
@@ -394,17 +489,22 @@ namespace ChaosHelper
 
             var dumpTabItems = new ItemSet();
             var shouldDelay = false;
+            var delayMS = 300;
             foreach (var kvp in Config.DumpTabDictionary)
             {
-                if (shouldDelay) await Task.Delay(300);
+                if (shouldDelay)
+                {
+                    await Task.Delay(delayMS);
+                    delayMS += 30;
+                }
                 shouldDelay = Config.StashReadMode != Config.StashReading.Playback;
                 logger.Info($"retrieving tab '{kvp.Value}' ({kvp.Key})");
                 var itemsInThisTab = await GetTabContents(kvp.Key, dumpTabItems, forChaosRecipe: false);
             }
 
-            dumpTabItems.CheckMods(Config.DumpTabDictionary);
+            var interestingItems = dumpTabItems.CheckMods(Config.DumpTabDictionary);
             var matches = dumpTabItems.LogMatchingNames(Config.DumpTabDictionary);
-            overlay?.DrawTextMessages(matches);
+            overlay?.DrawTextMessages(interestingItems.Concat(matches));
             logger.Info("done checking dump tabs");
         }
 
@@ -453,8 +553,6 @@ namespace ChaosHelper
 
         private static async Task<int> GetTabContents(int tabIndex, ItemSet items, bool forChaosRecipe = true)
         {
-            var count = 0;
-
             try
             {
                 if (tabIndex < 0)
@@ -464,37 +562,45 @@ namespace ChaosHelper
                 }
 
                 JsonElement json = await GetJsonByTabIndex(tabIndex);
-                if (json.ValueKind == JsonValueKind.Undefined)
-                {
-                    logger.Error("ERROR: empty stash returned");
-                    return 0;
-                }
-                foreach (var item in json.GetProperty("items").EnumerateArray())
-                {
-                    var frameType = item.GetIntOrDefault("frameType", 0);
-                    var identified = item.GetProperty("identified").GetBoolean();
-                    var ilvl = item.GetIntOrDefault("ilvl", 0);
-
-                    // only check category for rares of ilvl 60+
-                    //
-                    var getCat = !forChaosRecipe && identified && (frameType == 1 || frameType == 2)
-                        || forChaosRecipe && frameType == 2 && ilvl >= Config.MinIlvl && (Config.AllowIDedSets || !identified);
-
-                    var category = !getCat ? Cat.Junk : item.DetermineCategory(forChaosRecipe);
-
-                    items.Add(category, item, tabIndex);
-                    ++count;
-                }
-
-                items.Sort();
-
+                return AddItemsToItemSetFromJson(json, items, tabIndex, forChaosRecipe);
             }
             catch (Exception ex)
             {
                 logger.Error(ex, $"HTTP error getting tab contents: {ex.Message}");
             }
 
+            return 0;
+        }
+
+        public static int AddItemsToItemSetFromJson(JsonElement json, ItemSet items, int tabIndex = 0, bool forChaosRecipe = true)
+        {
+            if (json.ValueKind == JsonValueKind.Undefined)
+            {
+                logger.Error("ERROR: empty stash returned");
+                return 0;
+            }
+
+            var count = 0;
+            foreach (var item in json.GetProperty("items").EnumerateArray())
+            {
+                var frameType = item.GetIntOrDefault("frameType", 0);
+                var identified = item.GetProperty("identified").GetBoolean();
+                var ilvl = item.GetIntOrDefault("ilvl", 0);
+
+                // only check category for rares of ilvl 60+
+                //
+                var getCat = !forChaosRecipe && identified && (frameType == 1 || frameType == 2)
+                    || forChaosRecipe && frameType == 2 && ilvl >= Config.MinIlvl && (Config.AllowIDedSets || !identified);
+
+                var category = getCat ? item.DetermineCategory(forChaosRecipe) : Cat.Junk;
+
+                items.Add(category, item, tabIndex);
+                ++count;
+            }
+
+            items.Sort();
             return count;
+
         }
 
         private static async Task GetQualityTabContents(int tabIndex, ItemSet items)
@@ -521,8 +627,6 @@ namespace ChaosHelper
                     var ilvl = item.GetIntOrDefault("ilvl", 0);
                     var category = Cat.Junk;
 
-                    var maxQuality = 19;
-
                     // normal, magic, rare
                     //
                     if (frameType == 0 || frameType == 1 || frameType == 2)
@@ -544,8 +648,6 @@ namespace ChaosHelper
                             if (category == Cat.Junk)
                                 continue;
                         }
-
-                        maxQuality = frameType == 0 ? 19 : 20; // magic/rare items can be q20
                     }
                     // otherwise, skip all non-gems
                     //
@@ -555,9 +657,7 @@ namespace ChaosHelper
                     }
 
                     var quality = GetQuality(item);
-                    if (quality == 0) continue;
-
-                    if (quality <= maxQuality)
+                    if (quality > 0 && (frameType != 0 || quality != 20))
                         items.Add(category, item, tabIndex, quality);
                 }
             }
@@ -597,7 +697,7 @@ namespace ChaosHelper
             {
                 Currency.ResetCounts();
 
-                if (Config.CurrencyTabIndex < 0 || !Currency.CurrencyList.Any())
+                if (Config.CurrencyTabIndex < 0 || Currency.CurrencyList.Count == 0)
                     return;
 
                 if (listCurrencyToConsole)
@@ -653,7 +753,6 @@ namespace ChaosHelper
             try
             {
                 JsonElement tabList = await Config.GetTabList();
-
                 foreach (var tab in tabList.GetProperty("tabs").EnumerateArray())
                 {
                     var name = tab.GetProperty("n").GetString();
@@ -664,11 +763,7 @@ namespace ChaosHelper
                         foundTabIndex = i;
                         logger.Info($"Found stash tab '{tabName}' at index {i}");
                         JsonElement json = await GetJsonByTabIndex(i);
-                        var options = new JsonSerializerOptions
-                        {
-                            WriteIndented = true,
-                        };
-                        var jsonString = JsonSerializer.Serialize(json, options);
+                        var jsonString = JsonSerializer.Serialize(json, RawJsonConfiguration.SerializerOptions);
                         var fileName = Config.TabFileName(tabName);
                         File.WriteAllText(fileName, jsonString);
                         logger.Info($"Contents of tab '{tabName}' written to {fileName}");
@@ -711,12 +806,12 @@ namespace ChaosHelper
             {
                 // for some reason, this is a form POST, not a GET
                 //
-                var formContent = new FormUrlEncodedContent(new[]
-                {
+                var formContent = new FormUrlEncodedContent(
+                [
                     new KeyValuePair<string, string>("accountName", Config.Account),
                     new KeyValuePair<string, string>("realm", "pc"),
                     new KeyValuePair<string, string>("character", Config.Character),
-                });
+                ]);
                 var inventoryUrl = "https://www.pathofexile.com/character-window/get-items";
                 var response = await Config.HttpClient.PostAsync(inventoryUrl, formContent);
                 response.EnsureSuccessStatusCode();
@@ -778,22 +873,41 @@ namespace ChaosHelper
 
             if (!Config.FilterMarkerChecked)
             {
-                Config.PutFilterLineAtTop = !File.ReadAllLines(Config.TemplateFileName)
-                    .Any(line => line.StartsWith("#") && line.Contains(Config.FilterMarker, StringComparison.OrdinalIgnoreCase));
-                Config.FilterMarkerChecked = true;
-                if (Config.PutFilterLineAtTop)
+                var found = File.ReadAllLines(Config.TemplateFileName)
+                    .Any(line => line.StartsWith('#') && line.Contains(Config.FilterMarker, StringComparison.OrdinalIgnoreCase));
+                if (!found)
+                {
+                    Config.FilterPlacement = Config.FilterInsertPlacement.Top;
                     logger.Warn("filter marker not found - putting section at top of file");
+                }
+                Config.FilterMarkerChecked = true;
             }
 
-            var insertGeneratedSection = Config.PutFilterLineAtTop;
+            var insertGeneratedSectionNow = Config.FilterPlacement == Config.FilterInsertPlacement.Top;
             var numGeneratedSections = 0;
 
             foreach (var line in File.ReadAllLines(Config.TemplateFileName))
             {
-                if (insertGeneratedSection)
+                if (numGeneratedSections > 0 || insertGeneratedSectionNow)
                 {
-                    insertGeneratedSection = false;
+                    // do nothing
+                }
+                else if (Config.FilterPlacement == Config.FilterInsertPlacement.FirstHide)
+                {
+                    insertGeneratedSectionNow = line.TrimStart().StartsWith("Hide", StringComparison.OrdinalIgnoreCase);
+                }
+                else if (Config.FilterPlacement == Config.FilterInsertPlacement.SpecificString)
+                {
+                    insertGeneratedSectionNow = line.TrimStart().StartsWith('#')
+                        && line.Contains(Config.FilterMarker, StringComparison.OrdinalIgnoreCase);
+                }
+
+                if (insertGeneratedSectionNow)
+                {
+                    insertGeneratedSectionNow = false;
                     ++numGeneratedSections;
+
+                    // replace with 'Import "MyOptionalRules.filter" Optional'?
 
                     if (!string.IsNullOrEmpty(Config.FilterInsertFile)
                         && File.Exists(Config.FilterInsertFile))
@@ -822,73 +936,28 @@ namespace ChaosHelper
 
                         var counts = items.GetCounts(c.Category);
 
-                        if (!counts.ShouldShowInFilter)
-                            continue;
+                        //if (!counts.ShouldShowInFilter)
+                        //    continue;
+                        var prefix = counts.ShouldShowInFilter ? "" : "# ";
 
                         var canBeIded = Config.AllowIDedSets && (c.Category == Cat.Rings || c.Category == Cat.Amulets);
                         var fontSize = Config.FilterDisplay.FontSize > 10 ? Config.FilterDisplay.FontSize : c.DefaultFontSize;
 
-                        yield return $"# {c.Category} for chaos";
-                        yield return "Show";
-                        yield return $"Class \"{c.FilterClass}\"";
-                        yield return "Rarity Rare";
-                        yield return $"SetFontSize {fontSize}";
-                        yield return $"SetTextColor {Config.FilterDisplay.TextColor}";
-                        yield return $"SetBackgroundColor {Config.FilterDisplay.BackGroundColor}";
-                        yield return $"SetBorderColor {Config.FilterDisplay.BorderColor}";
-                        if (!canBeIded)
-                            yield return "Identified False";
-                        yield return $"ItemLevel >= {Config.MinIlvl}";
-                        if (counts.MaxItemLevelToShow > 0)
-                            yield return $"ItemLevel <= {counts.MaxItemLevelToShow}";
+                        var catLines = GetLinesForCategory(c.Category, c.CategoryStr, c.FilterClass, fontSize, canBeIded, counts);
+                        foreach (var catLine in catLines)
+                            yield return prefix + catLine;
+
+                        // Add in 2x3 bows and 1x4 2-handed weapons
+                        //
                         if (c.Category == Cat.OneHandWeapons)
                         {
-                            yield return "Height = 3";
-                            yield return "Width = 1";
-                        }
-                        else if (c.Category == Cat.BodyArmours)
-                        {
-                            yield return "Sockets < 6";
-                        }
+                            catLines = GetLinesForCategory(Cat.TwoHandWeapons, "2x3 Bows", "Bows", fontSize, canBeIded, counts);
+                            foreach (var catLine in catLines)
+                                yield return prefix + catLine;
 
-                        yield return "";
-
-                        // Add in bows
-                        if (c.Category == Cat.OneHandWeapons)
-                        {
-                            yield return "# Bows for chaos";
-                            yield return "Show";
-                            yield return "Class \"Bows\"";
-                            yield return "Rarity Rare";
-                            yield return "Sockets < 6";
-                            yield return $"SetFontSize {fontSize}";
-                            yield return $"SetTextColor {Config.FilterDisplay.TextColor}";
-                            yield return $"SetBackgroundColor {Config.FilterDisplay.BackGroundColor}";
-                            yield return $"SetBorderColor {Config.FilterDisplay.BorderColor}";
-                            if (!canBeIded)
-                                yield return "Identified False";
-                            yield return $"ItemLevel >= {Config.MinIlvl}";
-                            if (counts.MaxItemLevelToShow > 0)
-                                yield return $"ItemLevel <= {counts.MaxItemLevelToShow}";
-                            yield return "Height = 3";
-                            yield return "";
-
-                            yield return "# 1x4 2hd weapons for chaos";
-                            yield return "Show";
-                            yield return "Class \"Two Hand\" \"Staves\"";
-                            yield return "Rarity Rare";
-                            yield return "Sockets < 6";
-                            yield return $"SetFontSize {fontSize}";
-                            yield return $"SetTextColor {Config.FilterDisplay.TextColor}";
-                            yield return $"SetBackgroundColor {Config.FilterDisplay.BackGroundColor}";
-                            yield return $"SetBorderColor {Config.FilterDisplay.BorderColor}";
-                            if (!canBeIded)
-                                yield return "Identified False";
-                            yield return $"ItemLevel >= {Config.MinIlvl}";
-                            if (counts.MaxItemLevelToShow > 0)
-                                yield return $"ItemLevel <= {counts.MaxItemLevelToShow}";
-                            yield return "Width = 1";
-                            yield return "";
+                            catLines = GetLinesForCategory(Cat.TwoHandWeapons, "1x4 2hd weapons", "Two Hand\" \"Staves", fontSize, canBeIded, counts);
+                            foreach (var catLine in catLines)
+                                yield return prefix + catLine;
                         }
                     }
 
@@ -916,9 +985,6 @@ namespace ChaosHelper
                 }
 
                 yield return line;
-
-                insertGeneratedSection = line.Trim().StartsWith("#")
-                    && line.Contains(Config.FilterMarker, StringComparison.OrdinalIgnoreCase);
             }
 
             if (numGeneratedSections == 0)
@@ -930,6 +996,55 @@ namespace ChaosHelper
             {
                 logger.Warn($"WARNING: marker found {numGeneratedSections} times in filter template - this may be a problem - see README.md");
                 logger.Warn($"filter template marker is '{Config.FilterMarker}'");
+            }
+
+            static List<string> GetLinesForCategory(Cat category, string catDescription, string filterString, int fontSize, bool canBeIded, ItemSet.ItemCounts counts)
+            {
+                var result = new List<string>();
+                if ((counts.MaxItemLevelToShow == 0 || counts.MaxItemLevelToShow >= 75)
+                    && Config.FilterDisplay.TextColor != Config.FilterDisplay.TextColor75)
+                    GetLinesForCategory2(75, Config.FilterDisplay.TextColor75);
+                GetLinesForCategory2(Config.MinIlvl, Config.FilterDisplay.TextColor);
+                return result;
+
+                void GetLinesForCategory2(int minIlvl, string textColor)
+                {
+                    result.Add($"# {catDescription} for chaos");
+                    result.Add("Show");
+                    result.Add($"   Class \"{filterString}\"");
+                    result.Add("   Rarity Rare");
+                    result.Add($"   SetFontSize {fontSize}");
+                    result.Add($"   SetTextColor {textColor}");
+                    result.Add($"   SetBackgroundColor {Config.FilterDisplay.BackGroundColor}");
+                    result.Add($"   SetBorderColor {Config.FilterDisplay.BorderColor}");
+                    result.Add($"   ItemLevel >= {minIlvl}");
+                    if (counts.MaxItemLevelToShow > 0)
+                        result.Add($"   ItemLevel <= {counts.MaxItemLevelToShow}");
+                    if (!canBeIded)
+                        result.Add("   Identified False");
+
+                    if (filterString == "Bows")
+                    {
+                        result.Add("   Height = 3");
+                        result.Add("   Sockets < 6");
+
+                    }
+                    else if (category == Cat.TwoHandWeapons)
+                    {
+                        result.Add("   Width = 1");
+                    }
+                    else if (category == Cat.OneHandWeapons)
+                    {
+                        result.Add("   Height = 3");
+                        result.Add("   Width = 1");
+                    }
+                    else if (category == Cat.BodyArmours)
+                    {
+                        result.Add("   Sockets < 6");
+                    }
+
+                    result.Add("");
+                }
             }
         }
 
@@ -951,6 +1066,7 @@ namespace ChaosHelper
             try
             {
                 const string loginPattern = "login.pathofexile.com";
+                const string maybeWhisperPattern = "] @";
                 var sawLoginLine = false;
                 while (!token.IsCancellationRequested && string.Equals(savedClientFileName, Config.ClientFileName))
                 {
@@ -963,6 +1079,17 @@ namespace ChaosHelper
                             newArea = line.Substring(i + Config.AreaEnteredPattern.Length).Trim().TrimEnd('.');
                         else if (line.Contains(loginPattern, StringComparison.OrdinalIgnoreCase))
                             sawLoginLine = true;
+                        else if (line.Contains(maybeWhisperPattern))
+                        {
+                            var m = RegexWhisperPattern().Match(line);
+                            if (m.Success)
+                            {
+                                Config.LastWhisper = m.Groups[1].Captures[0].Value ?? "";
+                                if (Config.LastWhisper.Contains(' '))
+                                    Config.LastWhisper = Config.LastWhisper.Substring(Config.LastWhisper.LastIndexOf(' ') + 1);
+                                logger.Info($"whisper: '{Config.LastWhisper}'");
+                            }
+                        }
                         line = await sr.ReadLineAsync(token);
                     }
 
@@ -974,7 +1101,7 @@ namespace ChaosHelper
                         reloadConfig = false;
                     }
 
-                    if (checkCharacter || sawLoginLine && newArea != null)
+                    if (checkCharacter || sawLoginLine && newArea != null && !isPaused)
                     {
                         await Config.CheckAccount(forceWebCheck: true);
                         await Config.DetermineTabIndicies(forceWebCheck: true);
@@ -1005,7 +1132,7 @@ namespace ChaosHelper
                     if (highlightSetsToSell)
                     {
                         var setToSell = itemsCurrent.GetSetToSell(Config.AllowIDedSets, Config.ChaosParanoiaLevel);
-                        overlay?.SetitemSetToSell(setToSell);
+                        overlay?.SetItemSetToSell(setToSell);
                         overlay?.SendKey(ConsoleKey.H);
                         highlightSetsToSell = false;
                         SetOverlayStatusMessage();
@@ -1018,7 +1145,7 @@ namespace ChaosHelper
                             await GetQualityTabContents(Config.QualityTabIndex, qualityItems);
                         }
                         var qualitySet = qualityItems.MakeQualitySet();
-                        overlay?.SetitemSetToSell(qualitySet);
+                        overlay?.SetItemSetToSell(qualitySet);
                         overlay?.SendKey(ConsoleKey.Q);
                         if (qualitySet == null || !qualitySet.HasAnyItems())
                             overlay?.SetStatus("No quality sets", false);
@@ -1044,7 +1171,37 @@ namespace ChaosHelper
             }
         }
 
+        static bool PoeIsActiveWindow()
+        {
+            if (overlay != null) return overlay.IsPoeWindowActivated();
+            var activeWindowTitle = GetActiveWindowTitle();
+            //logger.Warn($"no overlay, but active window is '{activeWindowTitle}'");
+            return string.Equals(activeWindowTitle, "Path of Exile", StringComparison.OrdinalIgnoreCase);
+        }
+
+        [LibraryImport("user32.dll")]
+        private static partial IntPtr GetForegroundWindow();
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
+
+        private static string GetActiveWindowTitle()
+        {
+            const int nChars = 256;
+            StringBuilder Buff = new(nChars);
+            IntPtr handle = GetForegroundWindow();
+
+            if (GetWindowText(handle, Buff, nChars) > 0)
+            {
+                return Buff.ToString();
+            }
+            return null;
+        }
+
         [GeneratedRegex("\\+(\\d+)%")]
         private static partial Regex RegexPlusDigitsPercent();
+
+        [GeneratedRegex("\\[INFO Client \\d+] @[^ ]+ ([^:]+):")]
+        private static partial Regex RegexWhisperPattern();
     }
 }

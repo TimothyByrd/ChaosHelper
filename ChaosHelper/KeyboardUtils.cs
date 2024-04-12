@@ -279,6 +279,14 @@ namespace ChaosHelper
                             i = j + 1;
                             continue;
                         }
+                        if (string.Equals(subStr, "Whisper", StringComparison.OrdinalIgnoreCase))
+                        {
+                            AddText(Config.LastWhisper);
+                            didSubstitution = true;
+                            i = j + 1;
+                            continue;
+                        }
+                       
                         var key = ValidKeys.FirstOrDefault(x => x.Matches(subStr));
                         if (key != null)
                         {

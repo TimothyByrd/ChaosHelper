@@ -13,7 +13,6 @@ namespace ChaosHelper
     // This file contains some small data structures that don't merit their own files.
     //
 
-
     public class ItemPosition
     {
         public int X;
@@ -88,7 +87,7 @@ namespace ChaosHelper
         public bool Is1x4 { get { return W == 1 && H == 4; } }
         public bool Is2x3 { get { return W == 2 && H == 3; } }
 
-        public static SortBy SortOrder = SortBy.Default;
+        public static SortBy SortOrder { get; set; } = SortBy.Default;
 
         public enum SortBy
         {
@@ -181,7 +180,7 @@ namespace ChaosHelper
 
 // some extension methods
 //
-public static class Helpers
+public static partial class Helpers
     {
         /// <summary>
         /// Gets the specified JSON property value as an integer, or returns a default value.
@@ -189,9 +188,9 @@ public static class Helpers
         /// <param name="element">The element holding the property.</param>
         /// <param name="valueName">The name of the property to find.</param>
         /// <param name="defaultValue">A default value to return is the property does not exist or is not a number.</param>
-        public static int GetIntOrDefault(this System.Text.Json.JsonElement element, string valueName, int defaultValue)
+        public static int GetIntOrDefault(this JsonElement element, string valueName, int defaultValue)
         {
-            if (element.TryGetProperty(valueName, out var value) && value.ValueKind == System.Text.Json.JsonValueKind.Number)
+            if (element.TryGetProperty(valueName, out var value) && value.ValueKind == JsonValueKind.Number)
             {
                 return value.GetInt32();
             }
@@ -204,9 +203,9 @@ public static class Helpers
         /// <param name="element">The element holding the property.</param>
         /// <param name="valueName">The name of the property to find.</param>
         /// <returns>An array enumerator</returns>
-        public static System.Text.Json.JsonElement.ArrayEnumerator GetArray(this System.Text.Json.JsonElement element, string valueName)
+        public static JsonElement.ArrayEnumerator GetArray(this JsonElement element, string valueName)
         {
-            if (element.TryGetProperty(valueName, out var value) && value.ValueKind == System.Text.Json.JsonValueKind.Array)
+            if (element.TryGetProperty(valueName, out var value) && value.ValueKind == JsonValueKind.Array)
                 return value.EnumerateArray();
             return default;
         }
@@ -217,9 +216,9 @@ public static class Helpers
         /// <param name="element">The element holding the property.</param>
         /// <param name="valueName">The name of the property to find.</param>
         /// <param name="defaultValue">A default value to return is the property does not exist or is not a number.</param>
-        public static string GetStringOrDefault(this System.Text.Json.JsonElement element, string valueName, string defaultValue = null)
+        public static string GetStringOrDefault(this JsonElement element, string valueName, string defaultValue = null)
         {
-            if (element.TryGetProperty(valueName, out var value) && value.ValueKind == System.Text.Json.JsonValueKind.String)
+            if (element.TryGetProperty(valueName, out var value) && value.ValueKind == JsonValueKind.String)
             {
                 return value.GetString();
             }
@@ -231,15 +230,12 @@ public static class Helpers
             return Math.Max(min, Math.Min(max, i));
         }
 
-        static readonly Regex nonColorCharRegex = new("[^0-9xXa-fA-F ]+");
-        static readonly Regex filterColorRegex  = new("^[0-9]{1,3}( [0-9]{1,3}){2,3}$");
-
         public static string CheckColorString(this string s, string defaultValue = null)
         {
             if (string.IsNullOrWhiteSpace(s))
                 return defaultValue;
 
-            s = nonColorCharRegex.Replace(s, " ").Trim();
+            s = NonColorCharRegex().Replace(s, " ").Trim();
             if (s.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
             {
                 if (int.TryParse(s.AsSpan(2), System.Globalization.NumberStyles.HexNumber, null, out var parsedInt))
@@ -248,7 +244,7 @@ public static class Helpers
                     return $"{color.R} {color.G} {color.B}";
                 }
             }
-            else if (filterColorRegex.IsMatch(s))
+            else if (FilterColorRegex().IsMatch(s))
             {
                 return s;
             }
@@ -296,20 +292,20 @@ public static class Helpers
 
         public static BaseClass ToBaseClass(this string s)
         {
-            if (Enum.TryParse<BaseClass>(s, true, out var baseClass)
+            if (Enum.TryParse<BaseClass>(s, true, out BaseClass baseClass)
                 && Enum.IsDefined(typeof(BaseClass), baseClass))
                 return baseClass;
-            if (itemTypeToBaseClassDict.ContainsKey(s))
-                return itemTypeToBaseClassDict[s];
+            if (itemTypeToBaseClassDict.TryGetValue(s, out baseClass))
+                return baseClass;
             if (s.EndsWith("s"))
-                return ToBaseClass(s.TrimEnd('s'));
+                return s.TrimEnd('s').ToBaseClass();
             return BaseClass.Any;
         }
 
         public static BaseClass JsonToBaseClass(this JsonElement json)
         {
             var baseType = json.GetStringOrDefault("baseType");
-            var baseClass = Helpers.BaseClassFromBaseType(baseType);
+            var baseClass = BaseClassFromBaseType(baseType);
             return baseClass;
         }
 
@@ -392,7 +388,7 @@ public static class Helpers
         public static Cat DetermineCategory(this JsonElement item, bool forChaosRecipe = false)
         {
             var baseType = item.GetStringOrDefault("baseType");
-            var baseClass = Helpers.BaseClassFromBaseType(baseType);
+            var baseClass = BaseClassFromBaseType(baseType);
             var category = baseClass.ToCat();
 
             // only handling 1x3 one-handed weapons
@@ -408,6 +404,12 @@ public static class Helpers
 
             return category;
         }
+
+        [GeneratedRegex("^[0-9]{1,3}( [0-9]{1,3}){2,3}$")]
+        private static partial Regex FilterColorRegex();
+
+        [GeneratedRegex("[^0-9xXa-fA-F ]+")]
+        private static partial Regex NonColorCharRegex();
     }
 
     public class ItemDisplay
@@ -416,17 +418,24 @@ public static class Helpers
         public string TextColor { get; set; }
         public string BorderColor { get; set; }
         public string BackGroundColor { get; set; }
+        public string TextColor75 { get; set; }
+        
         static public ItemDisplay Parse(JsonElement element)
         {
             var fontSize = element.GetIntOrDefault("fontSize", 0).Clamp(0, 50);
             var textColor = element.GetStringOrDefault("text").CheckColorString();
             var borderColor = element.GetStringOrDefault("border").CheckColorString();
             var backgroundColor = element.GetStringOrDefault("back").CheckColorString();
+            var textColor75 = element.GetStringOrDefault("text75").CheckColorString();
 
-            if (fontSize <= 10 || string.IsNullOrWhiteSpace(textColor)
+            if (fontSize <= 10
+                || string.IsNullOrWhiteSpace(textColor)
                 || string.IsNullOrWhiteSpace(borderColor)
                 || string.IsNullOrWhiteSpace(backgroundColor))
                 return null;
+
+            if (string.IsNullOrWhiteSpace(textColor75))
+                textColor75 = textColor;
 
             return new ItemDisplay
             {
@@ -434,6 +443,7 @@ public static class Helpers
                 TextColor = textColor,
                 BorderColor = borderColor,
                 BackGroundColor = backgroundColor,
+                TextColor75 = textColor75,
             };
         }
     }

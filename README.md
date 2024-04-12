@@ -177,14 +177,18 @@ There are three things you must configure in settings.jsonc to use the tool:
 - An existing Neversink filter should work with the defaults.
 - See "About the template and filter" for more info.
 
-__`filter`__ ("Chaos Helper") is the name of the .filter file to create/update - just don't make it the same as `template`.
+__`filter`__ ("ChaosHelper") is the name of the .filter file to create/update - just don't make it the same as `template`.
 See "About the template and filter" for more info.
 
 __`filterMarker`__ sets the text in the template file that will mark where to put the chaos recipe section.
 See "About the template and filter" for more info.
 
-__`filterColor`__ ("80 0 220") sets the border and text color for highlighted items in the updated filter.
-It can be specified as a hex number like "0x4600e6" or a filter file color like "70 0 230".
+__`filterAutoReload`__ (false) if true will send "{Enter}/itemfilter <filter name>{Enter}" when the filter updates to auto reload it.
+
+
+__`filterDisplay`__ ({ "fontSize": 0, "text": "106 77 255", "back": "70 70 70", "border": "106 77 255" })
+sets the the appearance for highlighted items in the updated filter.
+Colors can be specified as a hex number like "0x4600e6" or a filter file color like "70 0 230".
 
 __`soundFileVolume`__ (50) sets the volume of the sound alert for when the filter is updated. It can be an integer from 0 to 100.
 
@@ -202,19 +206,22 @@ The default of -1 means to give the recipe highlight to all applicable items of 
 Note that setting `maxIlvl` will not prevent the filter from showing any rares that it would have shown before.
 Only the highlighting may change from the chaos recipe highlight to what was already in the filter.
  
-__`allowIDedSets`__ (false) sets whether the tool will support making sets including IDed items.
-- Defaults to false because it causes extra vendor trips.
+__`allowIDedSets`__ (true) sets whether the tool will support making sets including IDed items.
 - I do this because I ID two-stone rings while levelling.
-- Also has the filter show IDed rare rings, like breech rings.
+- Also has the filter show IDed rare rings and amulets, like breech rings.
 - In an IDed set, both rings must be IDed, and other slots will prefer IDed items.
 - The tool will not mix an IDed set and an un-IDed set in one sale.
+- Can set to false to not show IDed rare rings and amulets in the  filter and to consider IDed items in the stash tab as junk.
 
-__`chaosParanoiaLevel`__ (0) sets the level of effort to maximize chaos vs. regal orbs.
-- The default of 0 will do nothing, because extra vendor trips waste time.
-- A value of 1 will allow the tool will highlight a single set at a time.
+__`chaosParanoiaLevel`__ (0) sets the level of effort to maximize chaos vs. regal orbs. It is a set of flag values, added together.
+- The default of 0 will do the normal level of optimization.
+- Adding 1 to the value will allow the tool to highlight a single set at a time.
 For example, if the stash contains one ilvl 74 glove and one ilvl 74 helmet and everything else is ilvl 75+, it will highlight them in two individual sales.
-- A value of 2 will also cause unidentified ilvl 75+ items to be favored over identified ilvl 60-74 items in IDed recipes.
+- Adding 2 to the value will cause unidentified ilvl 75+ items to be favored over identified ilvl 60-74 items in IDed recipes.
 This will tend to cause hoarding of identified ilvl 60-74 items in the stash tab.
+- Adding 4 to the value will cause IDed recipes to not care about ilvl.
+This will tend to save ilvl 60-74 items for unIDed recipis.
+- I am currently using 5 (1 + 4).
 
 __`ignoreMaxSets`__ causes the specified item classes to ignore the `maxSets` setting.
 For example, setting `ignoreMaxSets` to "Rings,Amulets" when `maxSets` is 12,

@@ -26,10 +26,9 @@
 # weapon for a shak vortex build
 
 Cold DoT Weapon, OneHandWeapon, GemLvlCold*85 + DotMulCold*3.7 + SpellPctCold >= 150
-
 RF Weapon, OneHandWeapon, GemLvlFire*40 + DotMulFire*3.7 + DamPctFire + DamPctBurn >= 130
-
-Lightning Weapon, OneHandWeapon, GemLvlLight*85 + SpellPctLight >= 140
+Lightning Weapon, OneHandWeapon, GemLvlLight*85 + SpellPctLight >= 130
+Chaos DoT Weapon, OneHandWeapon, GemLvlChaos*85 + DotMulChaos*3.7 + SpellPctChaos >= 150
 
 Minion, Helmet, GemLvlMinion >= 2, MaxLife + TotRes >= 90
 
@@ -65,6 +64,7 @@ Life Jewel, Jewel, PctLife >= 7
 ES Jewel, Jewel, ESRecoverStart + ESRecoverRate + PctES >= 10
 Crit Jewel, Jewel, NumCrit >= 2
 DoT Jewel, Jewel, NumDot >= 2
+Res Jewel, Jewel, TotRes >= 40
 
 # Stat Amulet, Amulet, TotRes >= 40, MaxLife >= 50, AddDex >= 24, AddStr >= 11
 

@@ -10,6 +10,7 @@ using Process.NET.Memory;
 using Process.NET.Windows.Keyboard;
 using Process.NET.Windows;
 using System.Windows.Input;
+using System.Diagnostics;
 
 namespace ChaosHelper
 {
@@ -26,7 +27,10 @@ namespace ChaosHelper
         private ProcessSharp _processSharp;
         private string _requiredProcessName;
         private volatile bool _processExited = false;
+        private volatile bool _reloadingConfig = false;
         private bool _haveLoggedWaitingForProcessMessage = false;
+        private bool _haveLoggedWaitingForMainWindowMessage = false;
+        private int _lastPidFound = 0;
 
         public void RunOverLay(CancellationToken cancellationToken)
         {
@@ -56,7 +60,11 @@ namespace ChaosHelper
                             continue;
                         }
 
-                        logger.Info($"found process '{process.ProcessName}', pid {process.Id}");
+                        if (process.Id != _lastPidFound)
+                        {
+                            logger.Info($"found process '{process.ProcessName}', pid {process.Id}");
+                            _lastPidFound = process.Id;
+                        }
 
                         int fps = 10; // 30;
 
@@ -69,7 +77,11 @@ namespace ChaosHelper
                             cancellationToken.IsCancellationRequested
                             || !HaveMainWindow(_processSharp))
                         {
-                            logger.Info("no main window");
+                            if (!_haveLoggedWaitingForMainWindowMessage)
+                            {
+                                logger.Info("waiting for main window");
+                                _haveLoggedWaitingForMainWindowMessage = true;
+                            }
                             Thread.Sleep(2000);
                             continue;
                         }
@@ -92,8 +104,18 @@ namespace ChaosHelper
                     {
                         logger.Error(ex);
                     }
-                }
 
+                    if (_reloadingConfig)
+                    {
+                        _reloadingConfig = false;
+                    }
+                    else if (_processExited && Config.ExitWhenPoeExits)
+                    {
+                        logger.Info($"Exiting program since {nameof(Config.ExitWhenPoeExits)} is true");
+                        Config.SetProcessModule(string.Empty, 0);
+                        break;
+                    }
+                }
             }
             catch (System.Threading.Tasks.TaskCanceledException)
             {
@@ -120,6 +142,7 @@ namespace ChaosHelper
                 logger.Info($"PoE process exiting");
                 _processExited = true;
                 _haveLoggedWaitingForProcessMessage = false;
+                _haveLoggedWaitingForMainWindowMessage = false;
             }
         }
 
@@ -153,7 +176,7 @@ namespace ChaosHelper
             _plugin?.SetCurrentItems(currentItems);
         }
 
-        public void SetitemSetToSell(ItemSet itemSet)
+        public void SetItemSetToSell(ItemSet itemSet)
         {
             _plugin?.SetItemSetToSell(itemSet);
         }
@@ -161,7 +184,10 @@ namespace ChaosHelper
         public void SendKey(ConsoleKey key)
         {
             if (key == ConsoleKey.R)
+            {
+                _reloadingConfig = true;
                 _processExited = true;
+            }
             else
                 _plugin?.SendKey(key);
         }

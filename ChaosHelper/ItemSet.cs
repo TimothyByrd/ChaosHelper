@@ -9,6 +9,8 @@ namespace ChaosHelper
     {
         private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
+        public static bool DetailedLogging { get; set; } = false;
+
         public class ItemCounts
         {
             public int NumIded60 { get; set; }
@@ -32,15 +34,15 @@ namespace ChaosHelper
             }
         }
 
-        readonly Dictionary<Cat, List<ItemPosition>> itemsDict = new();
-        readonly Dictionary<Cat, ItemCounts> countsDict = new();
+        readonly Dictionary<Cat, List<ItemPosition>> itemsDict = [];
+        readonly Dictionary<Cat, ItemCounts> countsDict = [];
         private string _ShowCatsSignature;
 
         public ItemSet()
         {
             foreach (var c in ItemClassForFilter.Iterator())
             {
-                itemsDict[c.Category] = new List<ItemPosition>();
+                itemsDict[c.Category] = [];
                 countsDict[c.Category] = new ItemCounts();
             }
         }
@@ -81,7 +83,7 @@ namespace ChaosHelper
 
         public bool HasAnyItems()
         {
-            return itemsDict.Any(x => x.Value.Any());
+            return itemsDict.Any(x => x.Value.Count != 0);
         }
 
         public string GetCountsMsg()
@@ -112,11 +114,13 @@ namespace ChaosHelper
             var ignoreMaxIlvl = Config.IgnoreMaxIlvl;
             var ignoreMaxSetsUnder75 = Config.IgnoreMaxSetsUnder75;
             _ShowCatsSignature = string.Empty;
-            
+
             foreach (var c in ItemClassForFilter.Iterator())
             {
                 if (c.Skip)
                     continue;
+
+                var suffix = string.Empty;
 
                 var counts = countsDict[c.Category];
                 counts.MaxItemLevelToShow = ignoreMaxIlvl.Contains(c.CategoryStr, StringComparison.OrdinalIgnoreCase) ? 0 : maxIlvl;
@@ -151,10 +155,11 @@ namespace ChaosHelper
                     {
                         counts.ShouldShowInFilter = true;
                         counts.MaxItemLevelToShow = 74;
+                        suffix = "74";
                     }
                 }
                 if (counts.ShouldShowInFilter)
-                    _ShowCatsSignature += c.CategoryStr;
+                    _ShowCatsSignature = _ShowCatsSignature + c.CategoryStr + suffix;
             }
         }
 
@@ -233,6 +238,7 @@ namespace ChaosHelper
         {
             // Determine how many complete sets we can make.
             var possible = int.MaxValue;
+            var logCounts = new List<string>();
             foreach (var c in ItemClassForFilter.Iterator())
             {
                 if (c.Category == Cat.Junk || c.Category == Cat.TwoHandWeapons || c.Category == Cat.OffHand)
@@ -251,12 +257,24 @@ namespace ChaosHelper
                     count += c2Short;
                     count += Math.Min(Math.Max(1, count), c2Tall);
                 }
+                if (DetailedLogging)
+                    logCounts.Add($"{c.Category}: {count}");
                 possible = Math.Min(possible, count);
                 if (possible == 0)
                     break;
             }
 
+            if (DetailedLogging)
+            {
+                var countsStr = string.Join(", ", logCounts);
+                logger.Info($"CountPossible({IdedStr(ided)}): {countsStr}");
+            }
             return possible;
+        }
+
+        public static string IdedStr(bool ided)
+        {
+            return ided ? "ided" : "un-ided";
         }
 
         private void RemoveItems(ItemSet itemsToRemove)
@@ -275,17 +293,36 @@ namespace ChaosHelper
         /// <returns></returns>
         private ItemSet MakeSetOptimize(int numSets, bool ided, int chaosParanoiaLevel)
         {
+            bool CanMakeSingleSets()
+            {
+                return (chaosParanoiaLevel & 1) != 0;
+            }
+
+            bool IlvlDoesNotMatter()
+            {
+                return ided && (chaosParanoiaLevel & 4) != 0;
+            }
+
+            bool HoardIded60to74()
+            {
+                return (chaosParanoiaLevel & 2) != 0;
+            }
+
             var result = new ItemSet();
+
+            numSets = Math.Min(2, numSets);
+            if (DetailedLogging)
+                logger.Info($"trying for {numSets} sets - CanMakeSingleSets() = {CanMakeSingleSets()}, IlvlDoesNotMatter() = {IlvlDoesNotMatter()}, HoardIded60to74() = {HoardIded60to74()}");
 
             var optimizerList = new List<ChaosSlotOptimizer>
             {
                 new ChaosSlotOptimizerWeapons(this, 1),
-                new ChaosSlotOptimizer(this, Cat.BodyArmours, 2),
-                new ChaosSlotOptimizer(this, Cat.Gloves, 3),
-                new ChaosSlotOptimizer(this, Cat.Boots, 4),
-                new ChaosSlotOptimizer(this, Cat.Helmets, 5),
-                new ChaosSlotOptimizer(this, Cat.Belts, 6),
-                new ChaosSlotOptimizer(this, Cat.Amulets, 7),
+                new(this, Cat.BodyArmours, 2),
+                new(this, Cat.Gloves, 3),
+                new(this, Cat.Boots, 4),
+                new(this, Cat.Helmets, 5),
+                new(this, Cat.Belts, 6),
+                new(this, Cat.Amulets, 7),
                 new ChaosSlotOptimizerRings(this, 8),
             };
 
@@ -295,7 +332,14 @@ namespace ChaosHelper
             // if any can't make 1 75, then
             // GetItems(mustbe60: false) for all
             var mustBe60 = Cat.Junk;
-            var know60Cat = optimizerList.Any(x => x.Num75(ided) == 0);
+            var know60Cat = IlvlDoesNotMatter() || optimizerList.Any(x => x.Num75(ided) == 0);
+            if (IlvlDoesNotMatter())
+                logger.Info($"mustBe60 is {mustBe60} because IlvlDoesNotMatter()");
+            else if (know60Cat)
+            {
+                var cats = string.Join(", ", optimizerList.Where(x => x.Num75(ided) == 0).Select(x => x.Category.ToString()).ToList());
+                logger.Info($"mustBe60 is {mustBe60} because these cats have no {IdedStr(ided)} items over 75: {cats}");
+            }
 
             if (!know60Cat)
             {
@@ -307,10 +351,11 @@ namespace ChaosHelper
                 {
                     mustBe60 = bestFor60.Category;
                     know60Cat = true;
+                    logger.Info($"mustBe60 is {mustBe60} because it has {bestFor60.Num60(ided)} {IdedStr(ided)} 60s");
                 }
             }
 
-            if (!know60Cat && chaosParanoiaLevel > 0 && numSets > 1)
+            if (!know60Cat && numSets > 1 && CanMakeSingleSets())
             {
                 //else if (optimize and any can make 1 60)
                 //     select the highest priority slot (biggest item) that can make 1 60
@@ -321,8 +366,12 @@ namespace ChaosHelper
                     mustBe60 = bestFor60.Category;
                     know60Cat = true;
                     numSets = 1;
+                    logger.Info($"mustBe60 is {mustBe60} (and numSets = 1) because it has {bestFor60.Num60(ided)} {IdedStr(ided)} 60s");
                 }
             }
+
+            if (!know60Cat)
+                logger.Info($"mustBe60 is {mustBe60} (and it's a regal recipe) because can't find any 60s");
 
             //else
             //     GetItems(mustbe60: false) for all
@@ -342,15 +391,20 @@ namespace ChaosHelper
             // since they divide into 40 evenly want to use them last.
             public int Compare(ItemPosition x, ItemPosition y)
             {
-                var xDivs = x.Quality == 10 || x.Quality == 8 || x.Quality == 5;
-                var yDivs = y.Quality == 10 || y.Quality == 8 || y.Quality == 5;
-                if (xDivs && !yDivs)
+                var xDivs40 = x.Quality == 10 || x.Quality == 8 || x.Quality == 5;
+                var yDivs40 = y.Quality == 10 || y.Quality == 8 || y.Quality == 5;
+                if (xDivs40 && !yDivs40)
                     return 1;
-                if (yDivs && !xDivs)
+                if (yDivs40 && !xDivs40)
                     return -1;
                 if (x.Quality > y.Quality)
                     return -1;
                 if (y.Quality > x.Quality)
+                    return 1;
+                // Choose items that use more stash space first.
+                if (x.H * x.W > y.H * y.W)
+                    return -1;
+                if (y.H * y.W > x.H * x.W)
                     return 1;
                 if (x.X > y.X)
                     return 1;
@@ -402,11 +456,11 @@ namespace ChaosHelper
             foreach (var c in ItemClassForFilter.Iterator())
             {
                 if (c.Category == Cat.Junk) continue;
-                if (!result.itemsDict[c.Category].Any()) continue;
+                if (result.itemsDict[c.Category].Count == 0) continue;
                 result.itemsDict[Cat.Junk].AddRange(result.itemsDict[c.Category]);
                 result.itemsDict[c.Category].Clear();
             }
-         
+
             return result;
 
             static bool IsGem(ItemPosition itemPos)
@@ -421,7 +475,7 @@ namespace ChaosHelper
                 foreach (var item in set)
                     result.itemsDict[item.Category].Add(item);
             }
-        }           
+        }
 
         //private void ShowSet(string itemType, IEnumerable<ItemPosition> items)
         //{
@@ -429,7 +483,7 @@ namespace ChaosHelper
         //    logger.Debug($"{itemType} qualities: {qualities}");
         //}
 
-        private IEnumerable<ItemPosition> MakeAQualitySet(IEnumerable<ItemPosition> items, int allowedSlop)
+        private static IEnumerable<ItemPosition> MakeAQualitySet(IEnumerable<ItemPosition> items, int allowedSlop)
         {
             for (int i = 0; i <= allowedSlop; ++i)
             {
@@ -440,7 +494,7 @@ namespace ChaosHelper
             return null;
         }
 
-        private IEnumerable<ItemPosition> MakeAQualitySetRecurse(IEnumerable<ItemPosition> items, int minNeeded, int allowedSlop)
+        private static IEnumerable<ItemPosition> MakeAQualitySetRecurse(IEnumerable<ItemPosition> items, int minNeeded, int allowedSlop)
         {
             if (items == null || !items.Any())
                 return null;
@@ -465,44 +519,75 @@ namespace ChaosHelper
             return MakeAQualitySetRecurse(items.Skip(1), minNeeded, allowedSlop);
         }
 
+        struct ItemPair
+        {
+            public ItemPosition Item1 { get; set; }
+            public ItemPosition Item2 { get; set; }
+
+            public static int Compare(ItemPair ip1, ItemPair ip2)
+            {
+                if (ip1.Item1.TabIndex < ip2.Item1.TabIndex)
+                    return -1;
+                if (ip2.Item1.TabIndex < ip1.Item1.TabIndex)
+                    return 1;
+                if (ip1.Item2.TabIndex < ip2.Item2.TabIndex)
+                    return -1;
+                if (ip2.Item2.TabIndex < ip1.Item2.TabIndex)
+                    return 1;
+                return string.Compare(ip1.Item1.Name, ip2.Item1.Name);
+            }
+        }
+
         public List<string> LogMatchingNames(Dictionary<int, string> dumpTabDict)
         {
             string DumpTabName(int tabIndex)
             {
-                return dumpTabDict.ContainsKey(tabIndex) ? dumpTabDict[tabIndex] : "<unknown>";
+                return dumpTabDict.TryGetValue(tabIndex, out string value) ? value : "<unknown>";
             }
-            List<string> result = new();
+
             var nameDict = new Dictionary<string, ItemPosition>();
+            var pairs = new List<ItemPair>();
             foreach (var c in ItemClassForFilter.Iterator())
             {
                 foreach (var item in itemsDict[c.Category])
                 {
                     if (item.FrameType != 2) continue;
                     if (string.IsNullOrWhiteSpace(item.Name)) continue;
-                    if (!nameDict.ContainsKey(item.Name))
+                    if (!nameDict.TryGetValue(item.Name, out ItemPosition value))
                         nameDict[item.Name] = item;
                     else
                     {
-                        var otherItem = nameDict[item.Name];
+                        var otherItem = value;
                         var item1 = item.TabIndex < otherItem.TabIndex ? item : otherItem;
                         var item2 = item.TabIndex < otherItem.TabIndex ? otherItem : item;
-                        var tab1 = DumpTabName(item1.TabIndex);
-                        var tab2 = DumpTabName(item2.TabIndex);
-                        var s = $"name match: '{tab1}'({item1.X},{item1.Y}), '{tab2}'({item2.X},{item2.Y}) - {item.Name} - tabs {tab1}, {tab2}";
-                        logger.Info(s);
-                        result.Add(s);
+                        pairs.Add(new ItemPair { Item1 = item1, Item2 = item2 });
                         nameDict.Remove(item.Name);
                     }
                 }
             }
+
+            pairs.Sort(ItemPair.Compare);
+            List<string> result =
+            [
+                $"Total matches {pairs.Count}"
+            ];
+            foreach (var pair in pairs)
+            {
+                var tab1 = DumpTabName(pair.Item1.TabIndex);
+                var tab2 = DumpTabName(pair.Item2.TabIndex);
+                var s = $"tabs {tab1}, {tab2}: '{pair.Item1.Name}' ({pair.Item1.X},{pair.Item1.Y}), ({pair.Item2.X},{pair.Item2.Y})";
+                result.Add(s);
+                s = $"name match: {s}";
+                logger.Info(s);
+            }
             return result;
         }
 
-        public void CheckMods(Dictionary<int, string> dumpTabDict)
+        public List<string> CheckMods(Dictionary<int, string> dumpTabDict)
         {
             string DumpTabName(int tabIndex)
             {
-                return dumpTabDict.ContainsKey(tabIndex) ? dumpTabDict[tabIndex] : "<unknown>";
+                return dumpTabDict.TryGetValue(tabIndex, out string value) ? value : "<unknown>";
             }
 
             var interestingItems = new SortedDictionary<string, ItemStats>();
@@ -517,11 +602,17 @@ namespace ChaosHelper
                     interestingItems.Add($"{item.TabIndex:D4}interesting item: tab '{tab}' at {item.X},{item.Y} - {item.Name} - {message}", itemStats);
                 }
 
+            static string RemoveTabIndex(string s)
+            {
+                return s.Substring(4);
+            }
+
             foreach (var kv in interestingItems)
             {
-                logger.Info(kv.Key.Substring(4));
+                logger.Info(RemoveTabIndex(kv.Key));
                 kv.Value.DumpValues();
             }
+            return interestingItems.Select(x => RemoveTabIndex(x.Key)).ToList();
         }
 
         private static readonly Dictionary<BaseClass, string> equippedSlotDict = new()
@@ -600,12 +691,12 @@ namespace ChaosHelper
         }
     }
 
-    public class ChaosSlotOptimizer
+    public class ChaosSlotOptimizer(ItemSet source, Cat category, int priority)
     {
         protected static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
-        public Cat Category { get; protected set; }
-        public int Priority { get; protected set; }
+        public Cat Category { get; protected set; } = category;
+        public int Priority { get; protected set; } = priority;
         public int CanMake { get; protected set; }
         public int CanMake60 { get; protected set; }
         public int CanMake75 { get; protected set; }
@@ -613,14 +704,7 @@ namespace ChaosHelper
         public int CanMake60Ided { get; protected set; }
         public int CanMake75Ided { get; protected set; }
 
-        protected readonly ItemSet source;
-
-        public ChaosSlotOptimizer(ItemSet source, Cat category, int priority)
-        {
-            this.source = source;
-            Category = category;
-            Priority = priority;
-        }
+        protected readonly ItemSet source = source;
 
         protected void CalculateInternal(Cat category)
         {
@@ -663,7 +747,7 @@ namespace ChaosHelper
             // skip to really optimize chaos vs regal at the expense of hoarding Ided ilvl 60 items.
             //
             var took60Ided = false;
-            if (chaosParanoiaLevel < 2 && list.Count < numSets && ided)
+            if (!HoardIded60to74(chaosParanoiaLevel) && list.Count < numSets && ided)
             {
                 var want = numSets - list.Count;
                 list.AddRange(sourceList.Where(x => x.Identified && !x.Is75).Take(want));
@@ -703,20 +787,20 @@ namespace ChaosHelper
         {
             return ided ? CanMake60Ided : CanMake60;
         }
-        
+
         public int Num75(bool ided)
         {
             return ided ? CanMake75Ided : CanMake75;
         }
+
+        public static bool HoardIded60to74(int chaosParanoiaLevel)
+        {
+            return (chaosParanoiaLevel & 2) != 0;
+        }
     }
 
-    public class ChaosSlotOptimizerRings : ChaosSlotOptimizer
+    public class ChaosSlotOptimizerRings(ItemSet source, int priority) : ChaosSlotOptimizer(source, Cat.Rings, priority)
     {
-        public ChaosSlotOptimizerRings(ItemSet source, int priority)
-            : base(source, Cat.Rings, priority)
-        {
-        }
-
         public override void Calculate()
         {
             CalculateInternal(Category);
@@ -728,10 +812,16 @@ namespace ChaosHelper
 
             // because we need two per set.
             CanMake /= 2;
-            CanMake60 /= 2;
+            if (CanMake60 != 1 || CanMake75 <= 0)
+                CanMake60 /= 2;
+            if (CanMake60 > 1 && CanMake75 > 1)
+                CanMake60 = 1;
             CanMake75 /= 2;
             CanMakeIded /= 2;
-            CanMake60Ided /= 2;
+            if (CanMake60Ided != 1 || CanMake75Ided <= 0)
+                CanMake60Ided /= 2;
+            if (CanMake60Ided > 1 && CanMake75Ided > 1)
+                CanMake60Ided = 1;
             CanMake75Ided /= 2;
         }
 
@@ -759,7 +849,7 @@ namespace ChaosHelper
         }
     }
 
-    public class ChaosSlotOptimizerWeapons : ChaosSlotOptimizer
+    public class ChaosSlotOptimizerWeapons(ItemSet source, int priority) : ChaosSlotOptimizer(source, Cat.OneHandWeapons, priority)
     {
         private int w2H3_60;
         private int w2H3_75;
@@ -770,21 +860,22 @@ namespace ChaosHelper
         private int w2H4_60Id;
         private int w2H4_75Id;
 
-        public ChaosSlotOptimizerWeapons(ItemSet source, int priority)
-            : base(source, Cat.OneHandWeapons, priority)
-        {
-        }
-
         public override void Calculate()
         {
             CalculateInternal(Cat.OneHandWeapons);
 
             // because we need two per set.
             CanMake /= 2;
-            CanMake60 /= 2;
+            if (CanMake60 != 1 || CanMake75 <= 0) 
+                CanMake60 /= 2;
+            if (CanMake60 > 1 && CanMake75 > 1)
+                CanMake60 = 1;
             CanMake75 /= 2;
             CanMakeIded /= 2;
-            CanMake60Ided /= 2;
+            if (CanMake60Ided != 1 || CanMake75Ided <= 0)
+                CanMake60Ided /= 2;
+            if (CanMake60Ided > 1 && CanMake75Ided > 1)
+                CanMake60Ided = 1;
             CanMake75Ided /= 2;
 
             foreach (var item in source.GetCategory(Cat.TwoHandWeapons))
@@ -869,13 +960,13 @@ namespace ChaosHelper
             //
             if (ided)
             {
-                if (chaosParanoiaLevel < 2)
+                if (!HoardIded60to74(chaosParanoiaLevel))
                     w1Set = W1NotPicked().Where(x => x.Identified && x.Is75).Take(max1hd75)
                         .Concat(W1NotPicked().Where(x => x.Identified && !x.Is75))
                         .Concat(W1NotPicked().Where(x => !x.Identified && x.Is75).Take(max1hd75))
                         .Concat(W1NotPicked().Where(x => !x.Identified && !x.Is75))
                         ;
-                else 
+                else
                     w1Set = W1NotPicked().Where(x => x.Identified && x.Is75)
                         .Concat(W1NotPicked().Where(x => !x.Identified && x.Is75)).Take(max1hd75)
                         .Concat(W1NotPicked().Where(x => x.Identified && !x.Is75))
@@ -888,7 +979,7 @@ namespace ChaosHelper
                     w1Dest.AddRange(w1Set.Take(2));
                     return;
                 }
-            }    
+            }
 
             // next take ilvl 75+ 2x3 items - un-ided in ided recipe
             //

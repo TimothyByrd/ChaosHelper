@@ -52,9 +52,9 @@ namespace ChaosHelper
         private bool _showStashTest = false;
         private bool _showJunkItems = false;
 
-        private readonly List<Point> _clickList = new();
-        private readonly List<ItemRectStruct> _itemsToDraw = new();
-        private readonly List<TextStruct> _textToDraw = new();
+        private readonly List<Point> _clickList = [];
+        private readonly List<ItemRectStruct> _itemsToDraw = [];
+        private List<TextStruct> _textToDraw = [];
 
         public ChaosOverlayPlugin(int fps)
         {
@@ -80,6 +80,7 @@ namespace ChaosHelper
 
         internal void SetItemSetToSell(ItemSet itemSet)
         {
+            MaybeUpdateStashRect();
             _highlightSet = itemSet;
             _countsMsg = _currentItems?.GetCountsMsg() ?? "null"; // refresh the counts message from the current item set.
         }
@@ -99,6 +100,18 @@ namespace ChaosHelper
 
             _font = OverlayWindow.Graphics.CreateFont("Arial", 20);
 
+            DetermineStashRect();
+
+            // Set up update interval and register events for the tick engine.
+
+            _tickEngine.PreTick += OnPreTick;
+            _tickEngine.Tick += OnTick;
+
+            SetHighlightColors();
+        }
+
+        private void DetermineStashRect()
+        {
             _targetWindowHeight = TargetWindow.Height;
             if (_autoDetermineStashRect)
             {
@@ -118,15 +131,15 @@ namespace ChaosHelper
             _qualitySquareWidth = (_stashRect.Right - _stashRect.Left) / numQualitySquares;
             _qualitySquareHeight = (_stashRect.Bottom - _stashRect.Top) / numQualitySquares;
 
+            logger.Info($"stashrect targetWindowHeight {_targetWindowHeight}");
             logger.Info($"stashrect left {_stashRect.Left} top {_stashRect.Top}  right {_stashRect.Right} bottom {_stashRect.Bottom}");
             logger.Info($"stashrect squareWidth {_squareWidth}  squareHeight {_squareHeight}  height {_stashRect.Bottom - _stashRect.Top}");
+        }
 
-            // Set up update interval and register events for the tick engine.
-
-            _tickEngine.PreTick += OnPreTick;
-            _tickEngine.Tick += OnTick;
-
-            SetHighlightColors();
+        private void MaybeUpdateStashRect()
+        {
+            if (_autoDetermineStashRect && _targetWindowHeight != TargetWindow.Height)
+                DetermineStashRect();
         }
 
         private void SetHighlightColors()
@@ -177,7 +190,7 @@ namespace ChaosHelper
             _showJunkItems = false;
             _showHightlightSet = false;
             _showQualitySet = false;
-            _textToDraw.Clear();
+            _textToDraw = [];
         }
 
         public void SetStatus(string msg, bool atMaxSets)
@@ -190,57 +203,61 @@ namespace ChaosHelper
         {
             switch (key)
             {
-                case ConsoleKey.Spacebar:
-                    _showStashTest = false;
-                    _showJunkItems = false;
-                    _showHightlightSet = false;
-                    _showQualitySet = false;
-                    _textToDraw.Clear();
-                    break;
-                case ConsoleKey.T:
-                    _showStashTest = !_showStashTest;
-                    _showJunkItems = false;
-                    _showHightlightSet = false;
-                    _showQualitySet = false;
-                    _textToDraw.Clear();
-                    logger.Info($"showStashTest is now {_showStashTest}");
-                    break;
-                case ConsoleKey.J:
-                    {
-                        var junk = _currentItems.GetCategory(Cat.Junk);
-                        var numJunk = junk.Count;
-                        _showStashTest = false;
-                        _showJunkItems = !_showJunkItems && numJunk > 0;
-                        _showHightlightSet = false;
-                        _showQualitySet = false;
-                        _textToDraw.Clear();
-                        if (_showJunkItems)
-                            FillJunkItemsToDraw(junk);
-                        logger.Info($"showJunkItems is now {_showJunkItems} ({numJunk} junk items)");
-                    }
-                    break;
-                case ConsoleKey.H:
-                    _showStashTest = false;
-                    _showJunkItems = false;
-                    _showHightlightSet = _highlightSet != null;
-                    _showQualitySet = false;
-                    _textToDraw.Clear();
-                    if (_showHightlightSet)
-                        FillItemsToDraw(_highlightSet);
-                    logger.Info($"showHightlightSet is now {_showHightlightSet}");
-                    break;
-                case ConsoleKey.Q:
-                    _showStashTest = false;
-                    _showJunkItems = false;
-                    _showHightlightSet = false;
-                    _textToDraw.Clear();
-                    var qualitySet = _highlightSet?.GetCategory(Cat.Junk);
+            case ConsoleKey.Spacebar:
+                _showStashTest = false;
+                _showJunkItems = false;
+                _showHightlightSet = false;
+                _showQualitySet = false;
+                _textToDraw = [];
+                break;
+            case ConsoleKey.T:
+                MaybeUpdateStashRect();
+                _showStashTest = !_showStashTest;
+                _showJunkItems = false;
+                _showHightlightSet = false;
+                _showQualitySet = false;
+                _textToDraw = [];
+                logger.Info($"showStashTest is now {_showStashTest}");
+                break;
+            case ConsoleKey.J:
+            {
+                MaybeUpdateStashRect();
+                var junk = _currentItems?.GetCategory(Cat.Junk);
+                var numJunk = junk?.Count ?? 0;
+                _showStashTest = false;
+                _showJunkItems = !_showJunkItems && numJunk > 0;
+                _showHightlightSet = false;
+                _showQualitySet = false;
+                _textToDraw = [];
+                if (_showJunkItems)
+                    FillJunkItemsToDraw(junk);
+                logger.Info($"showJunkItems is now {_showJunkItems} ({numJunk} junk items)");
+            }
+                break;
+            case ConsoleKey.H:
+                MaybeUpdateStashRect();
+                _showStashTest = false;
+                _showJunkItems = false;
+                _showHightlightSet = _highlightSet != null;
+                _showQualitySet = false;
+                _textToDraw = [];
+                if (_showHightlightSet)
+                    FillItemsToDraw(_highlightSet);
+                logger.Info($"showHightlightSet is now {_showHightlightSet}");
+                break;
+            case ConsoleKey.Q:
+                MaybeUpdateStashRect();
+                _showStashTest = false;
+                _showJunkItems = false;
+                _showHightlightSet = false;
+                _textToDraw = [];
+                var qualitySet = _highlightSet?.GetCategory(Cat.Junk);
 
-                    _showQualitySet = qualitySet != null && qualitySet.Any();
-                    if (_showQualitySet)
-                        FillQualityItemsToDraw(qualitySet);
-                    logger.Info($"showQualitySet is now {_showQualitySet}");
-                    break;
+                _showQualitySet = qualitySet?.Count > 0;
+                if (_showQualitySet)
+                    FillQualityItemsToDraw(qualitySet);
+                logger.Info($"showQualitySet is now {_showQualitySet}");
+                break;
             }
         }
 
@@ -314,13 +331,13 @@ namespace ChaosHelper
 
                 GlobalMouseHook.MouseLButtonUp += MouseLeftButtonDown;
                 _haveHookedMouse = true;
-                Console.WriteLine("hooked mouse");
+                //Console.WriteLine("hooked mouse");
             }
             else if (!wantMouseHook && _haveHookedMouse)
             {
                 GlobalMouseHook.MouseLButtonUp -= MouseLeftButtonDown;
                 _haveHookedMouse = false;
-                Console.WriteLine("unhooked mouse");
+                //Console.WriteLine("unhooked mouse");
             }
         }
 
@@ -411,16 +428,25 @@ namespace ChaosHelper
             if (h < 0)
                 return;
 
+            const int bottomRowOffset = 60;
+            const int spaceBetweenRows = 30;
+            const int xForText = 50;
+
+            int YForRow(int zeroBase4dRowFromBottom)
+            {
+                return h - bottomRowOffset - zeroBase4dRowFromBottom * spaceBetweenRows;
+            }
+
             if (!string.IsNullOrWhiteSpace(_countsMsg))
-                OverlayWindow.Graphics.DrawText(_countsMsg, _font, _whiteBrush, 50, h - 30);
+                OverlayWindow.Graphics.DrawText(_countsMsg, _font, _whiteBrush, xForText, YForRow(0));
 
             if (!string.IsNullOrWhiteSpace(_statusMessage))
-                OverlayWindow.Graphics.DrawText(_statusMessage, _font, _atMaxSets ? _goldBrush : _whiteBrush, 50, h - 60);
+                OverlayWindow.Graphics.DrawText(_statusMessage, _font, _atMaxSets ? _goldBrush : _whiteBrush, xForText, YForRow(1));
             else
-                OverlayWindow.Graphics.DrawText("Change zones or force an update to initialize", _font, _goldBrush, 50, h - 60);
+                OverlayWindow.Graphics.DrawText("Change zones or force an update to initialize", _font, _goldBrush, xForText, YForRow(1));
 
             if (!string.IsNullOrWhiteSpace(_areaName))
-                OverlayWindow.Graphics.DrawText(_areaName, _font, _whiteBrush, 50, h - 90);
+                OverlayWindow.Graphics.DrawText(_areaName, _font, _whiteBrush, xForText, YForRow(2));
 
             foreach (var t in _textToDraw)
                 OverlayWindow.Graphics.DrawText(t.Text, _font, t.BrushS, t.X, t.Y);
@@ -459,21 +485,21 @@ namespace ChaosHelper
                 HightlightItem(item);
         }
 
-        private void FillJunkItemsToDraw(List<ItemPosition> junkItems)
+        private void FillJunkItemsToDraw(List<ItemPosition> items)
         {
             _itemsToDraw.Clear();
             var brushH = _redOpacityBrush;
             var brushS = _redBrush;
-            foreach (var item in junkItems)
+            foreach (var item in items)
                 _itemsToDraw.Add(GetHighlightRectangle(item, brushH, brushS));
         }
 
-        private void FillQualityItemsToDraw(List<ItemPosition> junkItems)
+        private void FillQualityItemsToDraw(List<ItemPosition> items)
         {
             _itemsToDraw.Clear();
             var brushH = _highlightBrushDict[Cat.BodyArmours];
             var brushS = _solidBrushDict[Cat.BodyArmours];
-            foreach (var item in junkItems)
+            foreach (var item in items)
                 _itemsToDraw.Add(GetQualityRectangle(item, brushH, brushS));
         }
 
@@ -580,7 +606,7 @@ namespace ChaosHelper
 
         internal void DrawTextMessages(IEnumerable<string> lines)
         {
-            _textToDraw.Clear();
+            _textToDraw = [];
             var h = _targetWindowHeight;
             if (h < 0)
                 return;
@@ -589,7 +615,7 @@ namespace ChaosHelper
 
             var yStart = (h - lines.Count() * yIncrement) / 2;
 
-            var x = (int) _stashRect.Right + 30;
+            var x = (int) (_stashRect.Right + _squareWidth * _numSquares / 4);
 
             foreach ( var line in lines ) 
             {

@@ -112,7 +112,7 @@ namespace ConsoleHotKey
         private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
         private static int _id = 0;
-        private static readonly List<int> _registeredHotKeys = new();
+        private static readonly List<int> _registeredHotKeys = [];
     }
 
     public class HotKeyEventArgs : EventArgs

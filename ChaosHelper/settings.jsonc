@@ -6,11 +6,18 @@
   "template": "", // the template file used to create/update the filter - an existing Neversink filter should work
 
   "filter": "ChaosHelper", // the name of the .filter file that will be written - see README.md
-  "filterMarker": "", // text in the template to insert filter code at
 
-  // default 
+  // The "filterMarker" determines where the ChaosHelper filter code gets inserted in the filter - see README.md
+  "filterMarker": "Top", //  insert at the top of the filter
+
+  "filterAutoReload": true, // send "/filter ChaosHelper" to PoE
+
+  "exitWhenPoeExits": true,
+  "startPaused": false,
+
+  // default colors for items to highlight for recipes
   //
-  "filterDisplay": { "fontSize": 40, "text": "255 255 119", "back": "22 22 22", "border": "0xff1493" },
+  "filterDisplay": { "fontSize": 40, "text": "255 255 119", "back": "22 22 22", "border": "0xff1493", "text75": "245 190 0 255" },
 
   // shak colors
   //
@@ -23,6 +30,7 @@
   "maxIlvl": -1, // set to 74 to not show regal recipe items in the loot filter, -1 or 100 for everything
   "allowIDedSets": true, // see README.md
   "chaosParanoiaLevel": 0, // see README.md
+  "itemSortOrder": "ILvl",
 
   // Items classes that can ignore the maxSets and maxIlvl settings.
   // Possible classes are BodyArmours, Helmets, Gloves, Boots, OneHandWeapons, Belts, Amulets, and Rings
@@ -40,9 +48,9 @@
   ],
 
   // These set global hotkeys
-  // For modifiers, use '!' for Alt, '^' for Ctrl, '+' for Shift and '#' for the Windows key
-  // For a list of key names/numbers, see https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys
-  // They are global hotkeys, so be careful not to bork your other programs
+  // for modifiers, use '!' for Alt, '^' for Ctrl, '+' for Shift and '#' for the Windows key
+  // for a list of key names/numbers, see https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys
+  // they are global hotkeys, so be careful not to bork your other programs (and F12 cannot be used)
   //
   "hotkeys": [
     { "key": "!H", "command": "highlightItems" }, // hotkey to highlight sets of items to sell
@@ -52,9 +60,14 @@
     { "key": "!Q", "command": "closePorts" }, // hotkey to close the TCP posts PoE is using to do an auto-logout, requires running ChaosHelper as admin
     { "enabled": false, "key": "!C", "command": "characterCheck" }, // hotkey to recheck your character and league
     { "enabled": false, "key": "!T", "command": "testPattern" }, // hotkey to toggle a test pattern to verify the stash window size
-    { "enabled": false, "key": "!M", "text": "\r/remaining\r" }, // hotkey to send /remaining command
+    { "enabled": false, "key": "F6", "text": "{Enter}/hideout{Enter}" }, // hotkey to send /hideout command
     { "enabled": false, "key": "F9", "text": "{Enter}/remaining{Enter}" }, // hotkey to send /remaining command
-    { "enabled": false, "key": "F10", "text": "{^F}\"r-g-b|r-b-g|b-r-g|b-g-r|g-r-b|g-b-r|ll gem\"{Enter}" }, // search for RGB links or +1 gem level at vendor
+    { "enabled": false, "key": "^F9", "text": "{Enter}/whois {Whisper}{Enter}" }, // hotkey to send /whois to last whisperer command
+    { "enabled": false, "key": "F10", "text": "{^F}\"(.)-(?:.-)?((?!\\1).)-((?!\\1|\\2))|gems\\b\"{Enter}" },
+    { "enabled": false, "key": "+F10", "text": "{^F}quality{Enter}" },
+    { "enabled": false, "key": "^F10", "text": "{^F}\"-\\w-.-|g-g-r|g-r-g|r-g-g|b-b|nne|rint|minion\"{Enter}" },
+    { "enabled": false, "key": "F11", "text": "{^F}unidentified{Enter}" },
+    { "enabled": false, "key": "^F11", "text": "{Enter}/destroy{Enter}" },
   ],
 
   // These settings are to automate the 40% quality recipes for gems, maps, flasks and scraps - see README.md
@@ -90,21 +103,36 @@
   // comment out the whole thing to allow the stash overlay anywhere
   // if this list has entries, will optimize to not hit the site when the previous wasn't a town zone
   "townZones": [
-//    "Vast Plains Hideout",
-//    "Lioneye's Watch",
-//    "The Forest Encampment",
-//    "The Sarn Encampment",
-//    "Highgate",
-//    "Overseer's Tower",
-//    "The Bridge Encampment",
-//    "Oriath Docks",
-//    "Oriath",
-//    "Karui Shores",
-//    "The Rogue Harbour",
-//    "Azurite Mine",
-//    // "The Menagerie",
-//    // "Tane's Laboratory",
+//     "Vast Plains Hideout",
+//     "Lioneye's Watch",
+//     "The Forest Encampment",
+//     "The Sarn Encampment",
+//     "Highgate",
+//     "Overseer's Tower",
+//     "The Bridge Encampment",
+//     "Oriath Docks",
+//     "Oriath",
+//     "Karui Shores",
+//     "The Rogue Harbour",
+//     "Azurite Mine",
+//     "The Necropolis",
+//     // "The Menagerie",
+//     // "Tane's Laboratory",
   ],
+
+  // this is to figure out the place on the screen for the stash tab to highlight items
+  // use [ 0, 0, 0, 0 ] to auto determine
+  // if you need to set a custom value, take a screenshot of your stash tab,
+  // then open the screen shot in a program like irfan view,
+  // make a select rectangle over the grid part of the tab, and determine the X,Y,Height,Width of the selection
+  // you can test the values by typing 't' in the ChaosHelper console
+  //
+  "stashPageXYWH": [ 0, 0, 0, 0 ], // for auto-determination
+  //"stashPageXYWH": [ 23, 189, 938, 938 ], // for 2560x1600 16:10
+  //"stashPageXYWH": [ 16, 127, 634, 634 ], // for 1920x1080 16:9
+  //"stashPageXYWH": [ 12, 90, 450, 450 ], // for 1366x768 16:9
+  //"stashPageXYWH": [ 12, 90, 450, 450 ], // for 1024x768 4:3
+  "stashPageVerticalOffset": 10, // see README.md
 
   // see README.md
   "showMinimumCurrency": false,
@@ -142,22 +170,8 @@
   // if you want to configure dump tab scanning, set your dump tabs here
   //
   // "dumpTabs": [ "dump", "dump2", ],
-  
+
   // For the experimental dynamic rules
   //
   "defenseVariance": 0.7,
-
-  // this is to figure out the place on the screen for the stash tab to highlight items
-  // use [ 0, 0, 0, 0 ] to auto determine
-  // if you need to set a custom value, take a screenshot of your stash tab,
-  // then open the screen shot in a program like irfan view,
-  // make a select rectangle over the grid part of the tab, and determine the X,Y,Height,Width of the selection
-  // you can test the values by typing 't' in the ChaosHelper console
-  //
-  "stashPageXYWH": [ 0, 0, 0, 0 ], // for auto-determination
-  //"stashPageXYWH": [ 23, 189, 938, 938 ], // for 2560x1600 16:10
-  //"stashPageXYWH": [ 16, 127, 634, 634 ], // for 1920x1080 16:9
-  //"stashPageXYWH": [ 12, 90, 450, 450 ], // for 1366x768 16:9
-  //"stashPageXYWH": [ 12, 90, 450, 450 ], // for 1024x768 4:3
-  "stashPageVerticalOffset": 10, // see README.md
 }

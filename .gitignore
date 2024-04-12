@@ -13,3 +13,4 @@ x64/
 #other
 ChaosHelper/settings.mine
 ChaosHelper/settings.default
+ChaosHelper/Properties/launchSettings.json

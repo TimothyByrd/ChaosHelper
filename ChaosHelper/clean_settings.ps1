@@ -12,7 +12,6 @@ $text = $text -replace '"template"\s*:\s*"[^"]*"', "`"template`": `"`""
 
 $text = $text -replace '"filter"\s*:\s*"[^"]*"', "`"filter`": `"ChaosHelper`""
 $text = $text -replace '"filterMarker"\s*:\s*"[^"]*"', "`"filterMarker`": `"`""
-$text = $text -replace '"filterColor"\s*:\s*"[^"]+"', "`"filterColor`": `"0x6a4dff`""
 $text = $text -replace '"soundFileVolume"\s*:\s*\d+\s*,', "`"soundFileVolume`": 25,"
 
 $text = $text -replace '"maxSets"\s*:\s*\d+\s*,', "`"maxSets`": 10,"
@@ -33,8 +32,9 @@ $text = $text -replace '"[^"]*"\s*,\s*//\s*rings/amulets', "`"0x6060ff`", // rin
 $text = $text -replace '"highlightItemsHotkey"\s*:\s*"[^"]*"', "`"highlightItemsHotkey`": `"!H`""
 $text = $text -replace '"showJunkItemsHotkey"\s*:\s*"[^"]*"', "`"showJunkItemsHotkey`": `"!J`""
 $text = $text -replace '"forceUpdateHotkey"\s*:\s*"[^"]*"', "`"forceUpdateHotkey`": `"!F`""
-$text = $text -replace '(//\s*)?"characterCheckHotkey"\s*:\s*"[^"]*"', "//`"characterCheckHotkey`": `"!C`""
-$text = $text -replace '(//\s*)?"testModeHotkey"\s*:\s*"[^"]*"', "//`"testModeHotkey`": `"!T`""
+# $text = $text -replace '(//\s*)?"characterCheckHotkey"\s*:\s*"[^"]*"', "//`"characterCheckHotkey`": `"!C`""
+# $text = $text -replace '(//\s*)?"testModeHotkey"\s*:\s*"[^"]*"', "//`"testModeHotkey`": `"!T`""
+$text = $text -replace '"enabled":\s*true\s*,\s*"key"', '"enabled": false, "key"'
 
 $text = $text -replace '"league"\s*:\s*"[^"]*"', "`"league`": `"`""
 $text = $text -replace '"character"\s*:\s*"[^"]*"', "`"character`": `"`""

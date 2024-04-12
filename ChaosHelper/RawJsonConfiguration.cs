@@ -7,20 +7,16 @@ using System.Text.Json;
 
 namespace ChaosHelper
 {
-    public class RawJsonConfiguration
+    public class RawJsonConfiguration(string fileName)
     {
-        readonly JsonElement rawConfig;
+        readonly JsonElement rawConfig = JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(fileName), SerializerOptions);
 
-        public RawJsonConfiguration(string fileName)
+        static public JsonSerializerOptions SerializerOptions { get; private set; } = new JsonSerializerOptions
         {
-            var options = new JsonSerializerOptions
-            {
-                AllowTrailingCommas = true,
-                ReadCommentHandling = JsonCommentHandling.Skip,
-            };
-
-            rawConfig = JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(fileName), options);
-        }
+            WriteIndented = true,
+            AllowTrailingCommas = true,
+            ReadCommentHandling = JsonCommentHandling.Skip,
+        };
 
         public string this[string s]
         {

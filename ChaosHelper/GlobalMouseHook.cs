@@ -191,27 +191,16 @@ namespace ChaosHelper
         }
     }
 
-    class GlobalMouseHookEventArgs : HandledEventArgs
+    class GlobalMouseHookEventArgs(MSLLHOOKSTRUCT mouseData) : HandledEventArgs
     {
-        public MSLLHOOKSTRUCT MouseData { get; private set; }
-
-        public GlobalMouseHookEventArgs(MSLLHOOKSTRUCT mouseData)
-        {
-            MouseData = mouseData;
-        }
+        public MSLLHOOKSTRUCT MouseData { get; private set; } = mouseData;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct POINT
+    public struct POINT(int x, int y)
     {
-        public int X;
-        public int Y;
-
-        public POINT(int x, int y)
-        {
-            this.X = x;
-            this.Y = y;
-        }
+        public int X = x;
+        public int Y = y;
 
         public static implicit operator System.Drawing.Point(POINT p)
         {

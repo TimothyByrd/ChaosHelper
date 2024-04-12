@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -14,9 +15,9 @@ namespace ChaosHelper
     {
         private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         private static RawJsonConfiguration rawConfig;
-        //private static string _poeExeName = null;
         private static int _poeProcessId = 0;
         private static string _closePortsArg = null;
+        private static string _exePath;
 
         public enum StashReading
         {
@@ -30,16 +31,28 @@ namespace ChaosHelper
             Playback,
         }
 
-        public static HttpClient HttpClient { get; private set; }
+        public enum FilterInsertPlacement
+        {
+            /// <summary>Insert filter lines just before a line containing a specified string</summary>
+            SpecificString,
+            /// <summary>Insert filter lines at the top of the filter file</summary>
+            Top,
+            /// <summary>Insert filter lines just before the first hide block in the filter file</summary>
+            FirstHide,
+        }
 
+        public static bool OfflineMode { get; set; } = false;
+        public static HttpClient HttpClient { get; private set; }
         public static string Account { get; private set; }
         public static string League { get; private set; }
         public static string Character { get; private set; }
         public static string TemplateFileName { get; private set; }
         public static string FilterFileName { get; private set; }
+        public static string FilterFileBaseName { get; private set; }
         public static string ClientFileName { get; private set; }
         public static string FilterUpdateSound { get; private set; }
         public static float FilterUpdateVolume { get; private set; }
+        public static bool FilterAutoReload { get; private set; }
         public static int MaxSets { get; private set; }
         public static int MaxIlvl { get; private set; }
         public static int MinIlvl { get; private set; }
@@ -49,7 +62,7 @@ namespace ChaosHelper
         public static int QualityFlaskRecipeSlop { get; private set; }
         public static int QualityGemMapRecipeSlop { get; private set; }
         public static int QualityScrapRecipeSlop { get; private set; }
-        public static Dictionary<int, string> DumpTabDictionary { get; private set; } = new Dictionary<int, string>();
+        public static Dictionary<int, string> DumpTabDictionary { get; private set; } = [];
         public static bool AllowIDedSets { get; private set; }
         public static int ChaosParanoiaLevel { get; private set; }
         public static string IgnoreMaxSets { get; private set; }
@@ -57,8 +70,6 @@ namespace ChaosHelper
         public static string IgnoreMaxIlvl { get; private set; }
         public static List<string> TownZones { get; private set; }
         public static List<int> HighlightColors { get; private set; }
-        public static string FilterMarker { get; private set; }
-        //public static string FilterColor { get; private set; }
         public static ItemDisplay FilterDisplay { get; private set; }
         public static string AreaEnteredPattern { get; private set; }
         public static List<HotkeyEntry> Hotkeys { get; private set; }
@@ -72,15 +83,24 @@ namespace ChaosHelper
         public static bool ForceSteam { get; set; }
         public static int CurrencyTabIndex { get; set; } = -1;
         public static int QualityTabIndex { get; set; } = -1;
-        public static bool FilterMarkerChecked { get; set; }
-        public static bool PutFilterLineAtTop { get; set; }
+
+        public static string FilterMarker { get; private set; }
         public static string FilterInsertFile { get; private set; }
+        public static bool FilterMarkerChecked { get; set; }
+        public static FilterInsertPlacement FilterPlacement { get; set; }
+
         public static double DefenseVariance { get; private set; }
         public static bool ShowMinimumCurrency { get; private set; }
-        public static string ExePath { get; private set; }
         public static string ClosePortsForPidPath { get; private set; }
         public static bool RunningAsAdmin { get; private set; }
-        public static string ConfigFileOverride { get; set; }
+
+        private static bool _exitWhenPoeExits; 
+        public static bool ExitWhenPoeExits { get { return _exitWhenPoeExits || ForceExitWhenPoeExits; } }
+        public static bool ForceExitWhenPoeExits { get; set; }
+
+        public static bool StartPaused { get; private set; }
+        public static string ConfigDir { get; set; }
+        public static string LastWhisper {  get; set; }
 
         public static bool IsTown(string newArea)
         {
@@ -106,7 +126,6 @@ namespace ChaosHelper
 
         public static async Task<bool> ReadConfigFile()
         {
-            ExePath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
             if (OperatingSystem.IsWindows())
             {
                 var principal = new System.Security.Principal.WindowsPrincipal(System.Security.Principal.WindowsIdentity.GetCurrent());
@@ -115,12 +134,13 @@ namespace ChaosHelper
             else
                 RunningAsAdmin = false;
 
-            string configFile = GetConfigFilePath();
+            string configFile = GetConfigFilePath("settings.jsonc");
             if (!File.Exists(configFile))
             {
                 logger.Error("ERROR: config file 'settings.jsonc' not found");
                 return false;
             }
+            logger.Info($"reading config file {configFile}");
 
             try
             {
@@ -128,17 +148,9 @@ namespace ChaosHelper
             }
             catch (Exception ex)
             {
-                logger.Error($"ERROR cannot read settings.jsonc: {ex.Message}");
+                logger.Error($"ERROR cannot read config file: {ex.Message}");
                 return false;
             }
-
-            FilterUpdateSound = Path.Combine(ExePath, "FilterUpdateSound.wav");
-            var filterUpdateVolumeInt = rawConfig.GetInt("soundFileVolume", 50).Clamp(0, 100);
-            FilterUpdateVolume = filterUpdateVolumeInt / 100.0f;
-
-            FilterInsertFile = Path.Combine(ExePath, "filter_insert.txt");
-            if (!File.Exists(FilterInsertFile))
-                FilterInsertFile = null;
 
             Account = rawConfig["account"];
             if (string.IsNullOrWhiteSpace(Account))
@@ -159,7 +171,11 @@ namespace ChaosHelper
 
             var handler = new HttpClientHandler() { CookieContainer = cookieContainer };
             HttpClient = new HttpClient(handler);
-            HttpClient.DefaultRequestHeaders.UserAgent.Add(new System.Net.Http.Headers.ProductInfoHeaderValue("ChaosHelper", "1.0"));
+           
+            var productValue = new ProductInfoHeaderValue("ChaosHelper", "1.0");
+            var commentValue = new ProductInfoHeaderValue("(+https://github.com/TimothyByrd/ChaosHelper)");
+            HttpClient.DefaultRequestHeaders.UserAgent.Add(productValue);
+            HttpClient.DefaultRequestHeaders.UserAgent.Add(commentValue);
 
             var stashReadModeStr = rawConfig["stashReadMode"];
             if (Enum.TryParse<StashReading>(stashReadModeStr, true, out var stashReadMode)
@@ -169,13 +185,26 @@ namespace ChaosHelper
                 StashReadMode = StashReading.Normal;
             StashCanDoManualRead = StashReadMode == StashReading.Manual || rawConfig.GetBoolean("stashCanDoManualRead", true);
 
-            if (!await CheckAccount())
+            if (!OfflineMode && !await CheckAccount())
                 return false;
+
+            FilterUpdateSound = GetConfigFilePath("FilterUpdateSound.wav");
+            var filterUpdateVolumeInt = rawConfig.GetInt("soundFileVolume", 50).Clamp(0, 100);
+            FilterUpdateVolume = filterUpdateVolumeInt / 100.0f;
+
+            FilterInsertFile = GetConfigFilePath("filter_insert.txt");
+            if (!File.Exists(FilterInsertFile))
+                FilterInsertFile = null;
+
+            FilterAutoReload = rawConfig.GetBoolean("filterAutoReload", false);
+
+            _exitWhenPoeExits = rawConfig.GetBoolean("exitWhenPoeExits", false);
+            StartPaused = rawConfig.GetBoolean("startPaused", false);
 
             MaxSets = rawConfig.GetInt("maxSets", 12);
             MaxIlvl = rawConfig.GetInt("maxIlvl", -1);
             MinIlvl = rawConfig.GetInt("minIlvl", 60);
-            AllowIDedSets = rawConfig.GetBoolean("allowIDedSets", false);
+            AllowIDedSets = rawConfig.GetBoolean("allowIDedSets", true);
             ChaosParanoiaLevel = rawConfig.GetInt("chaosParanoiaLevel", 0);
             IgnoreMaxSets = rawConfig["ignoreMaxSets"];
             IgnoreMaxSetsUnder75 = rawConfig["ignoreMaxSetsUnder75"];
@@ -209,7 +238,7 @@ namespace ChaosHelper
                 }
                 else
                 {
-                    ClosePortsForPidPath = Path.Combine(ExePath, "ClosePortsForPid.exe");
+                    ClosePortsForPidPath = GetConfigFilePath("ClosePortsForPid.exe");
                     if (!File.Exists(ClosePortsForPidPath))
                     {
                         logger.Warn("ClosePortsForPid.exe not found - cannot close ports");
@@ -229,17 +258,13 @@ namespace ChaosHelper
             HighlightColors = rawConfig.GetColorList("highlightColors");
             if (HighlightColors.Count == 0)
             {
-                HighlightColors = new List<int> { 0xffffff, 0xffff00, 0x00ff00, 0x6060ff };
+                HighlightColors = [0xffffff, 0xffff00, 0x00ff00, 0x6060ff];
             }
             else if (HighlightColors.Count != 4)
             {
                 logger.Error("ERROR: highlightColors must be empty or exactly 4 numbers");
                 return false;
             }
-
-            //const string defaultFilterColor = "106 77 255";
-            //FilterColor = rawConfig["filterColor"].CheckColorString(defaultFilterColor);
-            //logger.Info($"filterColor is '{FilterColor}'");
 
             FilterDisplay = null;
             if (rawConfig.TryGetProperty("filterDisplay", out var filterDisplayElement))
@@ -254,8 +279,15 @@ namespace ChaosHelper
 
             FilterMarker = rawConfig["filterMarker"];
             if (string.IsNullOrWhiteSpace(FilterMarker))
-                FilterMarker = "Override 270";
-            logger.Info($"filterMarker is '{FilterMarker}'");
+                FilterMarker = FilterInsertPlacement.FirstHide.ToString();
+            if (!Enum.TryParse<FilterInsertPlacement>(FilterMarker, out var placement))
+                placement = FilterInsertPlacement.SpecificString;
+            FilterPlacement = placement;
+            FilterMarkerChecked = FilterPlacement != FilterInsertPlacement.SpecificString;
+            if (FilterPlacement == FilterInsertPlacement.SpecificString)
+                logger.Info($"filterMarker is '{FilterMarker}'");
+            else
+                logger.Info($"filter placement is {FilterPlacement}");
 
             var poeDocDir = Environment.ExpandEnvironmentVariables($"%USERPROFILE%\\Documents\\My Games\\Path of Exile\\");
 
@@ -280,9 +312,10 @@ namespace ChaosHelper
 
             var filterBase = Environment.ExpandEnvironmentVariables(rawConfig["filter"]);
             if (string.IsNullOrWhiteSpace(filterBase))
-                filterBase = "Chaos Helper";
+                filterBase = "ChaosHelper";
             FilterFileName = Path.ChangeExtension(Path.Combine(poeDocDir, filterBase), "filter");
             logger.Info($"will write filter file '{FilterFileName}'");
+            FilterFileBaseName = Path.GetFileNameWithoutExtension(FilterFileName);
 
             if (string.Equals(Path.GetFileName(TemplateFileName), Path.GetFileName(FilterFileName), StringComparison.OrdinalIgnoreCase))
             {
@@ -290,36 +323,40 @@ namespace ChaosHelper
                 return false;
             }
 
-            var itemModFile = Path.Combine(ExePath, "itemMods.csv");
+            var itemModFile = GetConfigFilePath("itemMods.csv");
             if (File.Exists(itemModFile))
             {
                 ItemMod.ReadItemModFile(itemModFile);
                 logger.Info($"item mod file - there are {ItemMod.PossibleMods.Count} mods");
             }
 
-            var itemRuleFile = Path.Combine(ExePath, "itemRules.csv");
+            var itemRuleFile = GetConfigFilePath("itemRules.csv");
             if (File.Exists(itemRuleFile))
             {
                 ItemRule.ReadRuleFile(itemRuleFile);
                 logger.Info($"item rule file - there are {ItemRule.Rules.Count} rules");
             }
 
-            if (!await DetermineTabIndicies())
+            if (!OfflineMode && !await DetermineTabIndicies())
                 return false;
 
             Helpers.ReadBaseItemsJson();
 
-            FilterMarkerChecked = false;
-            PutFilterLineAtTop = false;
-
             return true;
         }
 
-        private static string GetConfigFilePath()
+        private static string GetConfigFilePath(string filename)
         {
-            if (!string.IsNullOrWhiteSpace(ConfigFileOverride) && File.Exists(ConfigFileOverride))
-                return ConfigFileOverride;
-            return Path.Combine(ExePath, "settings.jsonc");
+            if (!string.IsNullOrWhiteSpace(ConfigDir))
+            {
+                var result = Path.Combine(ConfigDir, filename);
+                if (File.Exists(result))
+                    return result;
+            }
+
+            if (string.IsNullOrWhiteSpace(_exePath))
+                _exePath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            return Path.Combine(_exePath, filename);
         }
 
         public static async Task<bool> CheckAccount(bool forceWebCheck = false)
@@ -403,7 +440,7 @@ namespace ChaosHelper
             {
                 JsonElement tablit = await GetTabList();
 
-                var lookForCurrencyTab = Currency.CurrencyList.Any();
+                var lookForCurrencyTab = Currency.CurrencyList.Count != 0;
                 var lookForQualityTab = !string.IsNullOrWhiteSpace(qualityTabNameFromConfig);
 
                 const string removeOnlyTabPattern = "remove-only";
@@ -413,7 +450,7 @@ namespace ChaosHelper
                     return RecipeTabIndex >= 0
                         && (!lookForCurrencyTab || CurrencyTabIndex >= 0)
                         && (!lookForQualityTab || QualityTabIndex >= 0)
-                        && !dumpTabNames.Any();
+                        && dumpTabNames.Count == 0;
                 }
 
                 foreach (var tab in tablit.GetProperty("tabs").EnumerateArray())
@@ -503,14 +540,9 @@ namespace ChaosHelper
             var fileName = TabFileName(tabName);
             if (StashReadMode == StashReading.Playback && File.Exists(fileName))
             {
-                var options = new JsonSerializerOptions
-                {
-                    AllowTrailingCommas = true,
-                    ReadCommentHandling = JsonCommentHandling.Skip,
-                };
                 try
                 {
-                    return JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(fileName), options);
+                    return JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(fileName), RawJsonConfiguration.SerializerOptions);
                 }
                 catch (Exception ex)
                 {
@@ -520,26 +552,57 @@ namespace ChaosHelper
 
             if (StashReadMode != StashReading.Manual)
             {
-                try
+                var triesSoFar = 0;
+                while (triesSoFar < 4)
                 {
-                    var result = await HttpClient.GetFromJsonAsync<JsonElement>(theUrl);
-                    MaybeSavePageJson(result, tabName);
-                    return result;
-                }
-                catch (Exception ex)
-                {
-                    logger.Error(ex, $"Getting URL '{theUrl}'");
+                    ++triesSoFar;
+                    try
+                    {
+                        HttpResponseMessage response = await HttpClient.GetAsync(theUrl);
+                        if (response.StatusCode == HttpStatusCode.TooManyRequests)
+                        {
+                            var delaySeconds = 15 * triesSoFar;
+                            logger.Warn($"Got response 429 too many requests - delaying for {delaySeconds} seconds");
+                            await Task.Delay(delaySeconds * 1000);
+                            continue;
+                        }
+                        else if (!response.IsSuccessStatusCode)
+                        {
+                            logger.Error($"Got response {response.StatusCode}");
+                        }
+                        var result = await response.Content.ReadFromJsonAsync<JsonElement>();
+                        MaybeSavePageJson(result, tabName);
+                        return result;
+                    }
+                    catch (HttpRequestException httpException)
+                    {
+                        logger.Error(httpException, $"Getting URL '{theUrl}'");
+                        if (httpException.StatusCode == HttpStatusCode.TooManyRequests)
+                        {
+                            var delaySeconds = 10 * triesSoFar;
+                            logger.Warn($"Got response 429 too many requests - delaying for {delaySeconds} seconds");
+                            await Task.Delay(delaySeconds * 1000);
+
+                        }
+                        else
+                            break;
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.Error(ex, $"Getting URL '{theUrl}'");
+                        break;
+                    }
                 }
             }
 
-            if (!StashCanDoManualRead)
-                return new JsonElement();
-            return await ManualGetUrlJson(theUrl);
+            if (StashCanDoManualRead)
+                return await ManualGetUrlJson(theUrl);
+            return new JsonElement();
         }
 
         public static string TabFileName(string tabName)
         {
-            return Path.Combine(ExePath, $"json_{tabName}.json");
+            return GetConfigFilePath($"json_{tabName}.json");
         }
 
         public static void MaybeSavePageJson(JsonElement json, string tabName)
@@ -547,11 +610,7 @@ namespace ChaosHelper
 
             if (StashReadMode == StashReading.Record)
             {
-                var options = new JsonSerializerOptions
-                {
-                    WriteIndented = true,
-                };
-                var jsonString = JsonSerializer.Serialize(json, options);
+                var jsonString = JsonSerializer.Serialize(json, RawJsonConfiguration.SerializerOptions);
                 var fileName = TabFileName(tabName);
                 File.WriteAllText(fileName, jsonString);
             }
@@ -574,20 +633,33 @@ namespace ChaosHelper
             }
 
             text = text.Trim();
-            if (text.StartsWith("{") && text.EndsWith("}"))
+            if (text.StartsWith('{') && text.EndsWith('}'))
                 return JsonSerializer.Deserialize<JsonElement>(text); ;
             return JsonSerializer.Deserialize<JsonElement>("{}");
         }
 
         public static void SetProcessModule(string processModulePath, int poeProcessId)
         {
-            var path = Path.GetDirectoryName(processModulePath);
+            var path = Path.GetDirectoryName(processModulePath) ?? string.Empty;
             var clientFile = Path.Combine(path, "logs\\Client.txt");
             if (File.Exists(clientFile))
                 ClientFileName = clientFile;
-            //_poeExeName = Path.GetFileName(processModulePath);
+            else
+                ClientFileName = string.Empty;
+
             _poeProcessId = poeProcessId;
             GetCloseTcpPortsArgument();
+        }
+
+        public static void SetPoeDir(string poeDir)
+        {
+            ClientFileName = string.Empty;
+            if (Directory.Exists(poeDir))
+            {
+                var clientFile = Path.Combine(poeDir, "logs\\Client.txt");
+                if (File.Exists(clientFile))
+                    ClientFileName = clientFile;
+            }
         }
 
         public static void GetCloseTcpPortsArgument()
