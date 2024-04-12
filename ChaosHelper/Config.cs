@@ -530,10 +530,15 @@ namespace ChaosHelper
             return true;
         }
 
-        public static async Task<JsonElement> GetTabList()
+        public static Task<JsonElement> GetTabList()
+        {
+            return GetTabList(League);
+        }
+
+        public static async Task<JsonElement> GetTabList(string league)
         {
             var stashTabListUrl = "https://www.pathofexile.com/character-window/get-stash-items"
-                + $"?league={Uri.EscapeDataString(League)}&tabs=1&accountName={Uri.EscapeDataString(Account)}&realm=pc&tabIndex=0";
+                + $"?league={Uri.EscapeDataString(league)}&tabs=1&accountName={Uri.EscapeDataString(Account)}&realm=pc&tabIndex=0";
             JsonElement json = await GetJsonForUrl(stashTabListUrl, "tabList");
             return json;
         }

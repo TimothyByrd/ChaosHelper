@@ -46,7 +46,7 @@ namespace ChaosHelper
         }
 
         static void Main(string[] args)
-        {
+       {
             try
             {
                 //ItemRule.RuleEntry.ShowMatch("ES>=150");
@@ -329,44 +329,75 @@ namespace ChaosHelper
                 return;
             }
 
+            const int delaySeconds = 20;
+
             try
             {
-                // Set this after a partial run to pick up where it left off.
-                //
-                const int startIndex = 0;
+                var charList = await Config.GetJsonForUrl("https://www.pathofexile.com/character-window/get-characters", "charlist");
 
-                logger.Info("Getting list of tabs");
-                JsonElement tabList = await Config.GetTabList();
+                var numChars = charList.EnumerateArray().Count();
+                var guess = 1 + ((numChars * delaySeconds) / 60);
+                logger.Info($"There are {numChars} characters - this may take {guess} minutes to run ({delaySeconds} seconds between checks)");
 
-                const int delaySeconds = 20;
-
-                var numTabs = tabList.GetIntOrDefault("numTabs", -1);
-                var guess = 1 + ((numTabs * delaySeconds) / 60);
-                logger.Info($"There are {numTabs} tabs - this may take {guess} minutes to run ({delaySeconds} seconds between tab checks)");
-
-                foreach (var tab in tabList.GetProperty("tabs").EnumerateArray())
+                foreach (var character in charList.EnumerateArray())
                 {
-                    var i = tab.GetIntOrDefault("i", -1);
-                    if (i < startIndex) continue;
-                    var name = tab.GetProperty("n").GetString();
-                    var nameWithIndex = $"({i}) {name}";
+                    var characterName = character.GetProperty("name").GetString();
+                    var realm = character.GetProperty("realm").GetString();
+                    var league = character.GetProperty("league").GetString();
 
                     await Task.Delay(delaySeconds * 1000);
-                    JsonElement json = await GetJsonByTabIndex(i);
-                    LogIlvl100Items(json, nameWithIndex);
+                    var charJson = await GetJsonForCharacter(Config.Account, realm, characterName);
+
+                    LogIlvl100Items(charJson, $"Character {characterName}");
                 }
             }
             catch (Exception ex)
             {
-                logger.Error(ex, $"HTTP error getting tab or tab list: {ex.Message}");
+                logger.Error(ex, $"HTTP error getting character or character list: {ex.Message}");
             }
 
+            await CheckTabsForLeague("Hardcore");
+            await CheckTabsForLeague("Standard");
+
             logger.Info("Exiting after checking for items");
+
+            static async Task CheckTabsForLeague(string league)
+            {
+                try
+                {
+                    // Set this after a partial run to pick up where it left off.
+                    //
+                    const int startIndex = 0;
+
+                    logger.Info($"Getting list of tabs for {league}");
+                    JsonElement tabList = await Config.GetTabList(league);
+
+                    var numTabs = tabList.GetIntOrDefault("numTabs", -1);
+                    var guess = 1 + ((numTabs * delaySeconds) / 60);
+                    logger.Info($"There are {numTabs} tabs in {league} - this may take {guess} minutes to run ({delaySeconds} seconds between tab checks)");
+
+                    foreach (var tab in tabList.GetProperty("tabs").EnumerateArray())
+                    {
+                        var i = tab.GetIntOrDefault("i", -1);
+                        if (i < startIndex) continue;
+                        var name = tab.GetProperty("n").GetString();
+                        var nameWithIndex = $"Tab ({i}) {name}";
+
+                        await Task.Delay(delaySeconds * 1000);
+                        JsonElement json = await GetJsonByTabIndex(i, league);
+                        LogIlvl100Items(json, nameWithIndex);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.Error(ex, $"HTTP error getting tab or tab list: {ex.Message}");
+                }
+            }
         }
 
-        private static void LogIlvl100Items(JsonElement json, string tabName)
+        private static void LogIlvl100Items(JsonElement json, string location)
         {
-            logger.Info($"Checking tab '{tabName}'");
+            logger.Info($"Checking '{location}'");
 
             if (json.ValueKind == JsonValueKind.Undefined)
             {
@@ -385,7 +416,7 @@ namespace ChaosHelper
                 var name = item.GetStringOrDefault("name");
                 if (string.IsNullOrWhiteSpace(name))
                     name = item.GetStringOrDefault("baseType");
-                logger.Info($"Tab '{tabName}', x: {x}, y: {y}, name: {name}");
+                logger.Info($"{location} - x: {x}, y: {y}, name: {name}");
             }
         }
 
@@ -877,12 +908,18 @@ namespace ChaosHelper
             return true;
         }
 
-        private static async Task<JsonElement> GetJsonByTabIndex(int tabIndex)
+        private static Task<JsonElement> GetJsonByTabIndex(int tabIndex)
         {
             var stashTabUrl = "https://www.pathofexile.com/character-window/get-stash-items"
                 + $"?league={Uri.EscapeDataString(Config.League)}&tabIndex={tabIndex}&accountName={Uri.EscapeDataString(Config.Account)}";
-            var json = await Config.GetJsonForUrl(stashTabUrl, tabIndex);
-            return json;
+            return Config.GetJsonForUrl(stashTabUrl, tabIndex);
+        }
+
+        private static Task<JsonElement> GetJsonByTabIndex(int tabIndex, string league)
+        {
+            var stashTabUrl = "https://www.pathofexile.com/character-window/get-stash-items"
+                + $"?league={Uri.EscapeDataString(league)}&tabIndex={tabIndex}&accountName={Uri.EscapeDataString(Config.Account)}";
+            return Config.GetJsonForUrl(stashTabUrl, tabIndex);
         }
 
         private static async Task GetEquippedItems(ItemSet items)
@@ -898,20 +935,11 @@ namespace ChaosHelper
 
             try
             {
-                // for some reason, this is a form POST, not a GET
-                //
-                var formContent = new FormUrlEncodedContent(
-                [
-                    new KeyValuePair<string, string>("accountName", Config.Account),
-                    new KeyValuePair<string, string>("realm", "pc"),
-                    new KeyValuePair<string, string>("character", Config.Character),
-                ]);
-                var inventoryUrl = "https://www.pathofexile.com/character-window/get-items";
-                var response = await Config.HttpClient.PostAsync(inventoryUrl, formContent);
-                response.EnsureSuccessStatusCode();
+                var account = Config.Account;
+                var realm = "pc";
+                var characterName = Config.Character;
 
-                var json = await response.Content.ReadFromJsonAsync<JsonElement>();
-                Config.MaybeSavePageJson(json, "inventory");
+                JsonElement json = await GetJsonForCharacter(account, realm, characterName);
 
                 foreach (var item in json.GetProperty("items").EnumerateArray())
                 {
@@ -922,13 +950,32 @@ namespace ChaosHelper
                     var category = item.DetermineCategory();
 
                     //if (category != Cat.Junk)
-                        items.Add(category, item, -1);
+                    items.Add(category, item, -1);
                 }
             }
             catch (Exception ex)
             {
                 logger.Error(ex, $"HTTP error getting inventory contents: {ex.Message}");
             }
+        }
+
+        private static async Task<JsonElement> GetJsonForCharacter(string account, string realm, string characterName)
+        {
+            // for some reason, this is a form POST, not a GET
+            //
+            var formContent = new FormUrlEncodedContent(
+            [
+                new KeyValuePair<string, string>("accountName", account),
+                    new KeyValuePair<string, string>("realm", realm),
+                    new KeyValuePair<string, string>("character", characterName),
+                ]);
+            var inventoryUrl = "https://www.pathofexile.com/character-window/get-items";
+            var response = await Config.HttpClient.PostAsync(inventoryUrl, formContent);
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadFromJsonAsync<JsonElement>();
+            Config.MaybeSavePageJson(json, $"inventory_{characterName}");
+            return json;
         }
 
         static async Task GetPricesFromPoeNinja()
