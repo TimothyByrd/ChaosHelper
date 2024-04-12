@@ -41,7 +41,8 @@ namespace ChaosHelper
             public bool ForceSingleUpdate { get; set; } = false;
             public bool RunOverlay { get; set; } = true;
             public bool StartPaused { get; set; } = false;
-            public string ChaosSetFileToCheck { get; set; }
+            public bool FindIlvl100 { get; set; } = false;
+            public string FileToCheck { get; set; }
         }
 
         static void Main(string[] args)
@@ -55,7 +56,7 @@ namespace ChaosHelper
                 var settings = new Settings();
 
                 bool nextArgIsPoeDir = false;
-                bool nextArgIsChaosSetFile = false;
+                bool nextArgIsFileToCheck = false;
                 foreach (var arg in args)
                 {
                     if (string.Equals(arg, "-steam", StringComparison.Ordinal))
@@ -71,19 +72,21 @@ namespace ChaosHelper
                     else if (string.Equals(arg, "-poe", StringComparison.Ordinal))
                         nextArgIsPoeDir = true;
                     else if (string.Equals(arg, "-check", StringComparison.Ordinal))
-                        nextArgIsChaosSetFile = true;
+                        nextArgIsFileToCheck = true;
+                    else if (string.Equals(arg, "-100", StringComparison.Ordinal))
+                        settings.FindIlvl100 = true;
                     else if (nextArgIsPoeDir)
                     {
                         nextArgIsPoeDir = false;
                         if (Directory.Exists(arg))
                             Config.SetPoeDir(arg);
                     }
-                    else if (nextArgIsChaosSetFile)
+                    else if (nextArgIsFileToCheck)
                     {
-                        nextArgIsChaosSetFile = false;
+                        nextArgIsFileToCheck = false;
                         if (File.Exists(arg))
                         {
-                            settings.ChaosSetFileToCheck = arg;
+                            settings.FileToCheck = arg;
                             Config.OfflineMode = true;
                         }
                         else
@@ -114,32 +117,15 @@ namespace ChaosHelper
             if (!await Config.ReadConfigFile())
                 return;
 
-            if (!string.IsNullOrWhiteSpace(settings.ChaosSetFileToCheck))
+            if (settings.FindIlvl100)
             {
-                logger.Info($"Checking file for chaos sets '{settings.ChaosSetFileToCheck}'");
-                try
-                {
-                    ItemSet.DetailedLogging = true;
-                    logger.Info($"config: AllowIDedSets {Config.AllowIDedSets}, ChaosParanoiaLevel: {Config.ChaosParanoiaLevel}");
-                    var json = JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(settings.ChaosSetFileToCheck), RawJsonConfiguration.SerializerOptions);
-                    var items = new ItemSet();
-                    var count = AddItemsToItemSetFromJson(json, items);
-                    logger.Info($"set has {count} items");
-                    items.RefreshCounts();
+                await FindIlvl100Items(settings);
+                return;
+            }
 
-                    ItemSet setToSell = null;
-                    do
-                    {
-                        setToSell = items.GetSetToSell(Config.AllowIDedSets, Config.ChaosParanoiaLevel);
-
-                    } while ( setToSell != null && setToSell.HasAnyItems());
-                }
-                catch (Exception ex)
-                {
-                    logger.Error(ex, $"Reading save tab data for '{settings.ChaosSetFileToCheck}'");
-                }
-
-                logger.Info("Exiting after checking json file");
+            if (!string.IsNullOrWhiteSpace(settings.FileToCheck))
+            {
+                CheckSingleFileForSets(settings);
                 return;
             }
 
@@ -321,6 +307,121 @@ namespace ChaosHelper
             if (overlayTask != null) await overlayTask;
             if (keyboardTask != null) await keyboardTask;
             HotKeyManager.UnregisterAllHotKeys();
+        }
+
+        private static async Task FindIlvl100Items(Settings settings)
+        {
+            logger.Info("Checking for ilvl 100 items");
+
+            if (!string.IsNullOrWhiteSpace(settings.FileToCheck))
+            {
+                try
+                {
+                    logger.Info($"Checking file '{settings.FileToCheck}'");
+                    var json = JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(settings.FileToCheck), RawJsonConfiguration.SerializerOptions);
+                    LogIlvl100Items(json, Path.GetFileName(settings.FileToCheck));
+                }
+                catch (Exception ex)
+                {
+                    logger.Error(ex, $"Reading '{settings.FileToCheck}'");
+                }
+                logger.Info("Exiting after checking json file");
+                return;
+            }
+
+            try
+            {
+                const int startIndex = 0;
+
+                logger.Info("Getting list of tabs");
+                JsonElement tabList = await Config.GetTabList();
+
+                const int delaySeconds = 3;
+                const int delayAMinuteEvery = 20;
+
+                var numTabs = tabList.GetIntOrDefault("numTabs", -1);
+                var guess = 1 + ((numTabs * delaySeconds + (60 * numTabs / delayAMinuteEvery)) / 60);
+                logger.Info($"There are {numTabs} tabs - this may take {guess} minutes to run");
+
+                int counter = 0;
+                foreach (var tab in tabList.GetProperty("tabs").EnumerateArray())
+                {
+                    var i = tab.GetIntOrDefault("i", -1);
+                    if (i < startIndex) continue;
+                    var name = tab.GetProperty("n").GetString();
+                    var nameWithIndex = $"({i}) {name}";
+
+                    counter++;
+                    if (counter == delayAMinuteEvery)
+                    {
+                        logger.Info("Delaying for one minute");
+                        await Task.Delay(60 * 1000);
+                        counter = 0;
+                    }
+                    await Task.Delay(delaySeconds * 1000);
+                    JsonElement json = await GetJsonByTabIndex(i);
+                    LogIlvl100Items(json, nameWithIndex);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"HTTP error getting tab or tab list: {ex.Message}");
+            }
+
+            logger.Info("Exiting after checking for items");
+        }
+
+        private static void LogIlvl100Items(JsonElement json, string tabName)
+        {
+            logger.Info($"Checking tab '{tabName}'");
+
+            if (json.ValueKind == JsonValueKind.Undefined)
+            {
+                logger.Error("ERROR: empty stash returned");
+                return;
+            }
+
+            foreach (var item in json.GetProperty("items").EnumerateArray())
+            {
+                var ilvl = item.GetIntOrDefault("ilvl", 0);
+
+                if (ilvl < 100) continue;
+
+                var x = item.GetProperty("x").GetInt32();
+                var y = item.GetProperty("y").GetInt32();
+                var name = item.GetStringOrDefault("name");
+                if (string.IsNullOrWhiteSpace(name))
+                    name = item.GetStringOrDefault("baseType");
+                logger.Info($"Tab '{tabName}', x: {x}, y: {y}, name: {name}");
+            }
+        }
+
+        private static void CheckSingleFileForSets(Settings settings)
+        {
+            logger.Info($"Checking file for chaos sets '{settings.FileToCheck}'");
+            try
+            {
+                ItemSet.DetailedLogging = true;
+                logger.Info($"config: AllowIDedSets {Config.AllowIDedSets}, ChaosParanoiaLevel: {Config.ChaosParanoiaLevel}");
+                var json = JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(settings.FileToCheck), RawJsonConfiguration.SerializerOptions);
+                var items = new ItemSet();
+                var count = AddItemsToItemSetFromJson(json, items);
+                logger.Info($"set has {count} items");
+                items.RefreshCounts();
+
+                ItemSet setToSell = null;
+                do
+                {
+                    setToSell = items.GetSetToSell(Config.AllowIDedSets, Config.ChaosParanoiaLevel);
+
+                } while (setToSell != null && setToSell.HasAnyItems());
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Reading save tab data for '{settings.FileToCheck}'");
+            }
+
+            logger.Info("Exiting after checking json file");
         }
 
         private static void CheckHotkeyRegistration()

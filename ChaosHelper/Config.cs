@@ -438,7 +438,7 @@ namespace ChaosHelper
 
             try
             {
-                JsonElement tablit = await GetTabList();
+                JsonElement tablist = await GetTabList();
 
                 var lookForCurrencyTab = Currency.CurrencyList.Count != 0;
                 var lookForQualityTab = !string.IsNullOrWhiteSpace(qualityTabNameFromConfig);
@@ -453,7 +453,7 @@ namespace ChaosHelper
                         && dumpTabNames.Count == 0;
                 }
 
-                foreach (var tab in tablit.GetProperty("tabs").EnumerateArray())
+                foreach (var tab in tablist.GetProperty("tabs").EnumerateArray())
                 {
                     var name = tab.GetProperty("n").GetString();
                     var isRemoveOnly = name.Contains(removeOnlyTabPattern, StringComparison.OrdinalIgnoreCase);
@@ -552,6 +552,7 @@ namespace ChaosHelper
 
             if (StashReadMode != StashReading.Manual)
             {
+                var baseDelaySeconds = 60 * 10;
                 var triesSoFar = 0;
                 while (triesSoFar < 4)
                 {
@@ -561,9 +562,19 @@ namespace ChaosHelper
                         HttpResponseMessage response = await HttpClient.GetAsync(theUrl);
                         if (response.StatusCode == HttpStatusCode.TooManyRequests)
                         {
-                            var delaySeconds = 15 * triesSoFar;
-                            logger.Warn($"Got response 429 too many requests - delaying for {delaySeconds} seconds");
-                            await Task.Delay(delaySeconds * 1000);
+                            var delta = TimeSpan.Zero;
+                            if (response.Headers.RetryAfter.Date.HasValue)
+                                delta = response.Headers.RetryAfter.Date.Value - DateTimeOffset.Now;
+                            if (delta <= TimeSpan.Zero && response.Headers.RetryAfter.Delta.HasValue)
+                                delta = response.Headers.RetryAfter.Delta.Value;
+                            if (delta <= TimeSpan.Zero)
+                            {
+                                var delaySeconds = baseDelaySeconds * triesSoFar;
+                                delta = TimeSpan.FromSeconds(delaySeconds);
+                            }
+
+                            logger.Warn($"Got response 429 too many requests(1) - delaying for {delta.TotalSeconds} seconds");
+                            await Task.Delay(delta.Add(TimeSpan.FromSeconds(10)));
                             continue;
                         }
                         else if (!response.IsSuccessStatusCode)
@@ -579,8 +590,8 @@ namespace ChaosHelper
                         logger.Error(httpException, $"Getting URL '{theUrl}'");
                         if (httpException.StatusCode == HttpStatusCode.TooManyRequests)
                         {
-                            var delaySeconds = 10 * triesSoFar;
-                            logger.Warn($"Got response 429 too many requests - delaying for {delaySeconds} seconds");
+                            var delaySeconds = baseDelaySeconds * triesSoFar;
+                            logger.Warn($"Got response 429 too many requests(2) - delaying for {delaySeconds} seconds");
                             await Task.Delay(delaySeconds * 1000);
 
                         }

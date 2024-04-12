@@ -503,7 +503,7 @@ namespace ChaosHelper
             //
             var item = items.First();
             if (item.Quality >= minNeeded && item.Quality <= minNeeded + allowedSlop)
-                return new List<ItemPosition> { item };
+                return [item];
 
             if (item.Quality < minNeeded)
             {
