@@ -331,19 +331,19 @@ namespace ChaosHelper
 
             try
             {
+                // Set this after a partial run to pick up where it left off.
+                //
                 const int startIndex = 0;
 
                 logger.Info("Getting list of tabs");
                 JsonElement tabList = await Config.GetTabList();
 
-                const int delaySeconds = 3;
-                const int delayAMinuteEvery = 20;
+                const int delaySeconds = 20;
 
                 var numTabs = tabList.GetIntOrDefault("numTabs", -1);
-                var guess = 1 + ((numTabs * delaySeconds + (60 * numTabs / delayAMinuteEvery)) / 60);
-                logger.Info($"There are {numTabs} tabs - this may take {guess} minutes to run");
+                var guess = 1 + ((numTabs * delaySeconds) / 60);
+                logger.Info($"There are {numTabs} tabs - this may take {guess} minutes to run ({delaySeconds} seconds between tab checks)");
 
-                int counter = 0;
                 foreach (var tab in tabList.GetProperty("tabs").EnumerateArray())
                 {
                     var i = tab.GetIntOrDefault("i", -1);
@@ -351,13 +351,6 @@ namespace ChaosHelper
                     var name = tab.GetProperty("n").GetString();
                     var nameWithIndex = $"({i}) {name}";
 
-                    counter++;
-                    if (counter == delayAMinuteEvery)
-                    {
-                        logger.Info("Delaying for one minute");
-                        await Task.Delay(60 * 1000);
-                        counter = 0;
-                    }
                     await Task.Delay(delaySeconds * 1000);
                     JsonElement json = await GetJsonByTabIndex(i);
                     LogIlvl100Items(json, nameWithIndex);

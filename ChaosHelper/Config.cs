@@ -44,6 +44,7 @@ namespace ChaosHelper
         public static bool OfflineMode { get; set; } = false;
         public static HttpClient HttpClient { get; private set; }
         public static string Account { get; private set; }
+        public static string Poesessid { get; private set; }
         public static string League { get; private set; }
         public static string Character { get; private set; }
         public static string TemplateFileName { get; private set; }
@@ -159,23 +160,14 @@ namespace ChaosHelper
                 return false;
             }
 
-            var poesessid = rawConfig["poesessid"];
-            if (string.IsNullOrWhiteSpace(poesessid))
+            Poesessid = rawConfig["poesessid"];
+            if (string.IsNullOrWhiteSpace(Poesessid))
             {
                 logger.Error("ERROR: poesessid not configured");
                 return false;
             }
 
-            var cookieContainer = new CookieContainer();
-            cookieContainer.Add(new Cookie("POESESSID", poesessid, "/", "pathofexile.com"));
-
-            var handler = new HttpClientHandler() { CookieContainer = cookieContainer };
-            HttpClient = new HttpClient(handler);
-           
-            var productValue = new ProductInfoHeaderValue("ChaosHelper", "1.0");
-            var commentValue = new ProductInfoHeaderValue("(+https://github.com/TimothyByrd/ChaosHelper)");
-            HttpClient.DefaultRequestHeaders.UserAgent.Add(productValue);
-            HttpClient.DefaultRequestHeaders.UserAgent.Add(commentValue);
+            CreateNewHttpClient();
 
             var stashReadModeStr = rawConfig["stashReadMode"];
             if (Enum.TryParse<StashReading>(stashReadModeStr, true, out var stashReadMode)
@@ -343,6 +335,22 @@ namespace ChaosHelper
             Helpers.ReadBaseItemsJson();
 
             return true;
+        }
+
+        public static void CreateNewHttpClient()
+        {
+            var cookieContainer = new CookieContainer();
+            cookieContainer.Add(new Cookie("POESESSID", Poesessid, "/", "pathofexile.com"));
+
+            var handler = new HttpClientHandler() { CookieContainer = cookieContainer };
+            var client = new HttpClient(handler);
+
+            var productValue = new ProductInfoHeaderValue("ChaosHelper", "1.0");
+            var commentValue = new ProductInfoHeaderValue("(+https://github.com/TimothyByrd/ChaosHelper)");
+            client.DefaultRequestHeaders.UserAgent.Add(productValue);
+            client.DefaultRequestHeaders.UserAgent.Add(commentValue);
+
+            HttpClient = client;
         }
 
         private static string GetConfigFilePath(string filename)
@@ -562,6 +570,14 @@ namespace ChaosHelper
                         HttpResponseMessage response = await HttpClient.GetAsync(theUrl);
                         if (response.StatusCode == HttpStatusCode.TooManyRequests)
                         {
+                            foreach (var header in response.Headers)
+                            {
+                                if (header.Key.StartsWith("X-Rate", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    var value = string.Join(";", header.Value);
+                                    logger.Info($"Header {header.Key}: {value}");
+                                }
+                            }
                             var delta = TimeSpan.Zero;
                             if (response.Headers.RetryAfter.Date.HasValue)
                                 delta = response.Headers.RetryAfter.Date.Value - DateTimeOffset.Now;
