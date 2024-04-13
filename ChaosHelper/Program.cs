@@ -367,7 +367,7 @@ namespace ChaosHelper
                 {
                     // Set this after a partial run to pick up where it left off.
                     //
-                    const int startIndex = 0;
+                    int startIndex = 0;
 
                     logger.Info($"Getting list of tabs for {league}");
                     JsonElement tabList = await Config.GetTabList(league);
@@ -405,7 +405,13 @@ namespace ChaosHelper
                 return;
             }
 
-            foreach (var item in json.GetProperty("items").EnumerateArray())
+            if (!json.TryGetProperty("items", out var itemsProp))
+            {
+                logger.Error("ERROR: no 'items' property");
+                return;
+            }
+
+            foreach (var item in itemsProp.EnumerateArray())
             {
                 var ilvl = item.GetIntOrDefault("ilvl", 0);
 
