@@ -577,7 +577,8 @@ namespace ChaosHelper
                         {
                             foreach (var header in response.Headers)
                             {
-                                if (header.Key.StartsWith("X-Rate", StringComparison.OrdinalIgnoreCase))
+                                if (header.Key.StartsWith("X-Rate", StringComparison.OrdinalIgnoreCase)
+                                    || header.Key.StartsWith("Retry", StringComparison.OrdinalIgnoreCase))
                                 {
                                     var value = string.Join(";", header.Value);
                                     logger.Info($"Header {header.Key}: {value}");

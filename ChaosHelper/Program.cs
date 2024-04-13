@@ -378,8 +378,12 @@ namespace ChaosHelper
 
                     foreach (var tab in tabList.GetProperty("tabs").EnumerateArray())
                     {
+                        var tabType = tab.GetProperty("type").GetString();
+                        if (string.Equals(tabType, "MapStash", StringComparison.OrdinalIgnoreCase)) continue;
+
                         var i = tab.GetIntOrDefault("i", -1);
                         if (i < startIndex) continue;
+                        
                         var name = tab.GetProperty("n").GetString();
                         var nameWithIndex = $"Tab ({i}) {name}";
 
