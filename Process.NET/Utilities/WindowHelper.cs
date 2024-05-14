@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -135,9 +135,9 @@ namespace Process.NET.Utilities
         public static int GetWindowThreadId(IntPtr windowHandle)
         {
             // Check if the handle is valid
-            HandleManipulator.ValidateAsArgument(windowHandle, "windowHandle");
-
-            // Get the thread id
+            HandleManipulator.ValidateAsArgument(windowHandle, "windowHandle");
+
+            // Get the thread id
             return User32.GetWindowThreadProcessId(windowHandle, out _);
         }
 

@@ -129,10 +129,10 @@ namespace Process.NET.Marshaling
             }
             // Check if it's not a common type
             // Allocate a block of unmanaged memory
-            using var unmanaged = new LocalUnmanagedMemory(Size);
-            // Write the object inside the unmanaged memory
-            unmanaged.Write(obj);
-            // Return the content of the block of unmanaged memory
+            using var unmanaged = new LocalUnmanagedMemory(Size);
+            // Write the object inside the unmanaged memory
+            unmanaged.Write(obj);
+            // Return the content of the block of unmanaged memory
             return unmanaged.Read();
         }
 
@@ -196,10 +196,10 @@ namespace Process.NET.Marshaling
             }
             // Check if it's not a common type
             // Allocate a block of unmanaged memory
-            using var unmanaged = new LocalUnmanagedMemory(Size);
-            // Write the array of bytes inside the unmanaged memory
-            unmanaged.Write(byteArray);
-            // Return a managed object created from the block of unmanaged memory
+            using var unmanaged = new LocalUnmanagedMemory(Size);
+            // Write the array of bytes inside the unmanaged memory
+            unmanaged.Write(byteArray);
+            // Return a managed object created from the block of unmanaged memory
             return unmanaged.Read<T>();
         }
 

@@ -8,7 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Process.NET.Marshaling
-{
+{
     public static class MarshalCache<T>
     {
         public unsafe delegate void* GetUnsafePtrDelegate(ref T value);

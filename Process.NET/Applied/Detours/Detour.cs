@@ -11,16 +11,16 @@ namespace Process.NET.Applied.Detours
     ///     <remarks>All credits to the GreyMagic library written by Apoc @ www.ownedcore.com</remarks>
     /// </summary>
     public class Detour : IComplexApplied
-    {
+    {
         /// <summary>
         ///     This var is not used within the detour itself. It is only here
         ///     to keep a reference, to avoid the GC from collecting the delegate instance!
         /// </summary>
-        // ReSharper disable once NotAccessedField.Local
-#pragma warning disable IDE0052 // Remove unread private members
-        private readonly Delegate _hookDelegate;
-#pragma warning restore IDE0052 // Remove unread private members
-
+        // ReSharper disable once NotAccessedField.Local
+#pragma warning disable IDE0052 // Remove unread private members
+        private readonly Delegate _hookDelegate;
+#pragma warning restore IDE0052 // Remove unread private members
+
         /// <summary>
         ///     Initializes a new instance of the <see cref="Detour" /> class.
         /// </summary>
@@ -51,7 +51,7 @@ namespace Process.NET.Applied.Detours
 
             var bytes = IntPtr.Size == 4 ? BitConverter.GetBytes(HookPointer.ToInt32()) : BitConverter.GetBytes(HookPointer.ToInt64());
 
-     
+
             New.AddRange(bytes);
             New.Add(0xC3);
         }

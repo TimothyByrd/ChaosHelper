@@ -158,11 +158,11 @@ namespace Process.NET.Utilities
 
         public static SystemProcess GetByProductName(string name)
         {
-            using var firstOrDefault = FindProcessesByProductName(name).FirstOrDefault();
-            if (firstOrDefault == null)
-            {
-                throw new NullReferenceException($"Process {name} not found.");
-            }
+            using var firstOrDefault = FindProcessesByProductName(name).FirstOrDefault();
+            if (firstOrDefault == null)
+            {
+                throw new NullReferenceException($"Process {name} not found.");
+            }
             return firstOrDefault;
         }
 
@@ -203,7 +203,7 @@ namespace Process.NET.Utilities
         }
 
         public static bool SetDebugPrivileges()
-        {
+        {
             if (
                 !Advapi32.OpenProcessToken(Kernel32.GetCurrentProcess(),
                     TokenObject.TOKEN_ADJUST_PRIVILEGES | TokenObject.TOKEN_QUERY, out IntPtr hToken))

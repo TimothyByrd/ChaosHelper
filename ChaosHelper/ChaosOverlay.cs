@@ -1,16 +1,9 @@
-﻿using System;
+﻿using Process.NET;
+using Process.NET.Memory;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-
-using Overlay.NET.Common;
-
-using Process.NET;
-using Process.NET.Memory;
-using Process.NET.Windows.Keyboard;
-using Process.NET.Windows;
-using System.Windows.Input;
-using System.Diagnostics;
 
 namespace ChaosHelper
 {
@@ -82,7 +75,7 @@ namespace ChaosHelper
                                 logger.Info("waiting for main window");
                                 _haveLoggedWaitingForMainWindowMessage = true;
                             }
-                            Thread.Sleep(2000);
+                            Thread.Sleep(3000);
                             continue;
                         }
 
@@ -94,6 +87,8 @@ namespace ChaosHelper
                         while (!cancellationToken.IsCancellationRequested && !_processExited)
                         {
                             _plugin.Update();
+                            int sleepDuration = _plugin.OverlayWindow.IsVisible ? 30 : 2000;
+                            Thread.Sleep(sleepDuration);
                         }
                     }
                     catch (System.Threading.Tasks.TaskCanceledException)

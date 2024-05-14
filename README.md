@@ -24,7 +24,7 @@ If you need support for multiple dump tabs or the exalted shard recipe, please l
 [How to use it](#h02)<br>
 [Automatic stuff](#h03)<br>
 [Commands and hotkeys](#h04)<br>
-[About the template and filter](#h05)<br>
+[About the generated filter](#h05)<br>
 [Security](#h06)<br>
 [Configuration details](#h07)<br>
 [Item rules](#h08)<br>
@@ -128,34 +128,17 @@ The commands can be invoked:
     - In this case, comment out the hotkeys in setting.jsonc.
     - This method can be used to invoke other commands in the ChaosHelper console
 
-## About the template and filter
+## About the generated filter
 <a name="h05" />
 
-When it wants to update the loot filter, the tool reads the template file,
-looking for a line with a specific pattern. It writes the new filter file,
-copying all the lines from the template, and inserting the chaos filter code
-in the specified place. The template and the filter must be different files.
+When it wants to update the loot filter, the tool writes the new filter file, with an 'Import' of the source filter at the end.
+The source filter and the generated filter must have different names.
 
-The template needs to be specified in the `template` entry.
-I suggest using an existing filter - one that doesn't already show all the chaos recipe items, otherwise there is no point.
+The source filter needs to be specified in the `sourceFilter` entry.
+I suggest using an existing filter - a Neversink filter should work.
 Since the tool will write to a different file, your existing filter will stay safe.
 
-The filter it generates is specified by the `filter` entry and defaults to `Chaos Helper.filter`. 
-
-You can set the place in the filter where the chaos recipe code will go by configuring the `filterMarker` entry.
-For example, if you have your own custom loot filter and want to use it, you could set `filterMarker` to "%%" and then add a line to your filter in the appropriate place reading "#%%".
-Your filter will still work as before, and the tool will be able to use it as a template.
-
-By default, the tool currently looks for a line containing the text "Override 270" in the template file.
-For Neversink filters, this seems to put the chaos recipe section in a good place.
-(Another value that seems to work is "Having this list too long".)
-
-**NOTE:** Make sure the text specified in `filterMarker` only occurs once in the filter template, at the place you want the chaos recipe code to go.
-For example, when using a Neversink filter in 3.14 it would be tempting to use something like "[[2300]] Endgame - Rare - Gear - T4 - rest" as the `filterMarker'.
-However that text occurs *twice* in the filter - once in the place we want the code and once in the table of contents at the top of the file.
-So using that text would cause the chaos recipe code to be inserted in the filter in both places.
-This would probably not be what you want, for example, it would override the normal highlight for rare 6-socket armor.
-As of 3.14, "Override 270" seems to look like a reasonable marker.
+The filter it generates is specified by the `filter` entry and defaults to `ChaosHelper.filter`. 
 
 ## Security
 <a name="h06" />
@@ -173,18 +156,15 @@ because the GGG web developers are not consistent and used one POST with form da
 There are three things you must configure in settings.jsonc to use the tool:
 1. `account`: your Path of Exile account name.
 2. `poesessid`: the session Id for your currrent login to www.pathofexile.com.
-3. `template`: the template file used to create/update the filter
-- An existing Neversink filter should work with the defaults.
-- See "About the template and filter" for more info.
+3. `sourceFilter`: the source filter that the ChoseHelper filter will be based on
+- See "About the generated filter" for more info.
 
-__`filter`__ ("ChaosHelper") is the name of the .filter file to create/update - just don't make it the same as `template`.
-See "About the template and filter" for more info.
-
-__`filterMarker`__ sets the text in the template file that will mark where to put the chaos recipe section.
-See "About the template and filter" for more info.
+__`filter`__ ("ChaosHelper") is the name of the .filter file to create/update - just don't make it the same as `sourceFilter`.
+See "About the generated filter" for more info.
 
 __`filterAutoReload`__ (false) if true will send "{Enter}/itemfilter <filter name>{Enter}" when the filter updates to auto reload it.
 
+__`initialImport`__ ("") if set will insert an `Import "<file name>" Optional` at the beginning of the generated filter file.
 
 __`filterDisplay`__ ({ "fontSize": 0, "text": "106 77 255", "back": "70 70 70", "border": "106 77 255" })
 sets the the appearance for highlighted items in the updated filter.

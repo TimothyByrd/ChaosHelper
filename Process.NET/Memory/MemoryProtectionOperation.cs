@@ -40,7 +40,7 @@ namespace Process.NET.Memory
         }
 
         public void Dispose()
-        {
+        {
             if (_type == MemoryProtectionType.Local)
                 VirtualProtectEx(_hProcess, Address, _size, _oldProtect, out _);
             else

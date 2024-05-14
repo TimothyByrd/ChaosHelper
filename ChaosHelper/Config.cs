@@ -31,25 +31,17 @@ namespace ChaosHelper
             Playback,
         }
 
-        public enum FilterInsertPlacement
-        {
-            /// <summary>Insert filter lines just before a line containing a specified string</summary>
-            SpecificString,
-            /// <summary>Insert filter lines at the top of the filter file</summary>
-            Top,
-            /// <summary>Insert filter lines just before the first hide block in the filter file</summary>
-            FirstHide,
-        }
-
         public static bool OfflineMode { get; set; } = false;
         public static HttpClient HttpClient { get; private set; }
         public static string Account { get; private set; }
         public static string Poesessid { get; private set; }
         public static string League { get; private set; }
         public static string Character { get; private set; }
-        public static string TemplateFileName { get; private set; }
+        public static string SourceFilterName { get; private set; }
         public static string FilterFileName { get; private set; }
         public static string FilterFileBaseName { get; private set; }
+        public static string InitialImportFile { get; private set; }
+
         public static string ClientFileName { get; private set; }
         public static string FilterUpdateSound { get; private set; }
         public static float FilterUpdateVolume { get; private set; }
@@ -84,11 +76,6 @@ namespace ChaosHelper
         public static bool ForceSteam { get; set; }
         public static int CurrencyTabIndex { get; set; } = -1;
         public static int QualityTabIndex { get; set; } = -1;
-
-        public static string FilterMarker { get; private set; }
-        public static string FilterInsertFile { get; private set; }
-        public static bool FilterMarkerChecked { get; set; }
-        public static FilterInsertPlacement FilterPlacement { get; set; }
 
         public static double DefenseVariance { get; private set; }
         public static bool ShowMinimumCurrency { get; private set; }
@@ -153,19 +140,58 @@ namespace ChaosHelper
                 return false;
             }
 
+            var poeDocDir = Environment.ExpandEnvironmentVariables($"%USERPROFILE%\\Documents\\My Games\\Path of Exile\\");
+            if (!Directory.Exists(poeDocDir))
+                poeDocDir = Environment.ExpandEnvironmentVariables($"%USERPROFILE%\\OneDrive\\Documents\\My Games\\Path of Exile\\");
+
             Account = rawConfig["account"];
             if (string.IsNullOrWhiteSpace(Account))
             {
-                logger.Error("ERROR: account not configured");
+                logger.Error("ERROR: account not configured in settings.jsonc");
                 return false;
             }
 
             Poesessid = rawConfig["poesessid"];
             if (string.IsNullOrWhiteSpace(Poesessid))
             {
-                logger.Error("ERROR: poesessid not configured");
+                logger.Error("ERROR: poesessid not configured in settings.jsonc");
                 return false;
             }
+
+            var sourceFilterBase = rawConfig["sourceFilter"];
+            if (string.IsNullOrWhiteSpace(sourceFilterBase))
+            {
+                logger.Error($"ERROR: sourceFilter not configured in settings.jsonc");
+                return false;
+            }
+
+            SourceFilterName = Path.Combine(poeDocDir, sourceFilterBase);
+            if (!File.Exists(SourceFilterName))
+                SourceFilterName = Path.ChangeExtension(SourceFilterName, "filter");
+            if (!File.Exists(SourceFilterName))
+            {
+                logger.Error($"ERROR: source filter file '{sourceFilterBase}' not found");
+                return false;
+            }
+            SourceFilterName = Path.GetFileName(SourceFilterName);
+            logger.Info($"using '{SourceFilterName}' as source filter");
+
+            var filterBase = rawConfig["filter"];
+            if (string.IsNullOrWhiteSpace(filterBase))
+                filterBase = "ChaosHelper";
+            FilterFileName = Path.ChangeExtension(Path.Combine(poeDocDir, filterBase), "filter");
+            logger.Info($"will write filter file '{FilterFileName}'");
+            FilterFileBaseName = Path.GetFileNameWithoutExtension(FilterFileName);
+
+            if (string.Equals(SourceFilterName, Path.GetFileName(FilterFileName), StringComparison.OrdinalIgnoreCase))
+            {
+                logger.Error("ERROR: source filter file and generated filter file must have different names");
+                return false;
+            }
+
+            InitialImportFile = rawConfig["initialImport"];
+            if (!string.IsNullOrWhiteSpace(InitialImportFile))
+                InitialImportFile = Path.ChangeExtension(InitialImportFile, "filter");
 
             CreateNewHttpClient();
 
@@ -183,10 +209,6 @@ namespace ChaosHelper
             FilterUpdateSound = GetConfigFilePath("FilterUpdateSound.wav");
             var filterUpdateVolumeInt = rawConfig.GetInt("soundFileVolume", 50).Clamp(0, 100);
             FilterUpdateVolume = filterUpdateVolumeInt / 100.0f;
-
-            FilterInsertFile = GetConfigFilePath("filter_insert.txt");
-            if (!File.Exists(FilterInsertFile))
-                FilterInsertFile = null;
 
             FilterAutoReload = rawConfig.GetBoolean("filterAutoReload", false);
 
@@ -268,52 +290,6 @@ namespace ChaosHelper
                 BackGroundColor = "70 70 70",
                 BorderColor = "106 77 255",
             };
-
-            FilterMarker = rawConfig["filterMarker"];
-            if (string.IsNullOrWhiteSpace(FilterMarker))
-                FilterMarker = FilterInsertPlacement.FirstHide.ToString();
-            if (!Enum.TryParse<FilterInsertPlacement>(FilterMarker, out var placement))
-                placement = FilterInsertPlacement.SpecificString;
-            FilterPlacement = placement;
-            FilterMarkerChecked = FilterPlacement != FilterInsertPlacement.SpecificString;
-            if (FilterPlacement == FilterInsertPlacement.SpecificString)
-                logger.Info($"filterMarker is '{FilterMarker}'");
-            else
-                logger.Info($"filter placement is {FilterPlacement}");
-
-            var poeDocDir = Environment.ExpandEnvironmentVariables($"%USERPROFILE%\\Documents\\My Games\\Path of Exile\\");
-
-            var templateBase = Environment.ExpandEnvironmentVariables(rawConfig["template"]);
-            if (string.IsNullOrWhiteSpace(templateBase))
-                templateBase = "simplesample.template";
-            if (File.Exists(templateBase))
-                TemplateFileName = templateBase;
-            else
-                TemplateFileName = Path.Combine(poeDocDir, templateBase);
-            if (!File.Exists(TemplateFileName))
-                TemplateFileName = Path.ChangeExtension(Path.Combine(poeDocDir, templateBase), "template");
-            if (!File.Exists(TemplateFileName))
-                TemplateFileName = Path.ChangeExtension(Path.Combine(poeDocDir, templateBase), "filter");
-            if (!File.Exists(TemplateFileName))
-            {
-                logger.Error($"ERROR: template file '{templateBase}' not found");
-                return false;
-            }
-            TemplateFileName = Path.GetFullPath(TemplateFileName);
-            logger.Info($"using template file '{TemplateFileName}'");
-
-            var filterBase = Environment.ExpandEnvironmentVariables(rawConfig["filter"]);
-            if (string.IsNullOrWhiteSpace(filterBase))
-                filterBase = "ChaosHelper";
-            FilterFileName = Path.ChangeExtension(Path.Combine(poeDocDir, filterBase), "filter");
-            logger.Info($"will write filter file '{FilterFileName}'");
-            FilterFileBaseName = Path.GetFileNameWithoutExtension(FilterFileName);
-
-            if (string.Equals(Path.GetFileName(TemplateFileName), Path.GetFileName(FilterFileName), StringComparison.OrdinalIgnoreCase))
-            {
-                logger.Error("ERROR: template file and filter file must have different names");
-                return false;
-            }
 
             var itemModFile = GetConfigFilePath("itemMods.csv");
             if (File.Exists(itemModFile))
@@ -573,6 +549,7 @@ namespace ChaosHelper
                     try
                     {
                         HttpResponseMessage response = await HttpClient.GetAsync(theUrl);
+                        RateLimit.UpdateLimits(response);
                         if (response.StatusCode == HttpStatusCode.TooManyRequests)
                         {
                             foreach (var header in response.Headers)

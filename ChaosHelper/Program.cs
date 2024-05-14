@@ -46,7 +46,7 @@ namespace ChaosHelper
         }
 
         static void Main(string[] args)
-       {
+        {
             try
             {
                 //ItemRule.RuleEntry.ShowMatch("ES>=150");
@@ -274,9 +274,9 @@ namespace ChaosHelper
 
             // get initial counts
             itemsCurrent = new ItemSet();
-            await Task.Delay(500);
+            await RateLimit.DelayForRateLimits(500).ConfigureAwait(false);
             await GetTabContents(Config.RecipeTabIndex, itemsCurrent);
-            await Task.Delay(500);
+            await RateLimit.DelayForRateLimits(500).ConfigureAwait(false);
             await GetCurrencyTabContents();
             itemsCurrent.RefreshCounts();
             itemsCurrent.CalculateClassesToShow();
@@ -345,7 +345,9 @@ namespace ChaosHelper
                     var realm = character.GetProperty("realm").GetString();
                     var league = character.GetProperty("league").GetString();
 
-                    await Task.Delay(delaySeconds * 1000);
+                    //await Task.Delay(delaySeconds * 1000);
+                    await RateLimit.DelayForRateLimits(1000).ConfigureAwait(false);
+
                     var charJson = await GetJsonForCharacter(Config.Account, realm, characterName);
 
                     LogIlvl100Items(charJson, $"Character {characterName}");
@@ -383,11 +385,12 @@ namespace ChaosHelper
 
                         var i = tab.GetIntOrDefault("i", -1);
                         if (i < startIndex) continue;
-                        
+
                         var name = tab.GetProperty("n").GetString();
                         var nameWithIndex = $"Tab ({i}) {name}";
 
-                        await Task.Delay(delaySeconds * 1000);
+                        //await Task.Delay(delaySeconds * 1000);
+                        await RateLimit.DelayForRateLimits(1000).ConfigureAwait(false);
                         JsonElement json = await GetJsonByTabIndex(i, league);
                         LogIlvl100Items(json, nameWithIndex);
                     }
@@ -522,33 +525,33 @@ namespace ChaosHelper
         {
             switch (hotkey.Command)
             {
-            case Constants.ClosePorts:
-                Config.CloseTcpPorts();
-                break;
-            case Constants.HighlightItems:
-                logger.Info("Highlighting sets to sell");
-                highlightSetsToSell = true;
-                break;
-            case Constants.ShowQualityItems:
-                highlightQualityToSell = true;
-                break;
-            case Constants.ShowJunkItems:
-                overlay?.SendKey(ConsoleKey.J);
-                break;
-            case Constants.ForceUpdate:
-                logger.Info("Forcing a filter update");
-                forceFilterUpdate = true;
-                break;
-            case Constants.CharacterCheck:
-                logger.Info("Rechecking character and league");
-                checkCharacter = true;
-                break;
-            case Constants.TestPattern:
-                overlay?.SendKey(ConsoleKey.T);
-                break;
-            default:
-                logger.Warn($"Unknown command {hotkey.Command}");
-                break;
+                case Constants.ClosePorts:
+                    Config.CloseTcpPorts();
+                    break;
+                case Constants.HighlightItems:
+                    logger.Info("Highlighting sets to sell");
+                    highlightSetsToSell = true;
+                    break;
+                case Constants.ShowQualityItems:
+                    highlightQualityToSell = true;
+                    break;
+                case Constants.ShowJunkItems:
+                    overlay?.SendKey(ConsoleKey.J);
+                    break;
+                case Constants.ForceUpdate:
+                    logger.Info("Forcing a filter update");
+                    forceFilterUpdate = true;
+                    break;
+                case Constants.CharacterCheck:
+                    logger.Info("Rechecking character and league");
+                    checkCharacter = true;
+                    break;
+                case Constants.TestPattern:
+                    overlay?.SendKey(ConsoleKey.T);
+                    break;
+                default:
+                    logger.Warn($"Unknown command {hotkey.Command}");
+                    break;
             }
         }
 
@@ -565,7 +568,8 @@ namespace ChaosHelper
             itemsPrevious = itemsCurrent;
             itemsCurrent = new ItemSet();
             await GetTabContents(Config.RecipeTabIndex, itemsCurrent);
-            await Task.Delay(500);
+            //await Task.Delay(500);
+            await RateLimit.DelayForRateLimits(500).ConfigureAwait(false);
             await GetCurrencyTabContents();
             itemsCurrent.RefreshCounts();
             itemsCurrent.CalculateClassesToShow();
@@ -574,26 +578,21 @@ namespace ChaosHelper
 
             if (forceFilterUpdate || !itemsCurrent.SameClassesToShow(itemsPrevious))
             {
-                if (File.Exists(Config.TemplateFileName))
-                {
-                    logger.Info($"updating filter - {itemsCurrent.GetCountsMsg()}");
-                    File.WriteAllLines(Config.FilterFileName, NewFilterContents(itemsCurrent));
+                logger.Info($"updating filter - {itemsCurrent.GetCountsMsg()}");
+                File.WriteAllLines(Config.FilterFileName, NewFilterContents(itemsCurrent));
 
-                    if (Config.FilterUpdateVolume > 0.0f && File.Exists(Config.FilterUpdateSound))
-                    {
-                        SharpDxSoundPlayer.PlaySoundFile(Config.FilterUpdateSound, Config.FilterUpdateVolume);
-                    }
-                    if (Config.FilterAutoReload && PoeIsActiveWindow())
-                    {
-                        var keyString = $"{{Enter}}/itemfilter {Config.FilterFileBaseName}{{Enter}}";
-                        var (keyEntries, _) = KeyboardUtils.StringToKeys(keyString);
-                        KeyboardUtils.SendKeys(keyEntries);
-                        var sent = KeyboardUtils.ToString(keyEntries);
-                        logger.Debug($"sent {sent}");
-                    }
+                if (Config.FilterUpdateVolume > 0.0f && File.Exists(Config.FilterUpdateSound))
+                {
+                    SharpDxSoundPlayer.PlaySoundFile(Config.FilterUpdateSound, Config.FilterUpdateVolume);
                 }
-                else
-                    logger.Warn($"source filter not found '{Config.TemplateFileName}'");
+                if (Config.FilterAutoReload && PoeIsActiveWindow())
+                {
+                    var keyString = $"{{Enter}}/itemfilter {Config.FilterFileBaseName}{{Enter}}";
+                    var (keyEntries, _) = KeyboardUtils.StringToKeys(keyString);
+                    KeyboardUtils.SendKeys(keyEntries);
+                    var sent = KeyboardUtils.ToString(keyEntries);
+                    logger.Debug($"sent {sent}");
+                }
 
                 overlay?.SendKey(ConsoleKey.Spacebar);
                 forceFilterUpdate = false;
@@ -629,8 +628,9 @@ namespace ChaosHelper
             {
                 if (shouldDelay)
                 {
-                    await Task.Delay(delayMS);
-                    delayMS += 30;
+                    //await Task.Delay(delayMS);
+                    //delayMS += 30;
+                    await RateLimit.DelayForRateLimits(delayMS).ConfigureAwait(false);
                 }
                 shouldDelay = Config.StashReadMode != Config.StashReading.Playback;
                 logger.Info($"retrieving tab '{kvp.Value}' ({kvp.Key})");
@@ -981,6 +981,7 @@ namespace ChaosHelper
                 ]);
             var inventoryUrl = "https://www.pathofexile.com/character-window/get-items";
             var response = await Config.HttpClient.PostAsync(inventoryUrl, formContent);
+            RateLimit.UpdateLimits(response);
             response.EnsureSuccessStatusCode();
 
             var json = await response.Content.ReadFromJsonAsync<JsonElement>();
@@ -1021,133 +1022,65 @@ namespace ChaosHelper
 
         static IEnumerable<string> NewFilterContents(ItemSet items)
         {
-
-            if (!Config.FilterMarkerChecked)
+            if (!string.IsNullOrWhiteSpace(Config.InitialImportFile))
             {
-                var found = File.ReadAllLines(Config.TemplateFileName)
-                    .Any(line => line.StartsWith('#') && line.Contains(Config.FilterMarker, StringComparison.OrdinalIgnoreCase));
-                if (!found)
-                {
-                    Config.FilterPlacement = Config.FilterInsertPlacement.Top;
-                    logger.Warn("filter marker not found - putting section at top of file");
-                }
-                Config.FilterMarkerChecked = true;
+                yield return $"Import \"{Config.InitialImportFile}\" Optional";
+                yield return "";
             }
 
-            var insertGeneratedSectionNow = Config.FilterPlacement == Config.FilterInsertPlacement.Top;
-            var numGeneratedSections = 0;
-
-            foreach (var line in File.ReadAllLines(Config.TemplateFileName))
+            foreach (var c in ItemClassForFilter.Iterator())
             {
-                if (numGeneratedSections > 0 || insertGeneratedSectionNow)
-                {
-                    // do nothing
-                }
-                else if (Config.FilterPlacement == Config.FilterInsertPlacement.FirstHide)
-                {
-                    insertGeneratedSectionNow = line.TrimStart().StartsWith("Hide", StringComparison.OrdinalIgnoreCase);
-                }
-                else if (Config.FilterPlacement == Config.FilterInsertPlacement.SpecificString)
-                {
-                    insertGeneratedSectionNow = line.TrimStart().StartsWith('#')
-                        && line.Contains(Config.FilterMarker, StringComparison.OrdinalIgnoreCase);
-                }
+                if (c.Skip)
+                    continue;
 
-                if (insertGeneratedSectionNow)
+                var counts = items.GetCounts(c.Category);
+
+                //if (!counts.ShouldShowInFilter)
+                //    continue;
+                var prefix = counts.ShouldShowInFilter ? "" : "# ";
+
+                var canBeIded = Config.AllowIDedSets && (c.Category == Cat.Rings || c.Category == Cat.Amulets);
+                var fontSize = Config.FilterDisplay.FontSize > 10 ? Config.FilterDisplay.FontSize : c.DefaultFontSize;
+
+                var catLines = GetLinesForCategory(c.Category, c.CategoryStr, c.FilterClass, fontSize, canBeIded, counts);
+                foreach (var catLine in catLines)
+                    yield return prefix + catLine;
+
+                // Add in 2x3 bows and 1x4 2-handed weapons
+                //
+                if (c.Category == Cat.OneHandWeapons)
                 {
-                    insertGeneratedSectionNow = false;
-                    ++numGeneratedSections;
+                    catLines = GetLinesForCategory(Cat.TwoHandWeapons, "2x3 Bows", "Bows", fontSize, canBeIded, counts);
+                    foreach (var catLine in catLines)
+                        yield return prefix + catLine;
 
-                    // replace with 'Import "MyOptionalRules.filter" Optional'?
+                    catLines = GetLinesForCategory(Cat.TwoHandWeapons, "1x4 2hd weapons", "Two Hand\" \"Staves", fontSize, canBeIded, counts);
+                    foreach (var catLine in catLines)
+                        yield return prefix + catLine;
+                }
+            }
 
-                    if (!string.IsNullOrEmpty(Config.FilterInsertFile)
-                        && File.Exists(Config.FilterInsertFile))
+            if (Config.CurrencyTabIndex >= 0 && Config.ShowMinimumCurrency)
+            {
+                foreach (var c in Currency.CurrencyList)
+                {
+                    if (c.CurrentCount < c.Desired)
                     {
+                        yield return $"# Because we want at least {c.Desired} {c.Name} in reserve";
+                        yield return "Show";
+                        yield return "Class Currency";
+                        yield return $"BaseType \"{c.Name}\"";
+                        yield return $"SetFontSize {c.ItemDisplay.FontSize}";
+                        yield return $"SetTextColor {c.ItemDisplay.TextColor}";
+                        yield return $"SetBorderColor {c.ItemDisplay.BorderColor}";
+                        yield return $"SetBackgroundColor {c.ItemDisplay.BackGroundColor}";
                         yield return "";
-                        yield return "# Begin ChaosHelper filter_insert section";
-                        yield return "";
-
-                        foreach (var insertLine in File.ReadAllLines(Config.FilterInsertFile))
-                        {
-                            yield return insertLine;
-                        }
-
-                        yield return "";
-                        yield return "# End ChaosHelper filter_insert section";
                     }
-
-                    yield return "";
-                    yield return "# Begin ChaosHelper generated section";
-                    yield return "";
-
-                    foreach (var c in ItemClassForFilter.Iterator())
-                    {
-                        if (c.Skip)
-                            continue;
-
-                        var counts = items.GetCounts(c.Category);
-
-                        //if (!counts.ShouldShowInFilter)
-                        //    continue;
-                        var prefix = counts.ShouldShowInFilter ? "" : "# ";
-
-                        var canBeIded = Config.AllowIDedSets && (c.Category == Cat.Rings || c.Category == Cat.Amulets);
-                        var fontSize = Config.FilterDisplay.FontSize > 10 ? Config.FilterDisplay.FontSize : c.DefaultFontSize;
-
-                        var catLines = GetLinesForCategory(c.Category, c.CategoryStr, c.FilterClass, fontSize, canBeIded, counts);
-                        foreach (var catLine in catLines)
-                            yield return prefix + catLine;
-
-                        // Add in 2x3 bows and 1x4 2-handed weapons
-                        //
-                        if (c.Category == Cat.OneHandWeapons)
-                        {
-                            catLines = GetLinesForCategory(Cat.TwoHandWeapons, "2x3 Bows", "Bows", fontSize, canBeIded, counts);
-                            foreach (var catLine in catLines)
-                                yield return prefix + catLine;
-
-                            catLines = GetLinesForCategory(Cat.TwoHandWeapons, "1x4 2hd weapons", "Two Hand\" \"Staves", fontSize, canBeIded, counts);
-                            foreach (var catLine in catLines)
-                                yield return prefix + catLine;
-                        }
-                    }
-
-                    if (Config.CurrencyTabIndex >= 0 && Config.ShowMinimumCurrency)
-                    {
-                        foreach (var c in Currency.CurrencyList)
-                        {
-                            if (c.CurrentCount < c.Desired)
-                            {
-                                yield return $"# Because we want at least {c.Desired} {c.Name} in reserve";
-                                yield return "Show";
-                                yield return "Class Currency";
-                                yield return $"BaseType \"{c.Name}\"";
-                                yield return $"SetFontSize {c.ItemDisplay.FontSize}";
-                                yield return $"SetTextColor {c.ItemDisplay.TextColor}";
-                                yield return $"SetBorderColor {c.ItemDisplay.BorderColor}";
-                                yield return $"SetBackgroundColor {c.ItemDisplay.BackGroundColor}";
-                                yield return "";
-                            }
-                        }
-                    }
-
-                    yield return "# End ChaosHelper generated section";
-                    yield return "";
                 }
-
-                yield return line;
             }
 
-            if (numGeneratedSections == 0)
-            {
-                logger.Warn("WARNING: marker not found in filter template - chaos recipe items will not be highlighted");
-                logger.Warn($"filter template marker is '{Config.FilterMarker}'");
-            }
-            else if (numGeneratedSections > 1)
-            {
-                logger.Warn($"WARNING: marker found {numGeneratedSections} times in filter template - this may be a problem - see README.md");
-                logger.Warn($"filter template marker is '{Config.FilterMarker}'");
-            }
+            yield return "";
+            yield return $"Import \"{Config.SourceFilterName}\"";
 
             static List<string> GetLinesForCategory(Cat category, string catDescription, string filterString, int fontSize, bool canBeIded, ItemSet.ItemCounts counts)
             {
@@ -1198,6 +1131,7 @@ namespace ChaosHelper
                 }
             }
         }
+
 
         static async Task TailClientTxt(CancellationToken token)
         {

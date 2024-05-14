@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using Process.NET.Marshaling;
 using Process.NET.Native;
@@ -27,9 +27,9 @@ namespace Process.NET.Utilities
         {
             // Check if the handles are valid
             HandleManipulator.ValidateAsArgument(processHandle, "processHandle");
-            HandleManipulator.ValidateAsArgument(startAddress, "startAddress");
-
-            // Create the remote thread
+            HandleManipulator.ValidateAsArgument(startAddress, "startAddress");
+
+            // Create the remote thread
             var ret = Kernel32.CreateRemoteThread(processHandle, IntPtr.Zero, 0, startAddress, parameter, creationFlags,
                 out _);
 

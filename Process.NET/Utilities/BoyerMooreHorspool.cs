@@ -1,16 +1,16 @@
-﻿namespace Process.NET.Utilities
+namespace Process.NET.Utilities
 {
     //Original C++ implementation by DarthTon. Ported to C# by gir489.
     public class BoyerMooreHorspool
     {
         private const byte WildCard = 0x00;
-        
+
         private static int[] BuildBadCharTable(byte[] pPattern)
         {
             int last = pPattern.Length - 1;
             int[] badShift = new int[256];
 
-            int idx;
+            int idx;
             // Get last wildcard position
             for (idx = last; idx > 0 && pPattern[idx] != WildCard; --idx) ;
             int diff = last - idx;
@@ -36,8 +36,8 @@
             int last = pattern.Length - 1;
             int maxoffset = buffer.Length - pattern.Length;
             while (offset <= maxoffset)
-            {
-                int position;
+            {
+                int position;
                 for (position = last; (pattern[position] == buffer[position + offset] || pattern[position] == WildCard); position--)
                 {
                     if (position == 0)

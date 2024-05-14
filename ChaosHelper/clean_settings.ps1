@@ -8,10 +8,12 @@ $origText = [System.IO.File]::ReadAllText($path)
 $text = $origText
 $text = $text -replace '"account"\s*:\s*"[^"]*"', "`"account`": `"`""
 $text = $text -replace '"poesessid"\s*:\s*"[^"]*"', "`"poesessid`": `"`""
-$text = $text -replace '"template"\s*:\s*"[^"]*"', "`"template`": `"`""
+$text = $text -replace '"template"\s*:\s*"[^"]*"', "`"sourceFilter`": `"`""
+$text = $text -replace '"sourceFilter"\s*:\s*"[^"]*"', "`"sourceFilter`": `"`""
 
 $text = $text -replace '"filter"\s*:\s*"[^"]*"', "`"filter`": `"ChaosHelper`""
-$text = $text -replace '"filterMarker"\s*:\s*"[^"]*"', "`"filterMarker`": `"`""
+$text = $text -replace '"initialImport"\s*:\s*"[^"]*"', "`"initialImport`": `"`""
+
 $text = $text -replace '"soundFileVolume"\s*:\s*\d+\s*,', "`"soundFileVolume`": 25,"
 
 $text = $text -replace '"maxSets"\s*:\s*\d+\s*,', "`"maxSets`": 10,"

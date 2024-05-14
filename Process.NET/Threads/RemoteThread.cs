@@ -212,18 +212,18 @@ namespace Process.NET.Threads
         /// <param name="segment">The segment to get.</param>
         /// <returns>A <see cref="IntPtr" /> pointer corresponding to the linear address of the segment.</returns>
         public IntPtr GetRealSegmentAddress(SegmentRegisters segment)
-        {
-            var entry = segment switch
-            {
-                SegmentRegisters.Cs => ThreadHelper.GetThreadSelectorEntry(Handle, Context.SegCs),
-                SegmentRegisters.Ds => ThreadHelper.GetThreadSelectorEntry(Handle, Context.SegDs),
-                SegmentRegisters.Es => ThreadHelper.GetThreadSelectorEntry(Handle, Context.SegEs),
-                SegmentRegisters.Fs => ThreadHelper.GetThreadSelectorEntry(Handle, Context.SegFs),
-                SegmentRegisters.Gs => ThreadHelper.GetThreadSelectorEntry(Handle, Context.SegGs),
-                SegmentRegisters.Ss => ThreadHelper.GetThreadSelectorEntry(Handle, Context.SegSs),
-                _ => throw new InvalidEnumArgumentException("segment"),
-            };
-            // Compute the linear address
+        {
+            var entry = segment switch
+            {
+                SegmentRegisters.Cs => ThreadHelper.GetThreadSelectorEntry(Handle, Context.SegCs),
+                SegmentRegisters.Ds => ThreadHelper.GetThreadSelectorEntry(Handle, Context.SegDs),
+                SegmentRegisters.Es => ThreadHelper.GetThreadSelectorEntry(Handle, Context.SegEs),
+                SegmentRegisters.Fs => ThreadHelper.GetThreadSelectorEntry(Handle, Context.SegFs),
+                SegmentRegisters.Gs => ThreadHelper.GetThreadSelectorEntry(Handle, Context.SegGs),
+                SegmentRegisters.Ss => ThreadHelper.GetThreadSelectorEntry(Handle, Context.SegSs),
+                _ => throw new InvalidEnumArgumentException("segment"),
+            };
+            // Compute the linear address
             return new IntPtr(entry.BaseLow | (entry.BaseMid << 16) | (entry.BaseHi << 24));
         }
 

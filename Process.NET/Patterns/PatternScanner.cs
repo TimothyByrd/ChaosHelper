@@ -30,24 +30,24 @@ namespace Process.NET.Patterns
 
         public PatternScanResult Find(IMemoryPattern pattern)
         {
-            return pattern.PatternType switch
-            {
-                MemoryPatternType.Function => FindFunctionPattern(pattern),
-                MemoryPatternType.Data => FindDataPattern(pattern),
-                _ => throw new NotImplementedException("PatternScanner encountered an unknown MemoryPatternType: " + pattern.PatternType + "."),
-            };
+            return pattern.PatternType switch
+            {
+                MemoryPatternType.Function => FindFunctionPattern(pattern),
+                MemoryPatternType.Data => FindDataPattern(pattern),
+                _ => throw new NotImplementedException("PatternScanner encountered an unknown MemoryPatternType: " + pattern.PatternType + "."),
+            };
         }
 
-        
+
 
         private int GetOffset(IMemoryPattern pattern)
         {
-            return pattern.Algorithm switch
-            {
-                PatternScannerAlgorithm.BoyerMooreHorspool => Utilities.BoyerMooreHorspool.IndexOf(Data, pattern.GetBytes().ToArray()),
-                PatternScannerAlgorithm.Naive => Utilities.Naive.GetIndexOf(pattern, Data, _module),
-                _ => throw new NotImplementedException("GetOffset encountered an unknown PatternScannerAlgorithm: " + pattern.Algorithm + "."),
-            };
+            return pattern.Algorithm switch
+            {
+                PatternScannerAlgorithm.BoyerMooreHorspool => Utilities.BoyerMooreHorspool.IndexOf(Data, pattern.GetBytes().ToArray()),
+                PatternScannerAlgorithm.Naive => Utilities.Naive.GetIndexOf(pattern, Data, _module),
+                _ => throw new NotImplementedException("GetOffset encountered an unknown PatternScannerAlgorithm: " + pattern.Algorithm + "."),
+            };
         }
 
         private PatternScanResult FindFunctionPattern(IMemoryPattern pattern)
