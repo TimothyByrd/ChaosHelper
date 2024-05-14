@@ -45,7 +45,7 @@ namespace ChaosHelper
         public static string ClientFileName { get; private set; }
         public static string FilterUpdateSound { get; private set; }
         public static float FilterUpdateVolume { get; private set; }
-        public static bool FilterAutoReload { get; private set; }
+        public static bool FilterAutoReload { get; set; }
         public static int MaxSets { get; private set; }
         public static int MaxIlvl { get; private set; }
         public static int MinIlvl { get; private set; }
@@ -211,6 +211,7 @@ namespace ChaosHelper
             FilterUpdateVolume = filterUpdateVolumeInt / 100.0f;
 
             FilterAutoReload = rawConfig.GetBoolean("filterAutoReload", false);
+            logger.Info($"FilterAutoReload is {FilterAutoReload}");
 
             _exitWhenPoeExits = rawConfig.GetBoolean("exitWhenPoeExits", false);
             StartPaused = rawConfig.GetBoolean("startPaused", false);

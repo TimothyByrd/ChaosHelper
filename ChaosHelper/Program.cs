@@ -230,6 +230,11 @@ namespace ChaosHelper
                             isPaused = !isPaused;
                             logger.Info($"Setting isPaused to {isPaused}");
                         }
+                        else if (keyInfo.Key == ConsoleKey.A)
+                        {
+                            Config.FilterAutoReload = !Config.FilterAutoReload;
+                            logger.Info($"FilterAutoReload is now {Config.FilterAutoReload}");
+                        }
                         else if (keyInfo.Key == ConsoleKey.S)
                         {
                             itemStatsFromClipboard = true;
@@ -239,14 +244,15 @@ namespace ChaosHelper
                         {
                             logger.Info("\t'?' for this help");
                             logger.Info("\t'p' to toggle pausing the page checks");
+                            logger.Info("\t'f' to force a filter update");
+                            logger.Info("\t'p' to toggle automatic filter reload on update");
                             logger.Info("\t'h' to highlight a set of items to sell");
                             if (Config.QualityTabIndex >= 0)
                                 logger.Info("\t'q' to highlight quality gems/flasks to sell");
                             logger.Info("\t'j' to highlight junk items in the stash tab");
-                            logger.Info("\t'f' to force a filter update");
-                            logger.Info("\t'c' to switch characters");
-                            logger.Info("\t't' to toggle stash test mode (to make sure the rectangle is good)");
+                            logger.Info("\t'c' to switch/recheck characters");
                             logger.Info("\t'r' to reload configuration");
+                            logger.Info("\t't' to toggle stash test mode (to make sure the rectangle is good)");
                             logger.Info("\t'z' to list contents of currency stash tab (with prices from poe ninja)");
                             if (Config.DumpTabDictionary.Count != 0)
                                 logger.Info("\t'd' to check dump tabs for interesting items");
