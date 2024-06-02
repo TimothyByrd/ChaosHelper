@@ -62,6 +62,7 @@ namespace ChaosHelper
         public static string IgnoreMaxSetsUnder75 { get; private set; }
         public static string IgnoreMaxIlvl { get; private set; }
         public static List<string> TownZones { get; private set; }
+        public static System.Text.RegularExpressions.Regex HideoutRegex { get; private set; }
         public static List<int> HighlightColors { get; private set; }
         public static ItemDisplay FilterDisplay { get; private set; }
         public static string AreaEnteredPattern { get; private set; }
@@ -93,7 +94,8 @@ namespace ChaosHelper
         public static bool IsTown(string newArea)
         {
             bool isTown = TownZones == null || TownZones.Count == 0
-                || TownZones.Any(x => string.Equals(x, newArea, StringComparison.OrdinalIgnoreCase));
+                || TownZones.Any(x => string.Equals(x, newArea, StringComparison.OrdinalIgnoreCase))
+                || (HideoutRegex != null && HideoutRegex.IsMatch(newArea));
             return isTown;
         }
 
@@ -232,8 +234,13 @@ namespace ChaosHelper
                 ItemPosition.SortOrder = MinIlvl < 60 ? ItemPosition.SortBy.IlvlBottomFirst : ItemPosition.SortBy.Default;
 
             TownZones = rawConfig.GetStringList("townZones");
+            
+            var hideoutRegexStr = rawConfig["hideoutRegex"];
+            if (string.IsNullOrWhiteSpace(hideoutRegexStr))
+                hideoutRegexStr = " Hideout$";
+            HideoutRegex = new(hideoutRegexStr);
 
-            AreaEnteredPattern = rawConfig["areaEnteredPattern "];
+            AreaEnteredPattern = rawConfig["areaEnteredPattern"];
             if (string.IsNullOrWhiteSpace(AreaEnteredPattern))
                 AreaEnteredPattern = "] : You have entered ";
 
@@ -375,7 +382,7 @@ namespace ChaosHelper
                         return false;
                     }
 
-                    var jsonElement = JsonSerializer.Deserialize<JsonElement>(responseString.Substring(startPos, endPos - startPos));
+                    var jsonElement = JsonSerializer.Deserialize<JsonElement>(responseString[startPos..endPos]);
                     if (jsonElement.TryGetProperty("league", out var leagueElement))
                         League = leagueElement.GetString();
 

@@ -1003,9 +1003,9 @@ namespace ChaosHelper
                 Currency.SetValueRatio("Chaos Orb", 1.0);
                 var league = Config.League;
                 if (league.EndsWith("SSF"))
-                    league = league.Substring(0, league.Length - 4);
+                    league = league[..^4];
                 if (league.StartsWith("SSF"))
-                    league = league.Substring(4);
+                    league = league[4..];
                 if (league.EndsWith("HC"))
                     league = string.Concat("Hardcore ", league.AsSpan(0, league.Length - 3));
                 else if (league.StartsWith("SSF"))
@@ -1167,7 +1167,7 @@ namespace ChaosHelper
                     {
                         var i = line.IndexOf(Config.AreaEnteredPattern);
                         if (i >= 0)
-                            newArea = line.Substring(i + Config.AreaEnteredPattern.Length).Trim().TrimEnd('.');
+                            newArea = line[(i + Config.AreaEnteredPattern.Length)..].Trim().TrimEnd('.');
                         else if (line.Contains(loginPattern, StringComparison.OrdinalIgnoreCase))
                             sawLoginLine = true;
                         else if (line.Contains(maybeWhisperPattern))
@@ -1177,7 +1177,7 @@ namespace ChaosHelper
                             {
                                 Config.LastWhisper = m.Groups[1].Captures[0].Value ?? "";
                                 if (Config.LastWhisper.Contains(' '))
-                                    Config.LastWhisper = Config.LastWhisper.Substring(Config.LastWhisper.LastIndexOf(' ') + 1);
+                                    Config.LastWhisper = Config.LastWhisper[(Config.LastWhisper.LastIndexOf(' ') + 1)..];
                                 logger.Info($"whisper: '{Config.LastWhisper}'");
                             }
                         }
