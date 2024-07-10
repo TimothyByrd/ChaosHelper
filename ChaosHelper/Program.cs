@@ -611,7 +611,7 @@ namespace ChaosHelper
 
         private static async Task CheckDumpTabs()
         {
-            await Config.DetermineTabIndicies(forceWebCheck: true);
+            await Config.DetermineTabIndices(forceWebCheck: true);
 
             if (Config.DumpTabDictionary.Count == 0)
             {
@@ -1195,7 +1195,7 @@ namespace ChaosHelper
                     if (checkCharacter || sawLoginLine && newArea != null && !isPaused)
                     {
                         await Config.CheckAccount(forceWebCheck: true);
-                        await Config.DetermineTabIndicies(forceWebCheck: true);
+                        await Config.DetermineTabIndices(forceWebCheck: true);
                         checkCharacter = false;
                         sawLoginLine = false;
                     }

@@ -313,7 +313,7 @@ namespace ChaosHelper
                 logger.Info($"item rule file - there are {ItemRule.Rules.Count} rules");
             }
 
-            if (!OfflineMode && !await DetermineTabIndicies())
+            if (!OfflineMode && !await DetermineTabIndices())
                 return false;
 
             Helpers.ReadBaseItemsJson();
@@ -400,7 +400,7 @@ namespace ChaosHelper
             return true;
         }
 
-        public static async Task<bool> DetermineTabIndicies(bool forceWebCheck = false)
+        public static async Task<bool> DetermineTabIndices(bool forceWebCheck = false)
         {
             // see if we have configured a tab index
             //
@@ -430,7 +430,7 @@ namespace ChaosHelper
 
             try
             {
-                JsonElement tablist = await GetTabList();
+                JsonElement tabList = await GetTabList();
 
                 var lookForCurrencyTab = Currency.CurrencyList.Count != 0;
                 var lookForQualityTab = !string.IsNullOrWhiteSpace(qualityTabNameFromConfig);
@@ -445,7 +445,7 @@ namespace ChaosHelper
                         && dumpTabNames.Count == 0;
                 }
 
-                foreach (var tab in tablist.GetProperty("tabs").EnumerateArray())
+                foreach (var tab in tabList.GetProperty("tabs").EnumerateArray())
                 {
                     var name = tab.GetProperty("n").GetString();
                     var isRemoveOnly = name.Contains(removeOnlyTabPattern, StringComparison.OrdinalIgnoreCase);
