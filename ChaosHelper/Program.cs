@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -28,6 +29,7 @@ namespace ChaosHelper
         static bool itemStatsFromClipboard = false;
         static bool isPaused = false;
         static bool haveAddedHotkeyEventHandler = false;
+        static string lastFilterLoaded = string.Empty;
 
         static ChaosOverlay overlay;
 
@@ -245,7 +247,7 @@ namespace ChaosHelper
                             logger.Info("\t'?' for this help");
                             logger.Info("\t'p' to toggle pausing the page checks");
                             logger.Info("\t'f' to force a filter update");
-                            logger.Info("\t'p' to toggle automatic filter reload on update");
+                            logger.Info("\t'a' to toggle automatic filter reload on update");
                             logger.Info("\t'h' to highlight a set of items to sell");
                             if (Config.QualityTabIndex >= 0)
                                 logger.Info("\t'q' to highlight quality gems/flasks to sell");
@@ -509,21 +511,29 @@ namespace ChaosHelper
 
             if (!string.IsNullOrEmpty(hotkey.Text))
             {
-                try
+                var text = hotkey.Text;
+                SendTextToChat(text, hotkey);
+                return;
+            }
+        }
+
+        private static void SendTextToChat(string text, HotkeyEntry hotkey)
+        {
+            try
+            {
+                var (keyEntries, didSubstitution) = KeyboardUtils.StringToKeys(text);
+                KeyboardUtils.SendKeys(keyEntries);
+                var sent = KeyboardUtils.ToString(keyEntries);
+                logger.Debug($"sent {sent}");
+            }
+            catch
+            {
+                if (hotkey != null)
                 {
-                    var (keyEntries, didSubstitution) = KeyboardUtils.StringToKeys(hotkey.Text);
-                    KeyboardUtils.SendKeys(keyEntries);
-                    var sent = KeyboardUtils.ToString(keyEntries);
-                    logger.Debug($"sent {sent}");
-                }
-                catch
-                {
-                    logger.Warn($"disabling hotkey after error sending keys: {hotkey.Text}");
+                    logger.Warn($"disabling hotkey after error sending keys: {text}");
                     hotkey.Enabled = false;
                     hotkey.Keys = null;
                 }
-
-                return;
             }
         }
 
@@ -547,6 +557,23 @@ namespace ChaosHelper
                 case Constants.ForceUpdate:
                     logger.Info("Forcing a filter update");
                     forceFilterUpdate = true;
+                    break;
+                case Constants.LoadNextFilter:
+                    string[] filters = string.IsNullOrWhiteSpace(hotkey.Text)
+                        ? Array.Empty<string>()
+                        : hotkey.Text.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                    if (filters.Length == 0)
+                    {
+                        logger.Warn($"{Constants.LoadNextFilter} command missing '|'-separated list of filters in text");
+                        break;
+                    }
+                    var index = (Array.IndexOf(filters, lastFilterLoaded) + 1) % filters.Length;
+                    logger.Info($"Setting filter {filters[index]}");
+                    var keyString = $"{{Enter}}@{Config.Character} loading filter {filters[index]}{{Enter}}";
+                    SendTextToChat(keyString, hotkey);
+                    keyString = $"{{Enter}}/itemfilter {filters[index]}{{Enter}}";
+                    SendTextToChat(keyString, hotkey);
+                    lastFilterLoaded = filters[index];
                     break;
                 case Constants.CharacterCheck:
                     logger.Info("Rechecking character and league");
@@ -594,10 +621,8 @@ namespace ChaosHelper
                 if (Config.FilterAutoReload && PoeIsActiveWindow())
                 {
                     var keyString = $"{{Enter}}/itemfilter {Config.FilterFileBaseName}{{Enter}}";
-                    var (keyEntries, _) = KeyboardUtils.StringToKeys(keyString);
-                    KeyboardUtils.SendKeys(keyEntries);
-                    var sent = KeyboardUtils.ToString(keyEntries);
-                    logger.Debug($"sent {sent}");
+                    SendTextToChat(keyString, null);
+                    lastFilterLoaded = Config.FilterFileBaseName;
                 }
 
                 overlay?.SendKey(ConsoleKey.Spacebar);

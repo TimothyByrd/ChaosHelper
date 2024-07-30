@@ -748,5 +748,6 @@ namespace ChaosHelper
         public const string ForceUpdate = "forceUpdate";
         public const string CharacterCheck = "characterCheck";
         public const string TestPattern = "testPattern";
+        public const string LoadNextFilter = "loadNextFilter";
     }
 }
