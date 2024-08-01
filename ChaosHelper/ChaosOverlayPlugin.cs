@@ -625,20 +625,12 @@ namespace ChaosHelper
             }
         }
 
-        private class TextStruct
+        private class TextStruct(string text, int brushS, int x, int y)
         {
-            public string Text { get; set; }
-            public int BrushS { get; set; }
-            public int X { get; set; }
-            public int Y { get; set; }
-
-            public TextStruct(string text, int brushS, int x, int y)
-            {
-                Text = text;
-                BrushS = brushS;
-                X = x;
-                Y = y;
-            }
+            public string Text { get; set; } = text;
+            public int BrushS { get; set; } = brushS;
+            public int X { get; set; } = x;
+            public int Y { get; set; } = y;
         }
 
         private class ItemRectStruct

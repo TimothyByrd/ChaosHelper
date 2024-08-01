@@ -38,7 +38,7 @@ If you need support for multiple dump tabs or the exalted shard recipe, please l
 <a name="h01" />
 
 - Configure your account name, poesessid and source filter in settings.jsonc.
-- Run both PoE (Windowed) and the tool
+- Run both PoE and the tool
 - The very first time, type an 'f' in the tool window - you should hear a response.
 - Play, reload the loot filter when it tells you.
 - Use the highlight items hotkey to highlight sets of items to sell for chaos.
@@ -51,7 +51,7 @@ If you need support for multiple dump tabs or the exalted shard recipe, please l
     - You must set your account name, poesessid and the name of the source filter.
     - The source filter can be anything you want. By default is should work well using a NeverSink filter.
     - Other configuration is to taste, see "Configuration details" below.
-- Start Path of Exile in windowed full-screen or windowed mode.
+- Start Path of Exile.
 - Start the ChaosHelper tool
     - If you use the steam client but also have the standalone client installed, run the tool with a `steam` argument.
 - In Path of Exile:
@@ -90,43 +90,49 @@ The Chaos Helper tool can do the following automatically:
 ## Commands and hotkeys
 <a name="h04" />
 
-These are the commands you can send to the tool:
+These are the commands you can type in the ChaosHelper console window and/or invoke via a configured hotkey:
 
-1. Pause (P): Pauses getting data from the PoE site automatically on area change.
-2. Highlight items (H): (town only) To highlight sets of items to sell (it tries for two sets).
-3. Show quality items (Q): (town only) To highlight sets of quality gems/flasks/maps to sell. It tries for one set of each. Only available if `qualityTab` is set in settings.jsonc. 
-4. Show junk items (J): (town only) To toggle showing items in your stash tab that are not for the recipe, so you can clear them out.
-5. Force update (F): To force a re-read of the stash tab and a write of the filter file.
-6. Character check (C): Recheck your character and league. (This should happen automatically when you switch chararacters.)
-7. Test pattern (T): (town only) Toggle displaying a test pattern to verify the stash window size is correct. Once good, you can disable the hotkey for it, until you change monitors.
-8. Re-read configuation (R): Re-reads the settings.jsonc file.
-9. Currency list (Z): Get currency prices from Poe Ninja, then print a listing of the contents of the currency tab in the ChaosHelper console window, with a total value. The listing should be copy-pastable into a spreadsheet.
-10. Check dump tabs (D): Check dump tabs for interesting items (see "Item rules" below) and for items with matching names for chance recipe. Must have `dumpTabs` configured in settings.jsonc. 
-11. Check item from clipboard (S): After doing Ctrl-C on an item in PoE, this command will check it against configured item rules (see "Item rules" below). Mostly useful for testing rules.
-12. Close TCP ports (none): Close the TCP ports currently being used by the PoE process. This will cause an instant logout. Requires running ChaosHelper as an Admin.
+- Exit ('Esc' - ChaosHelper window only): Shuts down and exits ChaosHelper.
+- Pause ('P' - "togglePause"): Pauses getting data from the PoE site automatically on area change.
+- Highlight items ('H' - "highlightItems"): (town only) To highlight sets of items to sell (it tries for two sets).
+- Force update ('F' - "forceUpdate"): To force a re-read of the stash tab and a write of the filter file.
+- Automatic ('A' - "toggleAutomaticFilterLoad"): Toggle automatic filter reload on update - see `filterAutoReload`.
+- Show quality items ('Q' - "showQualityItems"): (town only) To highlight sets of quality gems/flasks/maps to sell. It tries for one set of each. Only available if `qualityTab` is set in settings.jsonc. 
+- Show junk items ('J' - "showJunkItems"): (town only) To toggle showing items in your stash tab that are not for the recipe, so you can clear them out.
+- Character check ('C' - "characterCheck"): Recheck your character and league. (This should happen automatically when you switch chararacters.)
+- Reload settings ('R' - "reloadSettings"): Re-reads the settings.jsonc file.
+- Test pattern ('T' - "testPattern"): (town only) Toggle displaying a test pattern to verify the stash window size is correct. Once good, you can disable the hotkey for it, until you change monitors.
+- Check dump tabs ('D' - "checkDumpTabs"): Check dump tabs for interesting items (see "Item rules" below) and for items with matching names for chance recipe. Must have `dumpTabs` configured in settings.jsonc. 
+- Currency list ('Z' - ChaosHelper window only): Get currency prices from Poe Ninja, then print a listing of the contents of the currency tab in the ChaosHelper console window, with a total value. The listing should be copy-pastable into a spreadsheet.
+- Check item from clipboard ('S' - ChaosHelper window only): After doing Ctrl-C on an item in PoE, this command will check it against configured item rules (see "Item rules" below). Mostly useful for testing rules.
+- Close TCP ports (hotkey only - "closePorts"): Close the TCP ports currently being used by the PoE process. This will cause an instant logout. Requires running ChaosHelper as an Admin.
+- Load next filter (hotkey only - "loadNextFilter"): Load the next item filter from a specified list
+- Toggle mute (hotkey only - "toggleMute"): Toggle whether the PoE process is muted in Settings > System > Sound > Volume Mixer. 
+- Send text to PoE (hotkey only): A hotkey that specifies a `text` element, but no `command` element, will cause the text to be sent to the PoE client. Some uses are:
+    - "{Enter}/hideout{Enter}" to define a hotkey to go to your hideout
+    - "{Enter}/remaining{Enter}" to get the remaining number of monsters, when not displayed on the map
+    - "{^F}\"search-regex\"{Enter}" to have a hotkey for a search regex for Gwennen or such
 
-The commands can be invoked:
+Commends can be invoked two ways:
 
-1. By typing the appropriate letter (P,H,Q, etc.) in the ChaosHelper console window.
+1. By typing the appropriate letter (P,H,F, etc.) in the ChaosHelper console window.
     - Best for commands you will hardly ever use, like character check and test pattern.
+    - Some commands do not have a keystroke in the ChaosHelper console window and can only be invoked via a hotkey.
 2. By using global hotkeys created by ChaosHelper
-    - Hotkeys are only available for certain commands:
+    - The default settings.jsonc binds the followinf hotkeys:
         - Highlight items: `Alt-H`
         - Show quality items: `Alt-K`
         - Show junk items: `Alt-J`
         - Force update: `Alt-F`
+        - Close Ports: `Alt-Q` but disabled by default (and requires running as Admin)
         - Character check: `Alt-C` but disabled by default
         - Test pattern: `Alt-T` but disabled by default
-        - Close Ports: `Alt-Q` but disabled by default (and requires running as Admin)
+        - Hideout: `F6` disabled by default, but would send "{Enter}/hideout{Enter}" to the PoE client
     - These hotkeys can be rebound or disabled in settings.jsonc by commenting them out.
     - When defining a hotkey, for modifiers, use '^' for Ctrl, '+' for Shift and '!' for Alt.
     - For a list of key names/numbers, see https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys
     - Remember, these set **global** hotkeys, so be careful not to bork your other programs.
-    - Other commands do not have hot keys. They must be invoked from the ChaosHelper console window or by sending a key to the ChaosHelper console. 
-3. If you use the PoE-TradeMacro AutoHotkey script, there are scripts in the `AhkMacros` folder you can copy into your `Documents\PoE-TradeMacro\CustomMacros` folder.
-    - Since PoE-TradeMacro binds some keys, the scripts come set up to be invoked using `Crtl-H`, none, `Ctrl-J`, `Ctrl-U`, `Ctrl-S` and `Ctrl-P`, respectively.
-    - In this case, comment out the hotkeys in setting.jsonc.
-    - This method can be used to invoke other commands in the ChaosHelper console
+    - Some commands ('Esc', 'Z', "S') cannont be bound to hot keys. They must be invoked from the ChaosHelper console window or by sending a key to the ChaosHelper console. 
 
 ## About the generated filter
 <a name="h05" />
@@ -154,10 +160,36 @@ because the GGG web developers are not consistent and used one POST with form da
 <a name="h07" />
 
 There are three things you must configure in settings.jsonc to use the tool:
-1. `account`: your Path of Exile account name.
-2. `poesessid`: the session Id for your currrent login to www.pathofexile.com.
-3. `sourceFilter`: the source filter that the ChoseHelper filter will be based on
+1. __`account`__: your Path of Exile account name.
+2. __`poesessid`__: the session Id for your currrent login to www.pathofexile.com.
+3. __`sourceFilter`__: the source filter that the ChoseHelper filter will be based on
 - See "About the generated filter" for more info.
+
+I suggest leaving `league`, `character`, `tabName`, `tabIndex` and `isQuadTab` at the defaults.
+This will cause to the tool to auto-determine the values, which is good when there are multiple leagues available.
+In particular, `tabIndex` is difficult, because the same tab can change from league to league and can depend on if there are Remove-only tabs visible.
+
+__`processName`__ defines the process name for the running game.
+The tool tries to auto-determine this, looking for clients in this order:
+- "PathOfExile"
+- "PathOfExileSteam"
+- "PathOfExileEGS"
+- "PathOfExile_KG"
+
+The tool simply finds the first matching process.
+To run two copies of Path of Exile while using the tool on one copy, run them using two different clients, 
+and configure `processName` for the process you want the tool to go track.
+
+__`stashPageXYWH`__ ([ 0, 0, 0, 0 ]) specifies the rectangle in the PoE client window where the stash tab grid is.
+It usually auto-determines correctly, but may need to be specified for certain monitors.
+
+__`stashPageVerticalOffset`__ sets a number of pixels to vertically offset the stash rectangle.
+To set this, type a 'T' in the ChaosHelper console window to toggle the test pattern and check how well the test pattern aligns with the stash tab squares.
+If the pattern is a little too high, try increasing `stashPageVerticalOffset` (e.g. from 0 to 10) and typing 'R' to reload the configuation - or restart ChaosHelper.
+
+If you need to set a custom value, take a screenshot of your stash tab,then open the screen shot in a program like IrfanView.
+Make a select rectangle over the grid part of the tab, and determine the X,Y,Height,Width of the selection.
+You can test the values by typing 't' in the ChaosHelper console to execute the test pattern command.
 
 __`filter`__ ("ChaosHelper") is the name of the .filter file to create/update - just don't make it the same as `sourceFilter`.
 See "About the generated filter" for more info.
@@ -166,11 +198,19 @@ __`filterAutoReload`__ (false) if true will send "{Enter}/itemfilter <filter nam
 
 __`initialImport`__ ("") if set will insert an `Import "<file name>" Optional` at the beginning of the generated filter file.
 
+__`exitWhenPoeExits`__ (false) sets whether the tool will exit when the PoE process exits.
+
+__`startPaused`__ (false) sets whether ChaosHelper starts in a paused state. After initialization, this will not hit the PoE site for item data on area change.
+
 __`filterDisplay`__ ({ "fontSize": 0, "text": "106 77 255", "back": "70 70 70", "border": "106 77 255" })
 sets the the appearance for highlighted items in the updated filter.
 Colors can be specified as a hex number like "0x4600e6" or a filter file color like "70 0 230".
 
 __`soundFileVolume`__ (50) sets the volume of the sound alert for when the filter is updated. It can be an integer from 0 to 100.
+
+__`selfWhisperCharacter`__ ("") if set will whisper status messages to the specified character rather than the lopgged in character.
+Currently, ChaosHelper only whispers status for the `loadNextFilter` command, to say what filter is being loaded.
+I set this to an existing character in an alt-account to make the whisper less annoying in my chat window.
 
 __`maxSets`__ (12) is the number of chaos recipe sets the tool will aim to collect in your stash tab.
 It uses this number to determine when to stop showing item classes in the loot filter.
@@ -219,26 +259,29 @@ will cause the filter to keep highlighting rings and amulets at higher ilvls.
 Possible item classes are BodyArmours, Helmets, Gloves, Boots, OneHandWeapons, Belts, Amulets, and Rings
 
 __`highlightColors`__ ([ "0xffffff", "0xffff00", "0x00ff00", "0x0000ff" ]) is an array of color values (as strings)
-to specify stash highlight colours for armour/weapons, helmets/gloves/boots, belts, and rings/amulets, respectively.
+to specify stash highlight colors for armour/weapons, helmets/gloves/boots, belts, and rings/amulets, respectively.
 There must be four strings in the array and they can be hex numbers ("0xRRGGBB") or loot filter colors ("RRR GGG BBB").
+These colors are used by the `highlightItems` command to guide the user to move the item sets from their stash to their inventory (largest items first).
 
-__`highlightItemsHotkey`__, __`showQualityItemsHotkey`__, __`showJunkItemsHotkey`__, __`forceUpdateHotkey`__, __`characterCheckHotkey`__, __`testPatternHotkey`__ and __`closePortsHotkey`__
-can be set to enable global hotkeys to execute ChaosHelper commands.
-If not defined, the hotkeys are not enabled.
+__`hotKeys`__ defines global hotkeys to execute ChaosHelper commands.
 See "Commands and hotkeys" for more info.
 
 __`hookMouseEvents`__ (true) sets if mouse events should be hooked.
 Setting this to true will let the tool detect when clicking through a highlighted item and remove the highlight.
 Set to false if this causes any issues on your system.
-	
-I suggest leaving `league`, `character`, `tabName`, `tabIndex` and `isQuadTab` at the defaults.
-This will cause to the tool to auto-determine the values, which is good when there are multiple leagues available.
-In particular, `tabIndex` is difficult, because the same tab can change from league to league and can depend on if there are Remove-only tabs visible.
+
+__`qualityTab`__ specifies a tab used to dump quality items for the 40% recipes.
+For normal items, Only item with qualities between 1 and 19 will be considered, since a 20% quality normal item matches the recipe by itself.
+
+__`qualityGemMapRecipeSlop`__ (0), `qualityFlaskRecipeSlop` (1) and `qualityScrapRecipeSlop` (3) specify how much slop to allow when making those recipes.
+For example, a value of 2 would allow making recipes using ingredients with a total value of 40 to 42.
+The tool will always try for exactly 40% total quality first.
 
 __`stashReadMode`__ (Normal) Can be set to `Normal`, `Record`, `Playback` or `Manual`.
+__`stashCanDoManualRead`__ (false)
 
 The default of `Normal` gets stash tab data from the PoE site.
-`Record` does the same, and also saves the data to files in to ChaosHelper folder.
+`Record` does the same, and also saves the data to files in the ChaosHelper folder.
 `Playback` tries to read data from the files saved by Record before going to the PoE site.
 Since the saved data may not be current, this mode is only useful for testing item rules without hitting the site a lot.
 
@@ -246,24 +289,20 @@ The `Manual` mode is in case GGG blocks non-site access to the inventory informa
 When manual mode is enabled, the console window will show a URL to open in your browser (the URL should already be copied to your clipboard).
 The page should open as a JSON document. Select the entire document and copy to your clipboard. At that point, the tool should continue.
 
-__`processName`__ defines the process name for the running game.
-The tool tries to auto-determine this, looking for clients in this order:
-- "PathOfExile"
-- "PathOfExileSteam"
-- "PathOfExileEGS"
-- "PathOfExile_KG"
+__`areaEnteredPattern`__ ("] : You have entered ") is the text marker used when tailing client.txt to determine when a character changes areas.
+Translate this if you use the PoE client in a language other than English.
 
-The tool simply finds the first matching process.
-To run two copies of Path of Exile while using the tool on one copy, run them using two different clients, 
-and configure `processName` for the process you want the tool to go track.
-
-__`areaEnteredPattern`__ ("] : You have entered ") is the text marker used when tailing client.txt to determine when a character change areas.
+__`hideoutRegex`__ (" Hideout$") is the text marker used when tailing client.txt to determine when a new area entered is a hideout, and thus a town.
 Translate this if you use the PoE client in a language other than English.
 
 __`townZones`__ defines the areas that are considered to be "towns".
 The commands noted as "town only" - highlight items, show junk items and test pattern - will only work when the tool thinks you are in a town zone.
 If no town zones are defined, then the tool will treat every area as a town zone.
 If you want protection from accidentally pressing one of the highlight hotkeys while in combat, then uncomment the list of zones, and add you hideout to the list.
+
+__`zonesToMuteSound`__ defines the areas that when entered, the PoE application should be muted in Settings > System > Sound > Volume Mixer.
+This is a defense against the annoying goblin band MTX.
+(I just wish I could figure out a way to dynamically mute the visual MTX fireworks in Rogue Harbour.)
 
 __`currency`__ This array allows specifying minimum desired amounts for currencies and to put code in the loot filter to display them then the currency tab contains less than those amounts, if __`showMinimumCurrency`__ (false) is set to true.
 This lets you run a stricter loot filter, but show certain currencies when the supply in your currency tab runs low. 
@@ -274,29 +313,16 @@ For example if there was an entry for wisdom scrolls that read:
 then when the loot filter was next written, if the number of wisdom scrolls in the currency tab was less than 100,
 it would include a Show block for wisdom scrolls with the specified font size and colors.
 
-- For the higlight feature to work the "desired", "fontSize", "text", "border" and "back" fields must all be specified.
+- For the highlight feature to work the "desired", "fontSize", "text", "border" and "back" fields must all be specified.
 - Since this feature is meant for lower value currencies that the loot filter might hide by default, it doesn't include a way to specify drop sounds, mini-map icons, etc.
 - The default desired value of 0 disables making code blocks for that currency type.
 - The loot filter will not be automatically re-written just to add/remove the currency blocks - use a force update in that case.
 - This feature will never hide currency that the loot filter would display anyway, but may change the highlighting of it.
 
-__`stashPageXYWH`__ ([ 0, 0, 0, 0 ]) specifies the rectangle in the PoE client window where the stash tab grid is.
-It usually auto-determines correctly, but may need to be specified for certain monitors.
+__`dumpTabs`__ Specifies a set dump tabs to seach with the item rules
+See "Item rules" for more info.
 
-__`stashPageVerticalOffset`__ sets a number of pixels to vertically offset the stash rectangle.
-To set this, type a 'T' in the ChaosHelper console window to toggle the test pattern and check how well the test pattern aligns with the stash tab squares.
-If the pattern is a little too high, try increasing `stashPageVerticalOffset` (e.g. from 0 to 10) and typing 'R' to reload the configuation - or restart ChaosHelper.
-
-If you need to set a custom value, take a screenshot of your stash tab,then open the screen shot in a program like IrfanView.
-Make a select rectangle over the grid part of the tab, and determine the X,Y,Height,Width of the selection.
-You can test the values by typing 't' in the ChaosHelper console to execute the test pattern command.
-
-__`qualityTab`__ specifies a tab used to dump quality items for the 40% recipes.
-For normal items, Only item with qualities between 1 and 19 will be considered, since a 20% quality normal item matches the recipe by itself.
-
-__`qualityGemMapRecipeSlop`__ (0), `qualityFlaskRecipeSlop` (1) and `qualityScrapRecipeSlop` (3) specify how much slop to allow when making those recipes.
-For example, a value of 2 would allow making recipes using ingredients with a total value of 40 to 42.
-The tool will always try for exactly 40% total quality first.
+__`defenseVariance`__ See "Item rules" for more info.
 
 ## Item rules
 <a name="h08" />

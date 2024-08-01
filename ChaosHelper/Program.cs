@@ -185,32 +185,25 @@ namespace ChaosHelper
                             source.Cancel();
                             break;
                         }
-                        else if (keyInfo.Key == ConsoleKey.F)
+                        else if (keyInfo.Key == ConsoleKey.P)
                         {
-                            logger.Info("Forcing a filter update");
-                            forceFilterUpdate = true;
-                        }
-                        else if (keyInfo.Key == ConsoleKey.C)
-                        {
-                            logger.Info("Rechecking character and league");
-                            checkCharacter = true;
+                            isPaused = !isPaused;
+                            logger.Info($"Setting isPaused to {isPaused}");
                         }
                         else if (keyInfo.Key == ConsoleKey.H)
                         {
                             logger.Info("Highlighting sets to sell");
                             highlightSetsToSell = true;
                         }
-                        else if (keyInfo.Key == ConsoleKey.R)
+                        else if (keyInfo.Key == ConsoleKey.F)
                         {
-                            logger.Info("Reloading config");
-                            reloadConfig = true;
+                            logger.Info("Forcing a filter update");
+                            forceFilterUpdate = true;
                         }
-                        else if (keyInfo.Key == ConsoleKey.Z)
+                        else if (keyInfo.Key == ConsoleKey.A)
                         {
-                            logger.Info("Getting currency prices from poe ninja");
-                            await GetPricesFromPoeNinja();
-                            logger.Info("Getting currency tab contents");
-                            await GetCurrencyTabContents(true);
+                            Config.FilterAutoReload = !Config.FilterAutoReload;
+                            logger.Info($"FilterAutoReload is now {Config.FilterAutoReload}");
                         }
                         else if (keyInfo.Key == ConsoleKey.Q)
                         {
@@ -220,6 +213,33 @@ namespace ChaosHelper
                                 highlightQualityToSell = true;
                             }
                         }
+                        else if (keyInfo.Key == ConsoleKey.J)
+                        {
+                            logger.Info("Highlighting junk items");
+                            overlay?.SendKey(keyInfo.Key);
+                        }
+                        else if (keyInfo.Key == ConsoleKey.C)
+                        {
+                            logger.Info("Rechecking character and league");
+                            checkCharacter = true;
+                        }
+                        else if (keyInfo.Key == ConsoleKey.R)
+                        {
+                            logger.Info("Reloading config");
+                            reloadConfig = true;
+                        }
+                        else if (keyInfo.Key == ConsoleKey.T)
+                        {
+                            logger.Info("Toggling test pattern");
+                            overlay?.SendKey(keyInfo.Key);
+                        }
+                        else if (keyInfo.Key == ConsoleKey.Z)
+                        {
+                            logger.Info("Getting currency prices from poe ninja");
+                            await GetPricesFromPoeNinja();
+                            logger.Info("Getting currency tab contents");
+                            await GetCurrencyTabContents(true);
+                        }
                         else if (keyInfo.Key == ConsoleKey.D)
                         {
                             if (Config.DumpTabDictionary.Count != 0)
@@ -227,16 +247,6 @@ namespace ChaosHelper
                                 logger.Info("Checking items in dump tabs");
                                 logMatchingNames = true;
                             }
-                        }
-                        else if (keyInfo.Key == ConsoleKey.P)
-                        {
-                            isPaused = !isPaused;
-                            logger.Info($"Setting isPaused to {isPaused}");
-                        }
-                        else if (keyInfo.Key == ConsoleKey.A)
-                        {
-                            Config.FilterAutoReload = !Config.FilterAutoReload;
-                            logger.Info($"FilterAutoReload is now {Config.FilterAutoReload}");
                         }
                         else if (keyInfo.Key == ConsoleKey.S)
                         {
@@ -246,10 +256,10 @@ namespace ChaosHelper
                         else if (keyInfo.KeyChar == '?')
                         {
                             logger.Info("\t'?' for this help");
-                            logger.Info("\t'p' to toggle pausing the page checks");
+                            logger.Info("\t'p' to toggle pausing hitting the PoE site for stash data");
+                            logger.Info("\t'h' to highlight a set of items to sell");
                             logger.Info("\t'f' to force a filter update");
                             logger.Info("\t'a' to toggle automatic filter reload on update");
-                            logger.Info("\t'h' to highlight a set of items to sell");
                             if (Config.QualityTabIndex >= 0)
                                 logger.Info("\t'q' to highlight quality gems/flasks to sell");
                             logger.Info("\t'j' to highlight junk items in the stash tab");
@@ -546,9 +556,21 @@ namespace ChaosHelper
                 case Constants.ClosePorts:
                     Config.CloseTcpPorts();
                     break;
+                case Constants.TogglePause:
+                    isPaused = !isPaused;
+                    logger.Info($"Setting isPaused to {isPaused}");
+                    break;
                 case Constants.HighlightItems:
                     logger.Info("Highlighting sets to sell");
                     highlightSetsToSell = true;
+                    break;
+                case Constants.ForceUpdate:
+                    logger.Info("Forcing a filter update");
+                    forceFilterUpdate = true;
+                    break;
+                case Constants.ToggleAutomaticFilterLoad:
+                    Config.FilterAutoReload = !Config.FilterAutoReload;
+                    logger.Info($"FilterAutoReload is now {Config.FilterAutoReload}");
                     break;
                 case Constants.ShowQualityItems:
                     highlightQualityToSell = true;
@@ -556,9 +578,23 @@ namespace ChaosHelper
                 case Constants.ShowJunkItems:
                     overlay?.SendKey(ConsoleKey.J);
                     break;
-                case Constants.ForceUpdate:
-                    logger.Info("Forcing a filter update");
-                    forceFilterUpdate = true;
+                case Constants.CharacterCheck:
+                    logger.Info("Rechecking character and league");
+                    checkCharacter = true;
+                    break;
+                case Constants.ReloadSettings:
+                    logger.Info("Reloading config");
+                    reloadConfig = true;
+                    break;
+                case Constants.TestPattern:
+                    overlay?.SendKey(ConsoleKey.T);
+                    break;
+                case Constants.CheckDumpTabs:
+                    if (Config.DumpTabDictionary.Count != 0)
+                    {
+                        logger.Info("Checking items in dump tabs");
+                        logMatchingNames = true;
+                    }
                     break;
                 case Constants.LoadNextFilter:
                     string[] filters = string.IsNullOrWhiteSpace(hotkey.Text)
@@ -577,13 +613,6 @@ namespace ChaosHelper
                     keyString = $"{{Enter}}/itemfilter {filters[index]}{{Enter}}";
                     SendTextToChat(keyString, hotkey);
                     lastFilterLoaded = filters[index];
-                    break;
-                case Constants.CharacterCheck:
-                    logger.Info("Rechecking character and league");
-                    checkCharacter = true;
-                    break;
-                case Constants.TestPattern:
-                    overlay?.SendKey(ConsoleKey.T);
                     break;
                 case Constants.ToggleMute:
                     haveMuted = !haveMuted;

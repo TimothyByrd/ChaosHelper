@@ -3,19 +3,45 @@
   //
   "account": "",
   "poesessid": "",
-  "template": "", // the template file used to create/update the filter - an existing Neversink filter should work
+  "sourceFilter": "", // the template file used to create/update the filter - an existing Neversink filter should work
 
-  "filter": "ChaosHelper", // the name of the .filter file that will be written - see README.md
+  // leave these all blank to auto-determine
+  //
+  "league": "",
+  "character": "",
+  "tabName": "",
+  "tabIndex": -1,
+  "isQuadTab": true,
 
-  // The "filterMarker" determines where the ChaosHelper filter code gets inserted in the filter - see README.md
-  "filterMarker": "Top", //  insert at the top of the filter
+  // may need to set this if both steam and regular clients are installed and you run multiple copies of PoE - see README.md
+  //
+  "processName": "",
 
-  "filterAutoReload": true, // send "/filter ChaosHelper" to PoE
+  // this is to figure out the place on the screen for the stash tab to highlight items
+  // use [ 0, 0, 0, 0 ] to auto determine
+  // if you need to set a custom value, take a screenshot of your stash tab,
+  // then open the screen shot in a program like irfan view,
+  // make a select rectangle over the grid part of the tab, and determine the X,Y,Height,Width of the selection
+  // you can test the values by typing 't' in the ChaosHelper console
+  //
+  "stashPageXYWH": [ 0, 0, 0, 0 ], // for auto-determination
+  //"stashPageXYWH": [ 23, 189, 938, 938 ], // for 2560x1600 16:10
+  //"stashPageXYWH": [ 16, 127, 634, 634 ], // for 1920x1080 16:9
+  //"stashPageXYWH": [ 12, 90, 450, 450 ], // for 1366x768 16:9
+  //"stashPageXYWH": [ 12, 90, 450, 450 ], // for 1024x768 4:3
+  "stashPageVerticalOffset": 10, // see README.md
 
-  "exitWhenPoeExits": true,
-  "startPaused": false,
+  "filter": "ChaosHelper", // the name of the .filter file that will be written - defaults to "ChaosHelper"
 
-  // default colors for items to highlight for recipes
+  "filterAutoReload": true, // sends "/filter ChaosHelper" to PoE when a new filter is generated
+
+  // If set to an existing file with a .filter extension, an IMPORT statement for this file will be put at the beginning of the generated ChaosHelper filter.
+  "initialImport": "",
+
+  "exitWhenPoeExits": true, // exits the ChaosHelper app when PoE exits
+  "startPaused": false, // starts ChaosHelper in a paused state
+
+  // default colors for items to highlight for recipes in the filter
   //
   "filterDisplay": { "fontSize": 40, "text": "255 255 119", "back": "22 22 22", "border": "0xff1493", "text75": "245 190 0 255" },
 
@@ -25,7 +51,9 @@
 
   "soundFileVolume": 25, // the volume of the sound alert for when the filter is updated - 0 to 100
 
-  "maxSets": 10, // when to cut off highlighting each item slot
+  "selfWhisperCharacter": "", // See README.md - leave blank to whisper to logged in character.
+
+  "maxSets": 12, // when to cut off highlighting each item slot
   "minIlvl": 60, // yes, I set this to 1 while leveling to do chance recipes in SSF
   "maxIlvl": -1, // set to 74 to not show regal recipe items in the loot filter, -1 or 100 for everything
   "allowIDedSets": true, // see README.md
@@ -56,19 +84,26 @@
     { "key": "!H", "command": "highlightItems" }, // hotkey to highlight sets of items to sell
     { "key": "!K", "command": "showQualityItems" }, // hotkey to highlight sets of quality gems/flasks to sell
     { "key": "!J", "command": "showJunkItems" }, // hotkey to toggle highlight of non chaos items in your stash tab
-    { "key": "!F", "command": "forceUpdate" }, // hotkey to force the filter to be updated - generally not needed
+    { "key": "!F", "command": "forceUpdate" }, // hotkey to force the filter to be updated - generally not needed unless you have ChaosHelper paused
     { "key": "!Q", "command": "closePorts" }, // hotkey to close the TCP posts PoE is using to do an auto-logout, requires running ChaosHelper as admin
     { "enabled": false, "key": "!C", "command": "characterCheck" }, // hotkey to recheck your character and league
     { "enabled": false, "key": "!T", "command": "testPattern" }, // hotkey to toggle a test pattern to verify the stash window size
     { "enabled": false, "key": "F6", "text": "{Enter}/hideout{Enter}" }, // hotkey to send /hideout command
+    { "enabled": false, "key": "!M", "command": "toggleMute" }, // hotkey to toggle muting the PoE client in Settings > System > Sound > Volume Mixer.
     { "enabled": false, "key": "F9", "text": "{Enter}/remaining{Enter}" }, // hotkey to send /remaining command
-    { "enabled": false, "key": "^F9", "text": "{Enter}/whois {Whisper}{Enter}" }, // hotkey to send /whois to last whisperer command
+    { "enabled": false, "key": "+F9", "command": "loadNextFilter",  "text": "ChaosHelper|a_simple|q" }, // hotkey to toggle between filters
+    { "enabled": false, "key": "^F9", "text": "{Enter}/whois {Whisper}{Enter}" }, // hotkey to /whois the last person who whispered
+
+    { "enabled": false, "key": "^F11", "text": "{Enter}/destroy{Enter}" }, // destroy item on cursor
+
+    // search string hotkeys for stash tabs and vendors
     { "enabled": false, "key": "F10", "text": "{^F}\"(.)-(?:.-)?((?!\\1).)-((?!\\1|\\2))|gems\\b\"{Enter}" },
     { "enabled": false, "key": "+F10", "text": "{^F}quality{Enter}" },
     { "enabled": false, "key": "^F10", "text": "{^F}\"-\\w-.-|g-g-r|g-r-g|r-g-g|b-b|nne|rint|minion\"{Enter}" },
     { "enabled": false, "key": "F11", "text": "{^F}unidentified{Enter}" },
-    { "enabled": false, "key": "^F11", "text": "{Enter}/destroy{Enter}" },
   ],
+
+  "hookMouseEvents": true, // see README.md
 
   // These settings are to automate the 40% quality recipes for gems, maps, flasks and scraps - see README.md
   //
@@ -77,33 +112,41 @@
   "qualityFlaskRecipeSlop": 1,
   "qualityGemMapRecipeSlop": 0,
 
-  "hookMouseEvents": true, // see README.md
-
-  // leave these all blank to auto-determine
-  //
-  "league": "",
-  "character": "",
-  "tabName": "",
-  "tabIndex": -1,
-  "isQuadTab": true,
-  "stashReadMode": "Normal",
+  "stashReadMode": "Record",
   "stashCanDoManualRead": false,
-
-  // may need to set these if both steam and regular clients are installed and you run multiple copies of PoE - see README.md
-  //
-  "clientTxt": "",
-  "processName": "",
 
   // translate this if you use the PoE client in a language other than English
   //
   "areaEnteredPattern": "] : You have entered ",
 
-  // add your hideout here
-  // these are zones with a stash and merchant, so we don't accidentally obscure the UI in combat
-  // comment out the whole thing to allow the stash overlay anywhere
-  // if this list has entries, will optimize to not hit the site when the previous wasn't a town zone
+  // Regex to determine when a hideout has been entered
+  // Hideouts count as town zones
+  //
+  "hideoutRegex": " Hideout$",
+
+  // These are zones with a stash and merchant, so we don't accidentally obscure the UI in combat
+  // Comment out the whole thing to allow the stash overlay anywhere
+  // If this list has entries, will optimize to not hit the site when the previous wasn't a town zone
   "townZones": [
-//     "Vast Plains Hideout",
+    "Kingsmarch",
+    "Lioneye's Watch",
+    "The Forest Encampment",
+    "The Sarn Encampment",
+    "Highgate",
+    "Overseer's Tower",
+    "The Bridge Encampment",
+    "Oriath Docks",
+    "Karui Shores",
+    "The Rogue Harbour",
+    "Azurite Mine",
+    // "The Menagerie",
+  ],
+
+  // These are zones to mute the PoE application in Settings > System > Sound > Volume Mixer.
+  // It's a defense against the annoying goblin band MTX
+  // Uncomment the entries to enable muting
+  "zonesToMuteSound": [
+//     "The Rogue Harbour",
 //     "Lioneye's Watch",
 //     "The Forest Encampment",
 //     "The Sarn Encampment",
@@ -111,60 +154,37 @@
 //     "Overseer's Tower",
 //     "The Bridge Encampment",
 //     "Oriath Docks",
-//     "Oriath",
 //     "Karui Shores",
-//     "The Rogue Harbour",
-//     "Azurite Mine",
-//     "The Necropolis",
-//     // "The Menagerie",
-//     // "Tane's Laboratory",
   ],
 
-  // this is to figure out the place on the screen for the stash tab to highlight items
-  // use [ 0, 0, 0, 0 ] to auto determine
-  // if you need to set a custom value, take a screenshot of your stash tab,
-  // then open the screen shot in a program like irfan view,
-  // make a select rectangle over the grid part of the tab, and determine the X,Y,Height,Width of the selection
-  // you can test the values by typing 't' in the ChaosHelper console
-  //
-  "stashPageXYWH": [ 0, 0, 0, 0 ], // for auto-determination
-  //"stashPageXYWH": [ 23, 189, 938, 938 ], // for 2560x1600 16:10
-  //"stashPageXYWH": [ 16, 127, 634, 634 ], // for 1920x1080 16:9
-  //"stashPageXYWH": [ 12, 90, 450, 450 ], // for 1366x768 16:9
-  //"stashPageXYWH": [ 12, 90, 450, 450 ], // for 1024x768 4:3
-  "stashPageVerticalOffset": 10, // see README.md
-
-  // see README.md
+  // Use this to force currencies to be visible in the filter is there is less than a minimum amount in the currency tab - see README.md
   "showMinimumCurrency": false,
   "currency": [
-    { "c": "Silver Coin", "desired": 0, "fontSize": 45, "text": "0 0 0 255", "back": "61 156 136 255", "border": "0 0 0 200" },
-    { "c": "Jeweller's Orb", "desired": 0, "fontSize": 45, "text": "0 0 0 255", "back": "61 156 136 255", "border": "0 0 0 200" },
-    { "c": "Orb of Chance", "desired": 0, "fontSize": 45, "text": "0 0 0 255", "back": "61 156 136 255", "border": "0 0 0 200" },
-    { "c": "Orb of Augmentation", "desired": 0, "fontSize": 45, "text": "170 158 130", "back": "0 0 0 255", "border": "190 178 135 180" },
-    { "c": "Simple Sextant", "desired": 0, "fontSize": 45, "text": "0 0 0 255", "back": "61 156 136 255", "border": "0 0 0 200" },
+    { "c": "Jeweller's Orb", "desired": 1000, "fontSize": 45, "text": "0 0 0 255", "back": "61 156 136 255", "border": "0 0 0 200" },
+    { "c": "Orb of Chance", "desired": 1000, "fontSize": 45, "text": "0 0 0 255", "back": "61 156 136 255", "border": "0 0 0 200" },
+    { "c": "Orb of Augmentation", "desired": 400, "fontSize": 45, "text": "170 158 130", "back": "0 0 0 255", "border": "190 178 135 180" },
 
-    { "c": "Blacksmith's Whetstone", "desired": 0, "fontSize": 45, "text": "170 158 130", "back": "0 0 0 255", "border": "190 178 135 180" },
-    { "c": "Armourer's Scrap", "desired": 0, "fontSize": 40, "text": "170 158 130 220", "back": "0 0 0 255", "border": "75 75 75 255" },
-    { "c": "Orb of Transmutation", "desired": 0, "fontSize": 45, "text": "170 158 130", "back": "0 0 0 255", "border": "190 178 135 180" },
-    { "c": "Blessed Orb" , "desired": 0, "fontSize": 45, "text": "170 158 130", "back": "0 0 0 255", "border": "190 178 135 180" },
-    { "c": "Engineer's Orb", "desired": 0, "fontSize": 45, "text": "0 0 0 255", "back": "61 156 136 255", "border": "0 0 0 200" },
-    { "c": "Glassblower's Bauble", "desired": 0, "fontSize": 45, "text": "0 0 0 255", "back": "61 156 136 255", "border": "0 0 0 200" },
-    { "c": "Orb of Horizons", "desired": 0, "fontSize": 45, "text": "0 0 0 255", "back": "61 156 136 255", "border": "0 0 0 200" },
-    { "c": "Regal Orb", "desired": 0, "fontSize": 45, "text": "0 0 0 255", "back": "61 156 136 255", "border": "0 0 0 200" },
-    { "c": "Perandus Coin", "desired": 0, "fontSize": 40, "text": "255 178 135 255", "back": "0 0 0 255", "border": "255 178 135 135" },
-    { "c": "Scroll of Wisdom", "desired": 0, "fontSize": 37, "text": "170 158 130 220", "back": "0 0 0 255", "border": "100 50 30 255" },
-    { "c": "Portal Scroll", "desired": 0, "fontSize": 37, "text": "170 158 130 220", "back": "0 0 0 255", "border": "30 50 100 255" },
+    { "c": "Blacksmith's Whetstone", "desired": 500, "fontSize": 45, "text": "170 158 130", "back": "0 0 0 255", "border": "190 178 135 180" },
+    { "c": "Armourer's Scrap", "desired": 500, "fontSize": 40, "text": "170 158 130 220", "back": "0 0 0 255", "border": "75 75 75 255" },
+    { "c": "Orb of Transmutation", "desired": 500, "fontSize": 45, "text": "170 158 130", "back": "0 0 0 255", "border": "190 178 135 180" },
+    { "c": "Blessed Orb" , "desired": 500, "fontSize": 45, "text": "170 158 130", "back": "0 0 0 255", "border": "190 178 135 180" },
+    { "c": "Engineer's Orb", "desired": 500, "fontSize": 45, "text": "0 0 0 255", "back": "61 156 136 255", "border": "0 0 0 200" },
+    { "c": "Glassblower's Bauble", "desired": 500, "fontSize": 45, "text": "0 0 0 255", "back": "61 156 136 255", "border": "0 0 0 200" },
+    { "c": "Orb of Horizons", "desired": 5000, "fontSize": 45, "text": "0 0 0 255", "back": "61 156 136 255", "border": "0 0 0 200" },
+    { "c": "Regal Orb", "desired": 500, "fontSize": 45, "text": "0 0 0 255", "back": "61 156 136 255", "border": "0 0 0 200" },
+    { "c": "Scroll of Wisdom", "desired": 1000, "fontSize": 37, "text": "170 158 130 220", "back": "0 0 0 255", "border": "100 50 30 255" },
+    { "c": "Portal Scroll", "desired": 1000, "fontSize": 37, "text": "170 158 130 220", "back": "0 0 0 255", "border": "30 50 100 255" },
 
-    { "c": "Imbued Catalyst", "desired": 0, "fontSize": 45, "text": "0 0 0 255", "back": "61 156 136 255", "border": "0 0 0 200" },
-    { "c": "Intrinsic Catalyst", "desired": 0, "fontSize": 45, "text": "0 0 0 255", "back": "61 156 136 255", "border": "0 0 0 200" },
-    { "c": "Horizon Shard", "desired": 0, "fontSize": 45, "text": "0 0 0 255", "back": "61 156 136 255", "border": "0 0 0 200" },
-    { "c": "Chaos Shard", "desired": 0, "fontSize": 45, "text": "0 0 0 255", "back": "61 156 136 255", "border": "0 0 0 200" },
-    { "c": "Engineer's Shard", "desired": 0, "fontSize": 45, "text": "170 158 130", "back": "0 0 0 255", "border": "190 178 135 180" },
-    { "c": "Alchemy Shard", "desired": 0, "fontSize": 45, "text": "170 158 130", "back": "0 0 0 255", "border": "190 178 135 180" },
-    { "c": "Alteration Shard", "desired": 0, "fontSize": 40, "text": "170 158 130 220", "back": "0 0 0 255", "border": "75 75 75 255" },
-    { "c": "Transmutation Shard", "desired": 0, "fontSize": 40, "text": "170 158 130 220", "back": "0 0 0 255", "border": "75 75 75 255" },
-    { "c": "Binding Shard", "desired": 0, "fontSize": 45, "text": "170 158 130", "back": "0 0 0 255", "border": "190 178 135 180" },
-    { "c": "Regal Shard", "desired": 0, "fontSize": 45, "text": "170 158 130", "back": "0 0 0 255", "border": "190 178 135 180" },
+    { "c": "Imbued Catalyst", "desired": 20, "fontSize": 45, "text": "0 0 0 255", "back": "61 156 136 255", "border": "0 0 0 200" },
+    { "c": "Intrinsic Catalyst", "desired": 20, "fontSize": 45, "text": "0 0 0 255", "back": "61 156 136 255", "border": "0 0 0 200" },
+    { "c": "Horizon Shard", "desired": 20, "fontSize": 45, "text": "0 0 0 255", "back": "61 156 136 255", "border": "0 0 0 200" },
+    { "c": "Chaos Shard", "desired": 20, "fontSize": 45, "text": "0 0 0 255", "back": "61 156 136 255", "border": "0 0 0 200" },
+    { "c": "Engineer's Shard", "desired": 20, "fontSize": 45, "text": "170 158 130", "back": "0 0 0 255", "border": "190 178 135 180" },
+    { "c": "Alchemy Shard", "desired": 20, "fontSize": 45, "text": "170 158 130", "back": "0 0 0 255", "border": "190 178 135 180" },
+    { "c": "Alteration Shard", "desired": 20, "fontSize": 40, "text": "170 158 130 220", "back": "0 0 0 255", "border": "75 75 75 255" },
+    { "c": "Transmutation Shard", "desired": 20, "fontSize": 40, "text": "170 158 130 220", "back": "0 0 0 255", "border": "75 75 75 255" },
+    { "c": "Binding Shard", "desired": 20, "fontSize": 45, "text": "170 158 130", "back": "0 0 0 255", "border": "190 178 135 180" },
+    { "c": "Regal Shard", "desired": 20, "fontSize": 45, "text": "170 158 130", "back": "0 0 0 255", "border": "190 178 135 180" },
   ],
 
   // if you want to configure dump tab scanning, set your dump tabs here

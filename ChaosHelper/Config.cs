@@ -83,7 +83,7 @@ namespace ChaosHelper
         public static string ClosePortsForPidPath { get; private set; }
         public static bool RunningAsAdmin { get; private set; }
 
-        private static bool _exitWhenPoeExits; 
+        private static bool _exitWhenPoeExits;
         public static bool ExitWhenPoeExits { get { return _exitWhenPoeExits || ForceExitWhenPoeExits; } }
         public static bool ForceExitWhenPoeExits { get; set; }
 
@@ -242,7 +242,7 @@ namespace ChaosHelper
                 ItemPosition.SortOrder = MinIlvl < 60 ? ItemPosition.SortBy.IlvlBottomFirst : ItemPosition.SortBy.Default;
 
             TownZones = rawConfig.GetStringList("townZones");
-            
+
             var hideoutRegexStr = rawConfig["hideoutRegex"];
             if (string.IsNullOrWhiteSpace(hideoutRegexStr))
                 hideoutRegexStr = " Hideout$";
@@ -440,6 +440,7 @@ namespace ChaosHelper
             var dumpTabNames = rawConfig.GetStringList("dumpTabs");
             DumpTabDictionary.Clear();
             logger.Info($"dumpTabs has {dumpTabNames.Count} entries");
+
             DefenseVariance = Math.Clamp(rawConfig.GetDouble("defenseVariance", 0.7), 0.1, 1.0);
 
             try
@@ -763,12 +764,16 @@ namespace ChaosHelper
     static class Constants
     {
         public const string ClosePorts = "closePorts";
+        public const string TogglePause = "togglePause";
         public const string HighlightItems = "highlightItems";
+        public const string ForceUpdate = "forceUpdate";
+        public const string ToggleAutomaticFilterLoad = "toggleAutomaticFilterLoad";
         public const string ShowQualityItems = "showQualityItems";
         public const string ShowJunkItems = "showJunkItems";
-        public const string ForceUpdate = "forceUpdate";
         public const string CharacterCheck = "characterCheck";
+        public const string ReloadSettings = "reloadSettings";
         public const string TestPattern = "testPattern";
+        public const string CheckDumpTabs = "checkDumpTabs";
         public const string LoadNextFilter = "loadNextFilter";
         public const string ToggleMute = "toggleMute";
     }
