@@ -90,6 +90,8 @@ namespace ChaosHelper
         public static bool StartPaused { get; private set; }
         public static string ConfigDir { get; set; }
         public static string LastWhisper {  get; set; }
+        public static string SelfWhisperCharacter {  get; private set; }
+        public static List<string> ZonesToMuteSound { get; private set; }
 
         public static bool IsTown(string newArea)
         {
@@ -97,6 +99,12 @@ namespace ChaosHelper
                 || TownZones.Any(x => string.Equals(x, newArea, StringComparison.OrdinalIgnoreCase))
                 || (HideoutRegex != null && HideoutRegex.IsMatch(newArea));
             return isTown;
+        }
+
+        public static bool IsMuteZone(string newArea)
+        {
+            var muteZone = ZonesToMuteSound?.FirstOrDefault(x => string.Equals(x, newArea, StringComparison.OrdinalIgnoreCase));
+            return muteZone != null;
         }
 
         public static bool HaveAHotKey()
@@ -287,6 +295,12 @@ namespace ChaosHelper
                 logger.Error("ERROR: highlightColors must be empty or exactly 4 numbers");
                 return false;
             }
+
+            SelfWhisperCharacter = rawConfig["selfWhisperCharacter"];
+            if (string.IsNullOrWhiteSpace(SelfWhisperCharacter))
+                SelfWhisperCharacter = null;
+
+            ZonesToMuteSound = rawConfig.GetStringList("zonesToMuteSound");
 
             FilterDisplay = null;
             if (rawConfig.TryGetProperty("filterDisplay", out var filterDisplayElement))
@@ -737,6 +751,13 @@ namespace ChaosHelper
                 logger.Error(ex, $"Running ClosePortsForPid.exe");
             }
         }
+
+        public static void MutePoeProcess(bool mute = true)
+        {
+            if (_poeProcessId <= 0) return;
+            logger.Info($"Setting PoE process mute to {mute}");
+            VolumeMixer.SetApplicationMute(_poeProcessId, mute);
+        }
     }
 
     static class Constants
@@ -749,5 +770,6 @@ namespace ChaosHelper
         public const string CharacterCheck = "characterCheck";
         public const string TestPattern = "testPattern";
         public const string LoadNextFilter = "loadNextFilter";
+        public const string ToggleMute = "toggleMute";
     }
 }

@@ -183,7 +183,7 @@ namespace ChaosHelper
                         modifiers |= ConsoleHotKey.KeyModifiers.Windows;
                         break;
                 }
-                valueStr = valueStr.Substring(1);
+                valueStr = valueStr[1..];
             }
 
             if (Enum.TryParse(valueStr, true, out System.Windows.Forms.Keys key)

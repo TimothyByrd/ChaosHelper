@@ -30,6 +30,7 @@ namespace ChaosHelper
         static bool isPaused = false;
         static bool haveAddedHotkeyEventHandler = false;
         static string lastFilterLoaded = string.Empty;
+        static bool haveMuted = false;
 
         static ChaosOverlay overlay;
 
@@ -315,6 +316,7 @@ namespace ChaosHelper
             if (overlayTask != null) await overlayTask;
             if (keyboardTask != null) await keyboardTask;
             HotKeyManager.UnregisterAllHotKeys();
+            Config.MutePoeProcess(mute: false);
         }
 
         private static async Task FindIlvl100Items(Settings settings)
@@ -560,7 +562,7 @@ namespace ChaosHelper
                     break;
                 case Constants.LoadNextFilter:
                     string[] filters = string.IsNullOrWhiteSpace(hotkey.Text)
-                        ? Array.Empty<string>()
+                        ? []
                         : hotkey.Text.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                     if (filters.Length == 0)
                     {
@@ -569,7 +571,8 @@ namespace ChaosHelper
                     }
                     var index = (Array.IndexOf(filters, lastFilterLoaded) + 1) % filters.Length;
                     logger.Info($"Setting filter {filters[index]}");
-                    var keyString = $"{{Enter}}@{Config.Character} loading filter {filters[index]}{{Enter}}";
+                    var characterToWhisper = Config.SelfWhisperCharacter ?? Config.Character;
+                    var keyString = $"{{Enter}}@{characterToWhisper} loading filter {filters[index]}{{Enter}}";
                     SendTextToChat(keyString, hotkey);
                     keyString = $"{{Enter}}/itemfilter {filters[index]}{{Enter}}";
                     SendTextToChat(keyString, hotkey);
@@ -581,6 +584,10 @@ namespace ChaosHelper
                     break;
                 case Constants.TestPattern:
                     overlay?.SendKey(ConsoleKey.T);
+                    break;
+                case Constants.ToggleMute:
+                    haveMuted = !haveMuted;
+                    Config.MutePoeProcess(mute: haveMuted);
                     break;
                 default:
                     logger.Warn($"Unknown command {hotkey.Command}");
@@ -1236,6 +1243,19 @@ namespace ChaosHelper
                         qualityItems = null;
                         highlightQualityToSell = false;
                         currentArea = newArea;
+                        if (Config.IsMuteZone(newArea))
+                        {
+                            if (!haveMuted)
+                            {
+                                haveMuted = true;
+                                Config.MutePoeProcess(mute: true);
+                            }
+                        }
+                        else if (haveMuted)
+                        {
+                            haveMuted = false;
+                            Config.MutePoeProcess(mute: false);
+                        }
                     }
                     else if (forceFilterUpdate)
                         logger.Info("forcing filter update");
