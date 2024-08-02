@@ -280,16 +280,12 @@ namespace ChaosHelper
                 }
             });
 
-            Task overlayTask = null;
-            if (settings.RunOverlay)
-            {
-                overlayTask = Task.Run(() =>
+            Task overlayTask = Task.Run(() =>
                 {
                     overlay = new ChaosOverlay();
-                    overlay.RunOverLay(cancellationToken);
+                    overlay.RunOverLay(settings.RunOverlay, cancellationToken);
                     overlay = null;
                 });
-            }
 
             // get initial counts
             itemsCurrent = new ItemSet();

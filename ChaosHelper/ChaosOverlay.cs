@@ -25,7 +25,7 @@ namespace ChaosHelper
         private bool _haveLoggedWaitingForMainWindowMessage = false;
         private int _lastPidFound = 0;
 
-        public void RunOverLay(CancellationToken cancellationToken)
+        public void RunOverLay(bool shouOverlay, CancellationToken cancellationToken)
         {
             _requiredProcessName = Config.RequiredProcessName;
             if (Config.ForceSteam)
@@ -59,10 +59,14 @@ namespace ChaosHelper
                             _lastPidFound = process.Id;
                         }
 
-                        int fps = 10; // 30;
-
                         _processExited = false;
-                        _plugin = new ChaosOverlayPlugin(fps);
+
+                        if (shouOverlay)
+                        {
+                            int fps = 10; // 30;
+                            _plugin = new ChaosOverlayPlugin(fps);
+                        }
+                        
                         _processSharp = new ProcessSharp(process, MemoryType.Remote);
                         _processSharp.ProcessExited += ProcessExitedDelegate;
 
@@ -81,13 +85,13 @@ namespace ChaosHelper
 
                         Config.SetProcessModule(process.MainModule.FileName, process.Id);
 
-                        _plugin.Initialize(_processSharp.WindowFactory.MainWindow);
-                        _plugin.Enable();
+                        _plugin?.Initialize(_processSharp.WindowFactory.MainWindow);
+                        _plugin?.Enable();
 
                         while (!cancellationToken.IsCancellationRequested && !_processExited)
                         {
-                            _plugin.Update();
-                            int sleepDuration = _plugin.OverlayWindow.IsVisible ? 30 : 2000;
+                            _plugin?.Update();
+                            int sleepDuration = (_plugin != null && _plugin.OverlayWindow.IsVisible) ? 30 : 2000;
                             Thread.Sleep(sleepDuration);
                         }
                     }
