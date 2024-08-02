@@ -329,13 +329,13 @@ namespace ChaosHelper
             {
                 _mouseHook ??= new GlobalMouseHook();
 
-                GlobalMouseHook.MouseLButtonUp += MouseLeftButtonDown;
+                GlobalMouseHook.MouseLButtonDown += MouseLeftButtonDown;
                 _haveHookedMouse = true;
                 //Console.WriteLine("hooked mouse");
             }
             else if (!wantMouseHook && _haveHookedMouse)
             {
-                GlobalMouseHook.MouseLButtonUp -= MouseLeftButtonDown;
+                GlobalMouseHook.MouseLButtonDown -= MouseLeftButtonDown;
                 _haveHookedMouse = false;
                 //Console.WriteLine("unhooked mouse");
             }

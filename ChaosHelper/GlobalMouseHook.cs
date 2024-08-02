@@ -8,7 +8,7 @@ namespace ChaosHelper
 {
     class GlobalMouseHook : IDisposable
     {
-        public static event EventHandler<GlobalMouseHookEventArgs> MouseLButtonUp;
+        public static event EventHandler<GlobalMouseHookEventArgs> MouseLButtonDown;
 
         MessageWindow messageWindow = null;
 
@@ -150,7 +150,7 @@ namespace ChaosHelper
                         MSLLHOOKSTRUCT p = (MSLLHOOKSTRUCT)o;
                         var eventArguments = new GlobalMouseHookEventArgs(p);
 
-                        EventHandler<GlobalMouseHookEventArgs> handler = GlobalMouseHook.MouseLButtonUp;
+                        EventHandler<GlobalMouseHookEventArgs> handler = GlobalMouseHook.MouseLButtonDown;
                         handler?.Invoke(this, eventArguments);
                     }
                 }
