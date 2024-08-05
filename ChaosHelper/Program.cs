@@ -299,7 +299,7 @@ namespace ChaosHelper
 
             bool CheckOverlayTask()
             {
-                return !settings.RunOverlay || (overlayTask != null && !overlayTask.IsCompleted);
+                return overlayTask != null && !overlayTask.IsCompleted;
             }
 
             if (CheckOverlayTask())
@@ -318,10 +318,24 @@ namespace ChaosHelper
                 }
             }
 
+
+            logger.Info("Shutdown (1) - setting cancellation token");
             source.Cancel();
-            if (overlayTask != null) await overlayTask;
-            if (keyboardTask != null) await keyboardTask;
+            if (overlayTask != null)
+            {
+                logger.Info("Shutdown (2) - awaiting overlay task");
+                await overlayTask;
+            }
+            if (keyboardTask != null)
+            {
+                logger.Info("Shutdown (3) - awaiting keyboard task");
+                await keyboardTask;
+            }
+            logger.Info("Shutdown (4) - unregistering hotkeys");
             HotKeyManager.UnregisterAllHotKeys();
+            logger.Info("Shutdown (5) - exiting hotkey manager");
+            HotKeyManager.Exit();
+            logger.Info("Shutdown (6) - unmuting poe process");
             Config.MutePoeProcess(mute: false);
         }
 

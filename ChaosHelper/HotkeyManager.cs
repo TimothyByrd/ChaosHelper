@@ -75,6 +75,8 @@ namespace ConsoleHotKey
             messageLoop.Start();
         }
 
+        static public void Exit() { _wnd.Close(); }
+
         private class MessageWindow : Form
         {
             public MessageWindow()
