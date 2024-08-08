@@ -1,4 +1,249 @@
 {
+  "Nameless Ring": {
+    "name": "Nameless Ring",
+    "item_class": "Ring"
+  },
+  "General's Helmet": {
+    "name": "General's Helmet",
+    "item_class": "Helmet"
+  },
+  "Conqueror's Helmet": {
+    "name": "Conqueror's Helmet",
+    "item_class": "Helmet"
+  },
+  "Giantslayer Helmet": {
+    "name": "Giantslayer Helmet",
+    "item_class": "Helmet"
+  },
+  "Dire Pelt": {
+    "name": "Dire Pelt",
+    "item_class": "Helmet"
+  },
+  "Grizzly Pelt": {
+    "name": "Grizzly Pelt",
+    "item_class": "Helmet"
+  },
+  "Majestic Pelt": {
+    "name": "Majestic Pelt",
+    "item_class": "Helmet"
+  },
+  "Moonlit Circlet": {
+    "name": "Moonlit Circlet",
+    "item_class": "Helmet"
+  },
+  "Sunfire Circlet": {
+    "name": "Sunfire Circlet",
+    "item_class": "Helmet"
+  },
+  "Lich's Circlet": {
+    "name": "Lich's Circlet",
+    "item_class": "Helmet"
+  },
+  "Knight Helm": {
+    "name": "Knight Helm",
+    "item_class": "Helmet"
+  },
+  "Conquest Helmet": {
+    "name": "Conquest Helmet",
+    "item_class": "Helmet"
+  },
+  "Haunted Bascinet": {
+    "name": "Haunted Bascinet",
+    "item_class": "Helmet"
+  },
+  "Faithful Helmet": {
+    "name": "Faithful Helmet",
+    "item_class": "Helmet"
+  },
+  "Paladin Crown": {
+    "name": "Paladin Crown",
+    "item_class": "Helmet"
+  },
+  "Divine Crown": {
+    "name": "Divine Crown",
+    "item_class": "Helmet"
+  },
+  "Jester Mask": {
+    "name": "Jester Mask",
+    "item_class": "Helmet"
+  },
+  "Ancient Mask": {
+    "name": "Ancient Mask",
+    "item_class": "Helmet"
+  },
+  "Torturer's Mask": {
+    "name": "Torturer's Mask",
+    "item_class": "Helmet"
+  },
+  "Titan Plate": {
+    "name": "Titan Plate",
+    "item_class": "Body Armour"
+  },
+  "Legion Plate": {
+    "name": "Legion Plate",
+    "item_class": "Body Armour"
+  },
+  "Royal Plate": {
+    "name": "Royal Plate",
+    "item_class": "Body Armour"
+  },
+  "Supreme Leather": {
+    "name": "Supreme Leather",
+    "item_class": "Body Armour"
+  },
+  "Astral Leather": {
+    "name": "Astral Leather",
+    "item_class": "Body Armour"
+  },
+  "Syndicate's Garb": {
+    "name": "Syndicate's Garb",
+    "item_class": "Body Armour"
+  },
+  "Arcane Vestment": {
+    "name": "Arcane Vestment",
+    "item_class": "Body Armour"
+  },
+  "Nightweave Robe": {
+    "name": "Nightweave Robe",
+    "item_class": "Body Armour"
+  },
+  "Twilight Regalia": {
+    "name": "Twilight Regalia",
+    "item_class": "Body Armour"
+  },
+  "Full Wyvernscale": {
+    "name": "Full Wyvernscale",
+    "item_class": "Body Armour"
+  },
+  "Marshall's Brigandine": {
+    "name": "Marshall's Brigandine",
+    "item_class": "Body Armour"
+  },
+  "Conquest Lamellar": {
+    "name": "Conquest Lamellar",
+    "item_class": "Body Armour"
+  },
+  "Grand Ringmail": {
+    "name": "Grand Ringmail",
+    "item_class": "Body Armour"
+  },
+  "Paladin's Hauberk": {
+    "name": "Paladin's Hauberk",
+    "item_class": "Body Armour"
+  },
+  "Sacred Chainmail": {
+    "name": "Sacred Chainmail",
+    "item_class": "Body Armour"
+  },
+  "Sanguine Raiment": {
+    "name": "Sanguine Raiment",
+    "item_class": "Body Armour"
+  },
+  "Torturer Garb": {
+    "name": "Torturer Garb",
+    "item_class": "Body Armour"
+  },
+  "Necrotic Armour": {
+    "name": "Necrotic Armour",
+    "item_class": "Body Armour"
+  },
+  "Precursor Greaves": {
+    "name": "Precursor Greaves",
+    "item_class": "Boots"
+  },
+  "Leviathan Greaves": {
+    "name": "Leviathan Greaves",
+    "item_class": "Boots"
+  },
+  "Harpyskin Boots": {
+    "name": "Harpyskin Boots",
+    "item_class": "Boots"
+  },
+  "Velour Boots": {
+    "name": "Velour Boots",
+    "item_class": "Boots"
+  },
+  "Sage Slippers": {
+    "name": "Sage Slippers",
+    "item_class": "Boots"
+  },
+  "Warlock Boots": {
+    "name": "Warlock Boots",
+    "item_class": "Boots"
+  },
+  "Chimerascale Boots": {
+    "name": "Chimerascale Boots",
+    "item_class": "Boots"
+  },
+  "Wyvernscale Boots": {
+    "name": "Wyvernscale Boots",
+    "item_class": "Boots"
+  },
+  "Martyr Boots": {
+    "name": "Martyr Boots",
+    "item_class": "Boots"
+  },
+  "Paladin Boots": {
+    "name": "Paladin Boots",
+    "item_class": "Boots"
+  },
+  "Infiltrator Boots": {
+    "name": "Infiltrator Boots",
+    "item_class": "Boots"
+  },
+  "Phantom Boots": {
+    "name": "Phantom Boots",
+    "item_class": "Boots"
+  },
+  "Precursor Gauntlets": {
+    "name": "Precursor Gauntlets",
+    "item_class": "Gloves"
+  },
+  "Leviathan Gauntlets": {
+    "name": "Leviathan Gauntlets",
+    "item_class": "Gloves"
+  },
+  "Harpyskin Gloves": {
+    "name": "Harpyskin Gloves",
+    "item_class": "Gloves"
+  },
+  "Velour Gloves": {
+    "name": "Velour Gloves",
+    "item_class": "Gloves"
+  },
+  "Sage Gloves": {
+    "name": "Sage Gloves",
+    "item_class": "Gloves"
+  },
+  "Warlock Gloves": {
+    "name": "Warlock Gloves",
+    "item_class": "Gloves"
+  },
+  "Chimerascale Gauntlets": {
+    "name": "Chimerascale Gauntlets",
+    "item_class": "Gloves"
+  },
+  "Wyvernscale Gauntlets": {
+    "name": "Wyvernscale Gauntlets",
+    "item_class": "Gloves"
+  },
+  "Martyr Gloves": {
+    "name": "Martyr Gloves",
+    "item_class": "Gloves"
+  },
+  "Paladin Gloves": {
+    "name": "Paladin Gloves",
+    "item_class": "Gloves"
+  },
+  "Infiltrator Mitts": {
+    "name": "Infiltrator Mitts",
+    "item_class": "Gloves"
+  },
+  "Phantom Mitts": {
+    "name": "Phantom Mitts",
+    "item_class": "Gloves"
+  },
+
   "Metadata/Items/Amulet/AmuletAtlas1": {
     "domain": "item",
     "drop_level": 77,
