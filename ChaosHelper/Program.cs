@@ -97,6 +97,8 @@ namespace ChaosHelper
                     }
                     else if (Directory.Exists(arg))
                         Config.ConfigDir = arg;
+                    else
+                        logger.Warn($"unrecogniozed argument '{arg}'");
                 }
 
                 Console.Title = "ChaosHelper.exe";
@@ -333,9 +335,7 @@ namespace ChaosHelper
             }
             logger.Info("Shutdown (4) - unregistering hotkeys");
             HotKeyManager.UnregisterAllHotKeys();
-            logger.Info("Shutdown (5) - exiting hotkey manager");
-            HotKeyManager.Exit();
-            logger.Info("Shutdown (6) - unmuting poe process");
+            logger.Info("Shutdown (5) - unmuting poe process");
             Config.MutePoeProcess(mute: false);
         }
 
@@ -617,11 +617,15 @@ namespace ChaosHelper
                     }
                     var index = (Array.IndexOf(filters, lastFilterLoaded) + 1) % filters.Length;
                     logger.Info($"Setting filter {filters[index]}");
-                    var characterToWhisper = Config.SelfWhisperCharacter ?? Config.Character;
-                    var keyString = $"{{Enter}}@{characterToWhisper} loading filter {filters[index]}{{Enter}}";
+                    var keyString = $"{{Enter}}/itemfilter {filters[index]}{{Enter}}";
                     SendTextToChat(keyString, hotkey);
-                    keyString = $"{{Enter}}/itemfilter {filters[index]}{{Enter}}";
-                    SendTextToChat(keyString, hotkey);
+                    var msg = $"loaded filter {filters[index]}";
+                    if (!overlay.SetTemporaryMessage(msg))
+                    {
+                        var characterToWhisper = Config.SelfWhisperCharacter ?? Config.Character;
+                        keyString = $"{{Enter}}@{characterToWhisper} {msg}{{Enter}}";
+                        SendTextToChat(keyString, hotkey);
+                    }
                     lastFilterLoaded = filters[index];
                     break;
                 case Constants.ToggleMute:
@@ -1276,9 +1280,13 @@ namespace ChaosHelper
                     if (newArea != null)
                     {
                         bool isTown = Config.IsTown(newArea);
-                        var status = isPaused ? " (paused)" : !isTown ? string.Empty : !wasTown ? " (to town)" : " (town)";
-                        logger.Info($"new area - {newArea}{status}");
+                        var statusList = new List<string>();
+                        if (isTown) statusList.Add(wasTown ? "town" : "to town");
+                        if (isPaused) statusList.Add("paused");
+                        var status = (statusList.Count > 0) ? $" ({string.Join(" - ", statusList)})" : string.Empty;
                         overlay?.SetArea($"{newArea}{status}", isTown);
+                        logger.Info($"new area - {newArea}{status}");
+
                         qualityItems = null;
                         highlightQualityToSell = false;
                         currentArea = newArea;

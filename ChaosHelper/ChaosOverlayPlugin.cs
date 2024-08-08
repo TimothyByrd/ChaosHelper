@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-
+using System.Runtime.CompilerServices;
 using Overlay.NET.Common;
 using Overlay.NET.Directx;
 
@@ -24,6 +24,8 @@ namespace ChaosHelper
         private int _whiteBrush;
         private int _goldBrush;
         private string _statusMessage;
+        private string _temporaryMessage;
+        private DateTime _temporaryMessageExpires;
         private bool _atMaxSets = false;
         private SharpDX.Mathematics.Interop.RawRectangleF _stashRect;
         private readonly bool _autoDetermineStashRect;
@@ -191,12 +193,19 @@ namespace ChaosHelper
             _showHightlightSet = false;
             _showQualitySet = false;
             _textToDraw = [];
+            _temporaryMessage = null;
         }
 
         public void SetStatus(string msg, bool atMaxSets)
         {
             _statusMessage = msg;
             _atMaxSets = atMaxSets;
+        }
+
+        public void SetTemporaryMessage(string message, int seconds = 10)
+        {
+            _temporaryMessage = message;
+            _temporaryMessageExpires = DateTime.UtcNow.AddSeconds(seconds);
         }
 
         public void SendKey(ConsoleKey key)
@@ -447,6 +456,11 @@ namespace ChaosHelper
 
             if (!string.IsNullOrWhiteSpace(_areaName))
                 OverlayWindow.Graphics.DrawText(_areaName, _font, _whiteBrush, xForText, YForRow(2));
+
+            if (!string.IsNullOrWhiteSpace(_temporaryMessage) && DateTime.UtcNow >= _temporaryMessageExpires)
+                _temporaryMessage = null;
+            else if (!string.IsNullOrWhiteSpace(_temporaryMessage))
+                OverlayWindow.Graphics.DrawText(_temporaryMessage, _font, _whiteBrush, xForText, YForRow(3));
 
             foreach (var t in _textToDraw)
                 OverlayWindow.Graphics.DrawText(t.Text, _font, t.BrushS, t.X, t.Y);

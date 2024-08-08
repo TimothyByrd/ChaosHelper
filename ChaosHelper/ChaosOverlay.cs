@@ -170,6 +170,13 @@ namespace ChaosHelper
             _plugin?.SetStatus(msg, atMaxSets);
         }
 
+        public bool SetTemporaryMessage(string message, int seconds = 10)
+        {
+
+            _plugin?.SetTemporaryMessage(message, seconds);
+            return _plugin != null;
+        }
+
         public void SetCurrentItems(ItemSet currentItems)
         {
             _plugin?.SetCurrentItems(currentItems);
