@@ -631,6 +631,7 @@ namespace ChaosHelper
                 case Constants.ToggleMute:
                     haveMuted = !haveMuted;
                     Config.MutePoeProcess(mute: haveMuted);
+                    overlay?.SetTemporaryMessage($"PoE muted = {haveMuted}");
                     break;
                 default:
                     logger.Warn($"Unknown command {hotkey.Command}");
@@ -1296,12 +1297,14 @@ namespace ChaosHelper
                             {
                                 haveMuted = true;
                                 Config.MutePoeProcess(mute: true);
+                                overlay?.SetTemporaryMessage($"PoE muted = {haveMuted}");
                             }
                         }
                         else if (haveMuted)
                         {
                             haveMuted = false;
                             Config.MutePoeProcess(mute: false);
+                            overlay?.SetTemporaryMessage($"PoE muted = {haveMuted}");
                         }
                     }
                     else if (forceFilterUpdate)
