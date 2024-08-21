@@ -26,6 +26,10 @@
 +1% to Lightning Resistance; ResLight; TotRes
 +1% to All Elemental Resistances; ResAll; ResCold; ResFire; ResLight; TotRes*3
 +1% chance to Suppress Spell Damage; Suppress; TotRes*2
++1% to maximum Chaos Resistance; ResChaos; MaxRes; MaxResChaos
++1% to maximum Cold Resistance; ResCold; MaxRes; MaxResCold
++1% to maximum Fire Resistance; ResFire; MaxRes; MaxResFire
++1% to maximum Lightning Resistance; ResLight; MaxRes; MaxResLight
 
 +1 to Maximum Life; MaxLife
 1% increased Maximum Life; PctLife
@@ -389,10 +393,6 @@ The Ring's Cut reduced by 1%
 +1% to Fire Resistance while on Low Life
 +1% to Lightning Resistance when Socketed with a Blue Gem
 +1% to maximum Chance to Block Attack Damage
-+1% to maximum Chaos Resistance
-+1% to maximum Cold Resistance
-+1% to maximum Fire Resistance
-+1% to maximum Lightning Resistance
 +1% to Quality
 +1% to Quality of Socketed Cold Gems
 +1% to Quality of Socketed Gems

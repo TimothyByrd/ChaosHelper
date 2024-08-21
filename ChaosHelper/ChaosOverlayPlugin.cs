@@ -26,7 +26,7 @@ namespace ChaosHelper
         private string _statusMessage;
         private string _temporaryMessage;
         private DateTime _temporaryMessageExpires;
-        private bool _atMaxSets = false;
+        private bool _emphasizeStatus = false;
         private SharpDX.Mathematics.Interop.RawRectangleF _stashRect;
         private readonly bool _autoDetermineStashRect;
         private Dictionary<Cat, int> _highlightBrushDict;
@@ -196,10 +196,10 @@ namespace ChaosHelper
             _temporaryMessage = null;
         }
 
-        public void SetStatus(string msg, bool atMaxSets)
+        public void SetStatus(string msg, bool emphasizeStatus)
         {
             _statusMessage = msg;
-            _atMaxSets = atMaxSets;
+            _emphasizeStatus = emphasizeStatus;
         }
 
         public void SetTemporaryMessage(string message, int seconds = 10)
@@ -450,7 +450,7 @@ namespace ChaosHelper
                 OverlayWindow.Graphics.DrawText(_countsMsg, _font, _whiteBrush, xForText, YForRow(0));
 
             if (!string.IsNullOrWhiteSpace(_statusMessage))
-                OverlayWindow.Graphics.DrawText(_statusMessage, _font, _atMaxSets ? _goldBrush : _whiteBrush, xForText, YForRow(1));
+                OverlayWindow.Graphics.DrawText(_statusMessage, _font, _emphasizeStatus ? _goldBrush : _whiteBrush, xForText, YForRow(1));
             else
                 OverlayWindow.Graphics.DrawText("Change zones or force an update to initialize", _font, _goldBrush, xForText, YForRow(1));
 

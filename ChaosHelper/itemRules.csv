@@ -65,7 +65,7 @@ ES Jewel, Jewel, ESRecoverStart + ESRecoverRate + PctES >= 10
 Crit Jewel, Jewel, NumCrit >= 2
 DoT Jewel, Jewel, NumDot >= 2
 Res Jewel, Jewel, TotRes >= 40
-
+Max Res Jewel, Jewel, MaxRes >= 2
 # Stat Amulet, Amulet, TotRes >= 40, MaxLife >= 50, AddDex >= 24, AddStr >= 11
 
 Dot Cold, OneHandWeapon, DotMulCold >= 40

@@ -13,38 +13,21 @@ namespace ChaosHelper
     // This file contains some small data structures that don't merit their own files.
     //
 
-    public class ItemPosition
+    public class ItemPosition(int x, int y, int h, int w, int ilvl, bool identified, string name, string baseType, int frameType, int tabIndex, int quality, object jsonElement, Cat category)
     {
-        public int X;
-        public int Y;
-        public int H;
-        public int W;
-        public int iLvl;
-        public bool Identified;
-        public int TabIndex;
-        public int Quality;
-        public int FrameType;
-        public string Name;
-        public object JsonElement;
-        public string BaseType;
-        public Cat Category;
-
-        public ItemPosition(int x, int y, int h, int w, int ilvl, bool identified, string name, string baseType, int frameType, int tabIndex, int quality, object jsonElement, Cat category)
-        {
-            X = x;
-            Y = y;
-            H = h;
-            W = w;
-            iLvl = ilvl;
-            Identified = identified;
-            Name = name;
-            BaseType = baseType;
-            TabIndex = tabIndex;
-            Quality = quality;
-            FrameType = frameType;
-            JsonElement = jsonElement;
-            Category = category;
-        }
+        public int X = x;
+        public int Y = y;
+        public int H = h;
+        public int W = w;
+        public int iLvl = ilvl;
+        public bool Identified = identified;
+        public int TabIndex = tabIndex;
+        public int Quality = quality;
+        public int FrameType = frameType;
+        public string Name = name;
+        public object JsonElement = jsonElement;
+        public string BaseType = baseType;
+        public Cat Category = category;
 
         public static int Compare(ItemPosition ip1, ItemPosition ip2)
         {
@@ -135,24 +118,14 @@ namespace ChaosHelper
         Map,
     }
 
-    public struct ItemClassForFilter
+    public struct ItemClassForFilter(string abbrev, bool skip, int fontSize, Cat category, string categoryStr, string filterClass)
     {
-        public string Abbrev;
-        public bool Skip;
-        public int DefaultFontSize;
-        public Cat Category;
-        public string CategoryStr;
-        public string FilterClass;
-
-        public ItemClassForFilter(string abbrev, bool skip, int fontSize, Cat category, string categoryStr, string filterClass)
-        {
-            Abbrev = abbrev;
-            Skip = skip;
-            DefaultFontSize = fontSize;
-            Category = category;
-            CategoryStr = categoryStr;
-            FilterClass = filterClass;
-        }
+        public string Abbrev = abbrev;
+        public bool Skip = skip;
+        public int DefaultFontSize = fontSize;
+        public Cat Category = category;
+        public string CategoryStr = categoryStr;
+        public string FilterClass = filterClass;
 
         public static IEnumerable<ItemClassForFilter> Iterator()
         {
@@ -162,8 +135,8 @@ namespace ChaosHelper
             }
         }
 
-        static readonly List<ItemClassForFilter> itemClasses = new()
-        {
+        static readonly List<ItemClassForFilter> itemClasses =
+        [
             new ItemClassForFilter("a",  false, 38, Cat.BodyArmours, "BodyArmours", "Body Armours"),
             new ItemClassForFilter("h",  false, 38, Cat.Helmets, "Helmets", "Helmets"),
             new ItemClassForFilter("g",  false, 38, Cat.Gloves, "Gloves", "Gloves"),
@@ -175,7 +148,7 @@ namespace ChaosHelper
             new ItemClassForFilter("ri", false, 45, Cat.Rings, "Rings", "Rings"),
             new ItemClassForFilter("j", true, 38, Cat.Junk, "Junk", null),
             new ItemClassForFilter("oh",  true,  38, Cat.OffHand, "OffHand", null),
-        };
+        ];
     }
 
 // some extension methods
@@ -251,7 +224,7 @@ public static partial class Helpers
             return defaultValue;
         }
 
-        static readonly char[] spaceArray = new char[] { ' ' };
+        static readonly char[] spaceArray = [' '];
 
         public static int ColorStringToRGB(this string s)
         {
@@ -297,7 +270,7 @@ public static partial class Helpers
                 return baseClass;
             if (itemTypeToBaseClassDict.TryGetValue(s, out baseClass))
                 return baseClass;
-            if (s.EndsWith("s"))
+            if (s.EndsWith('s'))
                 return s.TrimEnd('s').ToBaseClass();
             return BaseClass.Any;
         }
@@ -352,7 +325,7 @@ public static partial class Helpers
             { "Warstaff", BaseClass.TwoHandWeapon },
         };
 
-        private static readonly Dictionary<string, string> nameToItemTypeDict = new();
+        private static readonly Dictionary<string, string> nameToItemTypeDict = [];
 
         public static void ReadBaseItemsJson()
         {

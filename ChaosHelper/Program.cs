@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -31,6 +30,8 @@ namespace ChaosHelper
         static bool haveAddedHotkeyEventHandler = false;
         static string lastFilterLoaded = string.Empty;
         static bool haveMuted = false;
+        static DateTime canUpdateAfter = DateTime.MinValue;
+        static readonly TimeSpan minUpdateInterval = TimeSpan.FromSeconds(5);
 
         static ChaosOverlay overlay;
 
@@ -646,13 +647,28 @@ namespace ChaosHelper
             if (isPaused && !forceFilterUpdate)
                 return;
 
+            if (!forceFilterUpdate && DateTime.UtcNow < canUpdateAfter)
+            {
+                logger.Info($"not updating filter - too soon");
+                return;
+            }
+
+            canUpdateAfter = DateTime.UtcNow + minUpdateInterval;
+
             if (forceFilterUpdate)
                 qualityItems = null;
 
+            var itemsNew = new ItemSet();
+            var itemCount = await GetTabContents(Config.RecipeTabIndex, itemsNew);
+            if (itemCount < 0)
+            {
+                logger.Warn("not updating filter - problem getting recipe items tab");
+                overlay?.SetStatus("problem updating filter", true);
+                return;
+            }
             itemsPrevious = itemsCurrent;
-            itemsCurrent = new ItemSet();
-            await GetTabContents(Config.RecipeTabIndex, itemsCurrent);
-            //await Task.Delay(500);
+            itemsCurrent = itemsNew;
+
             await RateLimit.DelayForRateLimits(500).ConfigureAwait(false);
             await GetCurrencyTabContents();
             itemsCurrent.RefreshCounts();
@@ -719,9 +735,21 @@ namespace ChaosHelper
                 var itemsInThisTab = await GetTabContents(kvp.Key, dumpTabItems, forChaosRecipe: false);
             }
 
-            var interestingItems = dumpTabItems.CheckMods(Config.DumpTabDictionary);
-            var matches = dumpTabItems.LogMatchingNames(Config.DumpTabDictionary);
-            overlay?.DrawTextMessages(interestingItems.Concat(matches));
+            List<ItemPosition> notedItems = (Config.DumpTabDictionary.Count == 1) ? [] : null;
+            var interestingItemMessages = dumpTabItems.CheckMods(Config.DumpTabDictionary, notedItems);
+            var matches = dumpTabItems.LogMatchingNames(Config.DumpTabDictionary, notedItems);
+
+            if (notedItems != null && notedItems.Count > 0)
+            {
+                var notedItemSet = new ItemSet();
+                foreach (var item in notedItems)
+                    notedItemSet.Add(item);
+                overlay?.SetItemSetToSell(notedItemSet);
+                overlay?.SendKey(ConsoleKey.Q);
+            }
+
+            overlay?.DrawTextMessages(interestingItemMessages.Concat(matches));
+
             logger.Info("done checking dump tabs");
         }
 
@@ -775,7 +803,7 @@ namespace ChaosHelper
                 if (tabIndex < 0)
                 {
                     logger.Error("ERROR: stash tab index not set");
-                    return 0;
+                    return -1;
                 }
 
                 JsonElement json = await GetJsonByTabIndex(tabIndex);
@@ -786,7 +814,7 @@ namespace ChaosHelper
                 logger.Error(ex, $"HTTP error getting tab contents: {ex.Message}");
             }
 
-            return 0;
+            return -1;
         }
 
         public static int AddItemsToItemSetFromJson(JsonElement json, ItemSet items, int tabIndex = 0, bool forChaosRecipe = true)

@@ -1,3 +1,4 @@
+using SharpDX;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -194,6 +195,13 @@ namespace ChaosHelper
                 quality,
                 e,
                 category));
+        }
+
+        public void Add(ItemPosition item)
+        {
+            if (item == null)
+                return;
+            itemsDict[item.Category].Add(item);
         }
 
         public ItemSet GetSetToSell(bool allowIdentified, int chaosParanoiaLevel)
@@ -473,7 +481,7 @@ namespace ChaosHelper
                 if (set == null)
                     return;
                 foreach (var item in set)
-                    result.itemsDict[item.Category].Add(item);
+                    result.Add(item);
             }
         }
 
@@ -538,7 +546,7 @@ namespace ChaosHelper
             }
         }
 
-        public List<string> LogMatchingNames(Dictionary<int, string> dumpTabDict)
+        public List<string> LogMatchingNames(Dictionary<int, string> dumpTabDict, List<ItemPosition> matchingItems)
         {
             string DumpTabName(int tabIndex)
             {
@@ -579,18 +587,20 @@ namespace ChaosHelper
                 result.Add(s);
                 s = $"name match: {s}";
                 logger.Info(s);
+                matchingItems?.Add(pair.Item1);
+                matchingItems?.Add(pair.Item2);
             }
             return result;
         }
 
-        public List<string> CheckMods(Dictionary<int, string> dumpTabDict)
+        public List<string> CheckMods(Dictionary<int, string> dumpTabDict, List<ItemPosition> interestingItemList)
         {
             string DumpTabName(int tabIndex)
             {
                 return dumpTabDict.TryGetValue(tabIndex, out string value) ? value : "<unknown>";
             }
 
-            var interestingItems = new SortedDictionary<string, ItemStats>();
+            var interestingItemMessages = new SortedDictionary<string, ItemStats>();
             foreach (var c in ItemClassForFilter.Iterator())
                 foreach (var item in itemsDict[c.Category])
                 {
@@ -599,20 +609,21 @@ namespace ChaosHelper
                     var message = itemStats.GetValueMessage();
                     if (message == null) continue;
                     var tab = DumpTabName(item.TabIndex);
-                    interestingItems.Add($"{item.TabIndex:D4}interesting item: tab '{tab}' at {item.X},{item.Y} - {item.Name} - {message}", itemStats);
+                    interestingItemMessages.Add($"{item.TabIndex:D4}interesting item: tab '{tab}' at {item.X},{item.Y} - {item.Name} - {message}", itemStats);
+                    interestingItemList?.Add(item);
                 }
 
             static string RemoveTabIndex(string s)
             {
-                return s.Substring(4);
+                return s[4..];
             }
 
-            foreach (var kv in interestingItems)
+            foreach (var kv in interestingItemMessages)
             {
                 logger.Info(RemoveTabIndex(kv.Key));
                 kv.Value.DumpValues();
             }
-            return interestingItems.Select(x => RemoveTabIndex(x.Key)).ToList();
+            return interestingItemMessages.Select(x => RemoveTabIndex(x.Key)).ToList();
         }
 
         private static readonly Dictionary<BaseClass, string> equippedSlotDict = new()

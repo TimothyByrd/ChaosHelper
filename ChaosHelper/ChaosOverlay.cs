@@ -165,9 +165,9 @@ namespace ChaosHelper
             _plugin?.SetArea(areaName, isTown);
         }
 
-        public void SetStatus(string msg, bool atMaxSets)
+        public void SetStatus(string msg, bool emphasizeStatus)
         {
-            _plugin?.SetStatus(msg, atMaxSets);
+            _plugin?.SetStatus(msg, emphasizeStatus);
         }
 
         public bool SetTemporaryMessage(string message, int seconds = 10)
