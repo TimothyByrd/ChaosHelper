@@ -480,7 +480,7 @@ namespace ChaosHelper
                 ItemSet setToSell = null;
                 do
                 {
-                    setToSell = items.GetSetToSell(Config.AllowIDedSets, Config.ChaosParanoiaLevel);
+                    setToSell = items.GetSetToSell(Config.AllowIDedSets, Config.ChaosParanoiaLevel, null);
 
                 } while (setToSell != null && setToSell.HasAnyItems());
             }
@@ -562,6 +562,12 @@ namespace ChaosHelper
 
         private static void ProcessHotkeyCommand(HotkeyEntry hotkey)
         {
+            static bool LogAndDisplay(string message)
+            {
+                logger.Info(message);
+                return overlay?.SetTemporaryMessage(message) ?? false;
+            }
+
             switch (hotkey.Command)
             {
                 case Constants.ClosePorts:
@@ -569,19 +575,19 @@ namespace ChaosHelper
                     break;
                 case Constants.TogglePause:
                     isPaused = !isPaused;
-                    logger.Info($"Setting isPaused to {isPaused}");
+                    LogAndDisplay($"Setting isPaused to {isPaused}");
                     break;
                 case Constants.HighlightItems:
-                    logger.Info("Highlighting sets to sell");
+                    LogAndDisplay("Highlighting sets to sell");
                     highlightSetsToSell = true;
                     break;
                 case Constants.ForceUpdate:
-                    logger.Info("Forcing a filter update");
+                    LogAndDisplay("Forcing a filter update");
                     forceFilterUpdate = true;
                     break;
                 case Constants.ToggleAutomaticFilterLoad:
                     Config.FilterAutoReload = !Config.FilterAutoReload;
-                    logger.Info($"FilterAutoReload is now {Config.FilterAutoReload}");
+                    LogAndDisplay($"FilterAutoReload is now {Config.FilterAutoReload}");
                     break;
                 case Constants.ShowQualityItems:
                     highlightQualityToSell = true;
@@ -590,20 +596,21 @@ namespace ChaosHelper
                     overlay?.SendKey(ConsoleKey.J);
                     break;
                 case Constants.CharacterCheck:
-                    logger.Info("Rechecking character and league");
+                    LogAndDisplay("Rechecking character and league");
                     checkCharacter = true;
                     break;
                 case Constants.ReloadSettings:
-                    logger.Info("Reloading config");
+                    LogAndDisplay("Reloading config");
                     reloadConfig = true;
                     break;
                 case Constants.TestPattern:
+                    LogAndDisplay("Toggling test pattern");
                     overlay?.SendKey(ConsoleKey.T);
                     break;
                 case Constants.CheckDumpTabs:
                     if (Config.DumpTabDictionary.Count != 0)
                     {
-                        logger.Info("Checking items in dump tabs");
+                        LogAndDisplay("Checking items in dump tabs");
                         logMatchingNames = true;
                     }
                     break;
@@ -632,7 +639,7 @@ namespace ChaosHelper
                 case Constants.ToggleMute:
                     haveMuted = !haveMuted;
                     Config.MutePoeProcess(mute: haveMuted);
-                    overlay?.SetTemporaryMessage($"PoE muted = {haveMuted}");
+                    LogAndDisplay($"PoE muted = {haveMuted}");
                     break;
                 default:
                     logger.Warn($"Unknown command {hotkey.Command}");
@@ -744,7 +751,7 @@ namespace ChaosHelper
                 var notedItemSet = new ItemSet();
                 foreach (var item in notedItems)
                     notedItemSet.Add(item);
-                overlay?.SetItemSetToSell(notedItemSet);
+                overlay?.SetItemSetToDisplay(notedItemSet, Config.DumpTabVerticalOffset);
                 overlay?.SendKey(ConsoleKey.Q);
             }
 
@@ -1345,8 +1352,13 @@ namespace ChaosHelper
 
                     if (highlightSetsToSell)
                     {
-                        var setToSell = itemsCurrent.GetSetToSell(Config.AllowIDedSets, Config.ChaosParanoiaLevel);
-                        overlay?.SetItemSetToSell(setToSell);
+                        static void SetOverlayTempMessage(string msg)
+                        {
+                            overlay?.SetTemporaryMessage(msg);
+                        }
+
+                        var setToSell = itemsCurrent.GetSetToSell(Config.AllowIDedSets, Config.ChaosParanoiaLevel, SetOverlayTempMessage);
+                        overlay?.SetItemSetToDisplay(setToSell, Config.RecipeTabVerticalOffset);
                         overlay?.SendKey(ConsoleKey.H);
                         highlightSetsToSell = false;
                         SetOverlayStatusMessage();
@@ -1359,7 +1371,7 @@ namespace ChaosHelper
                             await GetQualityTabContents(Config.QualityTabIndex, qualityItems);
                         }
                         var qualitySet = qualityItems.MakeQualitySet();
-                        overlay?.SetItemSetToSell(qualitySet);
+                        overlay?.SetItemSetToDisplay(qualitySet, Config.QualityTabVerticalOffset);
                         overlay?.SendKey(ConsoleKey.Q);
                         if (qualitySet == null || !qualitySet.HasAnyItems())
                             overlay?.SetStatus("No quality sets", false);

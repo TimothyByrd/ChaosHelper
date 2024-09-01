@@ -191,6 +191,11 @@ If you need to set a custom value, take a screenshot of your stash tab,then open
 Make a select rectangle over the grid part of the tab, and determine the X,Y,Height,Width of the selection.
 You can test the values by typing 't' in the ChaosHelper console to execute the test pattern command.
 
+__`recipeTabVerticalOffset`__ sets a number of pixels to vertically offset the rectangle for the chaos recipe tab.
+This is to allow for the recipe tab being in a folder.
+It is in addition to the value of `stashPageVerticalOffset`.
+Generally, set this to zero if your chaos recipe tab is not in a folder or 44 if it is - though this may vary depending on your screen resolution.
+
 __`filter`__ ("ChaosHelper") is the name of the .filter file to create/update - just don't make it the same as `sourceFilter`.
 See "About the generated filter" for more info.
 
@@ -241,6 +246,8 @@ For example, if the stash contains one ilvl 74 glove and one ilvl 74 helmet and 
 This will tend to cause hoarding of identified ilvl 60-74 items in the stash tab.
 - Adding 4 to the value will cause IDed recipes to not care about ilvl.
 This will tend to save ilvl 60-74 items for unIDed recipis.
+- Adding 8 to the value will force the tool to highlight a single set at a time.
+This may catch other corner cases to conserve ilvl 60-74 items.
 - I am currently using 5 (1 + 4).
 
 __`ignoreMaxSets`__ causes the specified item classes to ignore the `maxSets` setting.
@@ -272,6 +279,11 @@ Set to false if this causes any issues on your system.
 
 __`qualityTab`__ specifies a tab used to dump quality items for the 40% recipes.
 For normal items, Only item with qualities between 1 and 19 will be considered, since a 20% quality normal item matches the recipe by itself.
+
+__`qualityTabVerticalOffset`__ sets a number of pixels to vertically offset the rectangle for the quality recipe tab.
+This is to allow for the quality recipe tab being in a folder.
+It is in addition to the value of `stashPageVerticalOffset`.
+Generally, set this to zero if your quality recipe tab is not in a folder or 44 if it is - though this may vary depending on your screen resolution.
 
 __`qualityGemMapRecipeSlop`__ (0), `qualityFlaskRecipeSlop` (1) and `qualityScrapRecipeSlop` (3) specify how much slop to allow when making those recipes.
 For example, a value of 2 would allow making recipes using ingredients with a total value of 40 to 42.
@@ -321,6 +333,12 @@ it would include a Show block for wisdom scrolls with the specified font size an
 
 __`dumpTabs`__ Specifies a set dump tabs to seach with the item rules
 See "Item rules" for more info.
+
+__`dumpTabVerticalOffset`__ sets a number of pixels to vertically offset the rectangle for the dump tab.
+This is to allow for the dump tab being in a folder.
+It is in addition to the value of `stashPageVerticalOffset`.
+Generally, set this to zero if your dump tab is not in a folder or 44 if it is - though this may vary depending on your screen resolution.
+It only applies when a single dump tab is specified, because dump tab items are only highlighted when a single dump tab is specified.
 
 __`defenseVariance`__ See "Item rules" for more info.
 

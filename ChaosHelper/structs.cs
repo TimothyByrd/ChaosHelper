@@ -118,6 +118,16 @@ namespace ChaosHelper
         Map,
     }
 
+    [Flags]
+    public enum ParanoiaLevel
+    {
+        None = 0,
+        AllowSingleSet = 1,
+        HoardIded60s = 2,
+        IdedSetsIgnoreIlvl = 4,
+        ForceSingleSet = 8,
+    }
+
     public struct ItemClassForFilter(string abbrev, bool skip, int fontSize, Cat category, string categoryStr, string filterClass)
     {
         public string Abbrev = abbrev;
@@ -266,7 +276,7 @@ public static partial class Helpers
         public static BaseClass ToBaseClass(this string s)
         {
             if (Enum.TryParse<BaseClass>(s, true, out BaseClass baseClass)
-                && Enum.IsDefined(typeof(BaseClass), baseClass))
+                && Enum.IsDefined(baseClass))
                 return baseClass;
             if (itemTypeToBaseClassDict.TryGetValue(s, out baseClass))
                 return baseClass;

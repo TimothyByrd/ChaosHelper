@@ -50,14 +50,21 @@ namespace ChaosHelper
         public static int MaxIlvl { get; private set; }
         public static int MinIlvl { get; private set; }
         public static int RecipeTabIndex { get; private set; }
+        public static int RecipeTabVerticalOffset { get; set; } = 0;
         public static bool IsQuadTab { get; private set; }
+
         public static bool QualityIsQuadTab { get; private set; }
+        public static int QualityTabVerticalOffset { get; set; } = 0;
         public static int QualityFlaskRecipeSlop { get; private set; }
         public static int QualityGemMapRecipeSlop { get; private set; }
         public static int QualityScrapRecipeSlop { get; private set; }
+        public static int QualityTabIndex { get; set; } = -1;
+
         public static Dictionary<int, string> DumpTabDictionary { get; private set; } = [];
+        public static int DumpTabVerticalOffset { get; set; } = 0;
+
         public static bool AllowIDedSets { get; private set; }
-        public static int ChaosParanoiaLevel { get; private set; }
+        public static ParanoiaLevel ChaosParanoiaLevel { get; private set; }
         public static string IgnoreMaxSets { get; private set; }
         public static string IgnoreMaxSetsUnder75 { get; private set; }
         public static string IgnoreMaxIlvl { get; private set; }
@@ -76,7 +83,6 @@ namespace ChaosHelper
         public static bool StashCanDoManualRead { get; private set; }
         public static bool ForceSteam { get; set; }
         public static int CurrencyTabIndex { get; set; } = -1;
-        public static int QualityTabIndex { get; set; } = -1;
 
         public static double DefenseVariance { get; private set; }
         public static bool ShowMinimumCurrency { get; private set; }
@@ -207,7 +213,7 @@ namespace ChaosHelper
 
             var stashReadModeStr = rawConfig["stashReadMode"];
             if (Enum.TryParse<StashReading>(stashReadModeStr, true, out var stashReadMode)
-                && Enum.IsDefined(typeof(StashReading), stashReadMode))
+                && Enum.IsDefined(stashReadMode))
                 StashReadMode = stashReadMode;
             else
                 StashReadMode = StashReading.Normal;
@@ -230,13 +236,13 @@ namespace ChaosHelper
             MaxIlvl = rawConfig.GetInt("maxIlvl", -1);
             MinIlvl = rawConfig.GetInt("minIlvl", 60);
             AllowIDedSets = rawConfig.GetBoolean("allowIDedSets", true);
-            ChaosParanoiaLevel = rawConfig.GetInt("chaosParanoiaLevel", 0);
+            ChaosParanoiaLevel = (ParanoiaLevel) rawConfig.GetInt("chaosParanoiaLevel", 0);
             IgnoreMaxSets = rawConfig["ignoreMaxSets"];
             IgnoreMaxSetsUnder75 = rawConfig["ignoreMaxSetsUnder75"];
             IgnoreMaxIlvl = rawConfig["ignoreMaxIlvl"];
             var sortOrderStr = rawConfig["itemSortOrder"];
             if (Enum.TryParse<ItemPosition.SortBy>(sortOrderStr, true, out var sortOrder)
-                && Enum.IsDefined(typeof(ItemPosition.SortBy), sortOrder))
+                && Enum.IsDefined(sortOrder))
                 ItemPosition.SortOrder = sortOrder;
             else
                 ItemPosition.SortOrder = MinIlvl < 60 ? ItemPosition.SortBy.IlvlBottomFirst : ItemPosition.SortBy.Default;
@@ -432,6 +438,10 @@ namespace ChaosHelper
             RecipeTabIndex = -1;
             CurrencyTabIndex = -1;
             QualityTabIndex = -1;
+
+            RecipeTabVerticalOffset = rawConfig.GetInt("recipeTabVerticalOffset", 0);
+            QualityTabVerticalOffset = rawConfig.GetInt("qualityTabVerticalOffset", 0);
+            DumpTabVerticalOffset = rawConfig.GetInt("dumpTabVerticalOffset", 0);
 
             var tabNameFromConfig = rawConfig["tabName"];
             var qualityTabNameFromConfig = rawConfig["qualityTab"];

@@ -46,6 +46,7 @@ namespace ChaosHelper
         private volatile ItemSet _highlightSet = null;
         private bool _showHightlightSet = false;
         private bool _showQualitySet = false;
+        private int _extraVerticalOffset = 0;
 
         private readonly bool _shouldHookMouseEvents = false;
         private bool _haveHookedMouse = false;
@@ -80,10 +81,11 @@ namespace ChaosHelper
             _countsMsg = _currentItems?.GetCountsMsg() ?? "null";
         }
 
-        internal void SetItemSetToSell(ItemSet itemSet)
+        internal void SetItemSetToDisplay(ItemSet itemSet, int extraVerticalOffset)
         {
             MaybeUpdateStashRect();
             _highlightSet = itemSet;
+            _extraVerticalOffset = extraVerticalOffset;
             _countsMsg = _currentItems?.GetCountsMsg() ?? "null"; // refresh the counts message from the current item set.
         }
 
@@ -505,7 +507,7 @@ namespace ChaosHelper
             var brushH = _redOpacityBrush;
             var brushS = _redBrush;
             foreach (var item in items)
-                _itemsToDraw.Add(GetHighlightRectangle(item, brushH, brushS));
+                _itemsToDraw.Add(GetHighlightRectangle(item, brushH, brushS, _extraVerticalOffset));
         }
 
         private void FillQualityItemsToDraw(List<ItemPosition> items)
@@ -514,7 +516,7 @@ namespace ChaosHelper
             var brushH = _highlightBrushDict[Cat.BodyArmours];
             var brushS = _solidBrushDict[Cat.BodyArmours];
             foreach (var item in items)
-                _itemsToDraw.Add(GetQualityRectangle(item, brushH, brushS));
+                _itemsToDraw.Add(GetQualityRectangle(item, brushH, brushS, _extraVerticalOffset));
         }
 
         private void FillItemsToDraw(ItemSet itemSet)
@@ -528,7 +530,7 @@ namespace ChaosHelper
                 var brushS = _solidBrushDict[c.Category];
                 var items = itemSet.GetCategory(c.Category);
                 foreach (var item in items)
-                    _itemsToDraw.Add(GetHighlightRectangle(item, brushH, brushS));
+                    _itemsToDraw.Add(GetHighlightRectangle(item, brushH, brushS, _extraVerticalOffset));
             }
         }
 
@@ -543,12 +545,12 @@ namespace ChaosHelper
             OverlayWindow.Graphics.DrawRectangle(x, y, x2 - x, y2 - y, stroke, brushS);
         }
 
-        private ItemRectStruct GetHighlightRectangle(ItemPosition item, int brushH, int brushS)
+        private ItemRectStruct GetHighlightRectangle(ItemPosition item, int brushH, int brushS, int extraVerticalOffset)
         {
-            return GetHighlightRectangle(item.X, item.Y, item.W, item.H, brushH, brushS);
+            return GetHighlightRectangle(item.X, item.Y, item.W, item.H, brushH, brushS, extraVerticalOffset);
         }
 
-        private ItemRectStruct GetHighlightRectangle(int col, int row, int width, int height, int brushH, int brushS)
+        private ItemRectStruct GetHighlightRectangle(int col, int row, int width, int height, int brushH, int brushS, int extraVerticalOffset)
         {
             return new ItemRectStruct
             {
@@ -556,8 +558,8 @@ namespace ChaosHelper
                 {
                     Left = (float)(_stashRect.Left + _squareWidth * col) + 1.0f,
                     Right = (float)(_stashRect.Left + _squareWidth * (col + width)) - 1.0f,
-                    Top = (float)(_stashRect.Top + _squareHeight * row) + 1.0f,
-                    Bottom = (float)(_stashRect.Top + _squareHeight * (row + height)) - 1.0f,
+                    Top = (float)(_stashRect.Top + extraVerticalOffset + _squareHeight * row) + 1.0f,
+                    Bottom = (float)(_stashRect.Top + extraVerticalOffset + _squareHeight * (row + height)) - 1.0f,
                 },
                 Stroke = 3,
                 BrushH = brushH,
@@ -565,12 +567,12 @@ namespace ChaosHelper
             };
         }
 
-        private ItemRectStruct GetQualityRectangle(ItemPosition item, int brushH, int brushS)
+        private ItemRectStruct GetQualityRectangle(ItemPosition item, int brushH, int brushS, int extraVerticalOffset)
         {
-            return GetQualityRectangle(item.X, item.Y, item.W, item.H, brushH, brushS);
+            return GetQualityRectangle(item.X, item.Y, item.W, item.H, brushH, brushS, extraVerticalOffset);
         }
 
-        private ItemRectStruct GetQualityRectangle(int col, int row, int width, int height, int brushH, int brushS)
+        private ItemRectStruct GetQualityRectangle(int col, int row, int width, int height, int brushH, int brushS, int extraVerticalOffset)
         {
             return new ItemRectStruct
             {
@@ -578,8 +580,8 @@ namespace ChaosHelper
                 {
                     Left = (float)(_stashRect.Left + _qualitySquareWidth * col) + 1.0f,
                     Right = (float)(_stashRect.Left + _qualitySquareWidth * (col + width)) - 1.0f,
-                    Top = (float)(_stashRect.Top + _qualitySquareHeight * row) + 1.0f,
-                    Bottom = (float)(_stashRect.Top + _qualitySquareHeight * (row + height)) - 1.0f,
+                    Top = (float)(_stashRect.Top + extraVerticalOffset + _qualitySquareHeight * row) + 1.0f,
+                    Bottom = (float)(_stashRect.Top + extraVerticalOffset + _qualitySquareHeight * (row + height)) - 1.0f,
                 },
                 Stroke = 3,
                 BrushH = brushH,

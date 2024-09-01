@@ -204,20 +204,20 @@ namespace ChaosHelper
             itemsDict[item.Category].Add(item);
         }
 
-        public ItemSet GetSetToSell(bool allowIdentified, int chaosParanoiaLevel)
+        public ItemSet GetSetToSell(bool allowIdentified, ParanoiaLevel chaosParanoiaLevel, Action<string> statusCallBack)
         {
             CleanOutInventoryItems();
 
             // Determine how many unided sets we can make.
             var unidedPossible = CountPossible(false);
             if (unidedPossible > 0)
-                return MakeSetOptimize(Math.Min(2, unidedPossible), false, chaosParanoiaLevel);
+                return MakeSetOptimize(unidedPossible, false, chaosParanoiaLevel, statusCallBack);
 
             if (allowIdentified)
             {
                 var idedPossible = CountPossible(true);
                 if (idedPossible > 0)
-                    return MakeSetOptimize(Math.Min(2, idedPossible), true, chaosParanoiaLevel);
+                    return MakeSetOptimize(idedPossible, true, chaosParanoiaLevel, statusCallBack);
             }
             return null;
         }
@@ -299,28 +299,39 @@ namespace ChaosHelper
         /// <param name="numSets">the number of sets to make (1 or 2) - trust the caller to give a doable number</param>
         /// <param name="ided">It true, do IDed sets - both rings IDed and prefer IDed for everythng else.</param>
         /// <returns></returns>
-        private ItemSet MakeSetOptimize(int numSets, bool ided, int chaosParanoiaLevel)
+        private ItemSet MakeSetOptimize(int numSets, bool ided, ParanoiaLevel chaosParanoiaLevel, Action<string> statusCallBack)
         {
-            bool CanMakeSingleSets()
+            bool CanMakeSingleSet()
             {
-                return (chaosParanoiaLevel & 1) != 0;
+                return chaosParanoiaLevel.HasFlag(ParanoiaLevel.AllowSingleSet);
+            }
+
+            bool MustMakeSingleSet()
+            {
+                return chaosParanoiaLevel.HasFlag(ParanoiaLevel.ForceSingleSet);
+            }
+
+            bool HoardIdedUnder75()
+            {
+                return chaosParanoiaLevel.HasFlag(ParanoiaLevel.HoardIded60s);
             }
 
             bool IlvlDoesNotMatter()
             {
-                return ided && (chaosParanoiaLevel & 4) != 0;
+                return ided && chaosParanoiaLevel.HasFlag(ParanoiaLevel.IdedSetsIgnoreIlvl);
             }
 
-            bool HoardIded60to74()
+            void Notify(string msg)
             {
-                return (chaosParanoiaLevel & 2) != 0;
+                logger.Info(msg);
+                statusCallBack?.Invoke(msg);
             }
 
             var result = new ItemSet();
 
-            numSets = Math.Min(2, numSets);
+            numSets = Math.Min(MustMakeSingleSet() ? 1 : 2, numSets);
             if (DetailedLogging)
-                logger.Info($"trying for {numSets} sets - CanMakeSingleSets() = {CanMakeSingleSets()}, IlvlDoesNotMatter() = {IlvlDoesNotMatter()}, HoardIded60to74() = {HoardIded60to74()}");
+                logger.Info($"trying for {numSets} sets - CanMakeSingleSets() = {CanMakeSingleSet()}, MustMakeSingleSet = {MustMakeSingleSet()}, HoardIdedUnder75() = {HoardIdedUnder75()}, IlvlDoesNotMatter() = {IlvlDoesNotMatter()}");
 
             var optimizerList = new List<ChaosSlotOptimizer>
             {
@@ -342,11 +353,33 @@ namespace ChaosHelper
             var mustBe60 = Cat.Junk;
             var know60Cat = IlvlDoesNotMatter() || optimizerList.Any(x => x.Num75(ided) == 0);
             if (IlvlDoesNotMatter())
-                logger.Info($"mustBe60 is {mustBe60} because IlvlDoesNotMatter()");
+                Notify($"mustBe60 is {mustBe60} because IlvlDoesNotMatter()");
             else if (know60Cat)
             {
                 var cats = string.Join(", ", optimizerList.Where(x => x.Num75(ided) == 0).Select(x => x.Category.ToString()).ToList());
-                logger.Info($"mustBe60 is {mustBe60} because these cats have no {IdedStr(ided)} items over 75: {cats}");
+                Notify($"mustBe60 is {mustBe60} because these cats have no {IdedStr(ided)} items over 75: {cats}");
+            }
+
+            if (!know60Cat && (CanMakeSingleSet() || MustMakeSingleSet()))
+            {
+                // special case for weapons and rings where one is 60 and one is 75
+                if (optimizerList.First(x => x.Category == Cat.OneHandWeapons) is ChaosSlotOptimizerWeapons weapons && weapons.OneSetMixes60AndA75(ided, chaosParanoiaLevel))
+                {
+                    numSets = 1;
+                    mustBe60 = Cat.OneHandWeapons;
+                    know60Cat = true;
+                }
+                else
+                {
+                    if (optimizerList.First(x => x.Category == Cat.Rings) is ChaosSlotOptimizerRings rings && rings.OneSetMixes60AndA75(ided, chaosParanoiaLevel))
+                    {
+                        numSets = 1;
+                        mustBe60 = Cat.Rings;
+                        know60Cat = true;
+                    }
+                }
+                if (know60Cat)
+                    Notify($"mustBe60 is {mustBe60} because it can mix a 60 and a 75");
             }
 
             if (!know60Cat)
@@ -359,11 +392,11 @@ namespace ChaosHelper
                 {
                     mustBe60 = bestFor60.Category;
                     know60Cat = true;
-                    logger.Info($"mustBe60 is {mustBe60} because it has {bestFor60.Num60(ided)} {IdedStr(ided)} 60s");
+                    Notify($"mustBe60 is {mustBe60} because it has {bestFor60.Num60(ided)} {IdedStr(ided)} 60s");
                 }
             }
 
-            if (!know60Cat && numSets > 1 && CanMakeSingleSets())
+            if (!know60Cat && numSets > 1 && CanMakeSingleSet())
             {
                 //else if (optimize and any can make 1 60)
                 //     select the highest priority slot (biggest item) that can make 1 60
@@ -374,12 +407,12 @@ namespace ChaosHelper
                     mustBe60 = bestFor60.Category;
                     know60Cat = true;
                     numSets = 1;
-                    logger.Info($"mustBe60 is {mustBe60} (and numSets = 1) because it has {bestFor60.Num60(ided)} {IdedStr(ided)} 60s");
+                    Notify($"mustBe60 is {mustBe60} (and numSets = 1) because it has {bestFor60.Num60(ided)} {IdedStr(ided)} 60s");
                 }
             }
 
             if (!know60Cat)
-                logger.Info($"mustBe60 is {mustBe60} (and it's a regal recipe) because can't find any 60s");
+                Notify($"mustBe60 is {mustBe60} (and it's a regal recipe) because can't find any 60s");
 
             //else
             //     GetItems(mustbe60: false) for all
@@ -742,7 +775,7 @@ namespace ChaosHelper
             CalculateInternal(Category);
         }
 
-        public virtual void GetItems(ItemSet destination, int numSets, bool mustBe60, bool ided, int chaosParanoiaLevel)
+        public virtual void GetItems(ItemSet destination, int numSets, bool mustBe60, bool ided, ParanoiaLevel chaosParanoiaLevel)
         {
             var sourceList = source.GetCategory(Category);
             var list = new List<ItemPosition>();
@@ -804,9 +837,9 @@ namespace ChaosHelper
             return ided ? CanMake75Ided : CanMake75;
         }
 
-        public static bool HoardIded60to74(int chaosParanoiaLevel)
+        public static bool HoardIded60to74(ParanoiaLevel chaosParanoiaLevel)
         {
-            return (chaosParanoiaLevel & 2) != 0;
+            return chaosParanoiaLevel.HasFlag(ParanoiaLevel.HoardIded60s);
         }
     }
 
@@ -836,7 +869,17 @@ namespace ChaosHelper
             CanMake75Ided /= 2;
         }
 
-        public override void GetItems(ItemSet destination, int numSets, bool mustBe60, bool ided, int chaosParanoiaLevel)
+        public bool OneSetMixes60AndA75(bool ided, ParanoiaLevel chaosParanoiaLevel)
+        {
+            if (ided && CanMake60Ided == 0) return false;
+            if (!ided && CanMake60 == 0) return false;
+            var tempSet = new ItemSet();
+            GetItems(tempSet, numSets: 1, mustBe60: true, ided, chaosParanoiaLevel);
+            var rings = tempSet.GetCategory(Category);
+            return rings.Count == 2 && rings.Count(x => x.Is75) == 1;
+        }
+
+        public override void GetItems(ItemSet destination, int numSets, bool mustBe60, bool ided, ParanoiaLevel chaosParanoiaLevel)
         {
             // because we need two per set.
             var wanted = numSets * 2;
@@ -917,7 +960,17 @@ namespace ChaosHelper
             if (w2H4_75 + w2H4_75Id > 0) ++CanMake75Ided;
         }
 
-        public override void GetItems(ItemSet destination, int numSets, bool mustBe60, bool ided, int chaosParanoiaLevel)
+        public bool OneSetMixes60AndA75(bool ided, ParanoiaLevel chaosParanoiaLevel)
+        {
+            if (ided && CanMake60Ided == 0) return false;
+            if (!ided && CanMake60 == 0) return false;
+            var tempSet = new ItemSet();
+            GetOneSet(tempSet, mustBe60: true, ided, chaosParanoiaLevel);
+            var w1 = tempSet.GetCategory(Cat.OneHandWeapons);
+            return w1.Count == 2 && w1.Count(x => x.Is75) == 1;
+        }
+
+        public override void GetItems(ItemSet destination, int numSets, bool mustBe60, bool ided, ParanoiaLevel chaosParanoiaLevel)
         {
             if (numSets > 0)
                 GetOneSet(destination, mustBe60, ided, chaosParanoiaLevel);
@@ -925,7 +978,7 @@ namespace ChaosHelper
                 GetOneSet(destination, mustBe60, ided, chaosParanoiaLevel);
         }
 
-        private void GetOneSet(ItemSet destination, bool mustBe60, bool ided, int chaosParanoiaLevel)
+        private void GetOneSet(ItemSet destination, bool mustBe60, bool ided, ParanoiaLevel chaosParanoiaLevel)
         {
             var w2Source = source.GetCategory(Cat.TwoHandWeapons);
             var w2Dest = destination.GetCategory(Cat.TwoHandWeapons);
@@ -938,7 +991,7 @@ namespace ChaosHelper
 
             ItemPosition found2hd = null;
 
-            // 2x4 weapons trump everything because they take up so much stash space
+            // 2x4 weapons trump everything because they take up more stash space
             //
             if (!w2Dest.Any(x => x.Is2x4))
             {
