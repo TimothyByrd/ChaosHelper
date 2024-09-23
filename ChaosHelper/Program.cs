@@ -28,6 +28,7 @@ namespace ChaosHelper
         static bool itemStatsFromClipboard = false;
         static bool isPaused = false;
         static bool haveAddedHotkeyEventHandler = false;
+        static bool forceSingleSet = false;
         static string lastFilterLoaded = string.Empty;
         static bool haveMuted = false;
         static DateTime canUpdateAfter = DateTime.MinValue;
@@ -294,8 +295,11 @@ namespace ChaosHelper
             itemsCurrent = new ItemSet();
             await RateLimit.DelayForRateLimits(500).ConfigureAwait(false);
             await GetTabContents(Config.RecipeTabIndex, itemsCurrent);
-            await RateLimit.DelayForRateLimits(500).ConfigureAwait(false);
-            await GetCurrencyTabContents();
+            if (Config.ShowMinimumCurrency)
+            {
+                await RateLimit.DelayForRateLimits(500).ConfigureAwait(false);
+                await GetCurrencyTabContents();
+            }
             itemsCurrent.RefreshCounts();
             itemsCurrent.CalculateClassesToShow();
             overlay?.SetCurrentItems(itemsCurrent);
@@ -579,6 +583,8 @@ namespace ChaosHelper
                     break;
                 case Constants.HighlightItems:
                     LogAndDisplay("Highlighting sets to sell");
+                    if (string.Equals(hotkey.Text, "1", StringComparison.Ordinal))
+                        forceSingleSet = true;
                     highlightSetsToSell = true;
                     break;
                 case Constants.ForceUpdate:
@@ -676,8 +682,11 @@ namespace ChaosHelper
             itemsPrevious = itemsCurrent;
             itemsCurrent = itemsNew;
 
-            await RateLimit.DelayForRateLimits(500).ConfigureAwait(false);
-            await GetCurrencyTabContents();
+            if (Config.ShowMinimumCurrency)
+            {
+                await RateLimit.DelayForRateLimits(500).ConfigureAwait(false);
+                await GetCurrencyTabContents();
+            }
             itemsCurrent.RefreshCounts();
             itemsCurrent.CalculateClassesToShow();
 
@@ -1356,8 +1365,9 @@ namespace ChaosHelper
                         {
                             overlay?.SetTemporaryMessage(msg);
                         }
-
-                        var setToSell = itemsCurrent.GetSetToSell(Config.AllowIDedSets, Config.ChaosParanoiaLevel, SetOverlayTempMessage);
+                        var maxSets = forceSingleSet ? 1 : 2;
+                        forceSingleSet = false;
+                        var setToSell = itemsCurrent.GetSetToSell(Config.AllowIDedSets, Config.ChaosParanoiaLevel, SetOverlayTempMessage, maxSets);
                         overlay?.SetItemSetToDisplay(setToSell, Config.RecipeTabVerticalOffset);
                         overlay?.SendKey(ConsoleKey.H);
                         highlightSetsToSell = false;

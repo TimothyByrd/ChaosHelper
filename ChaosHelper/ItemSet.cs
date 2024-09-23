@@ -204,20 +204,20 @@ namespace ChaosHelper
             itemsDict[item.Category].Add(item);
         }
 
-        public ItemSet GetSetToSell(bool allowIdentified, ParanoiaLevel chaosParanoiaLevel, Action<string> statusCallBack)
+        public ItemSet GetSetToSell(bool allowIdentified, ParanoiaLevel chaosParanoiaLevel, Action<string> statusCallBack, int maxSets = 2)
         {
             CleanOutInventoryItems();
 
             // Determine how many unided sets we can make.
             var unidedPossible = CountPossible(false);
             if (unidedPossible > 0)
-                return MakeSetOptimize(unidedPossible, false, chaosParanoiaLevel, statusCallBack);
+                return MakeSetOptimize(Math.Min(unidedPossible, maxSets), false, chaosParanoiaLevel, statusCallBack);
 
             if (allowIdentified)
             {
                 var idedPossible = CountPossible(true);
                 if (idedPossible > 0)
-                    return MakeSetOptimize(idedPossible, true, chaosParanoiaLevel, statusCallBack);
+                    return MakeSetOptimize(Math.Min(idedPossible, maxSets), true, chaosParanoiaLevel, statusCallBack);
             }
             return null;
         }
@@ -360,26 +360,31 @@ namespace ChaosHelper
                 Notify($"mustBe60 is {mustBe60} because these cats have no {IdedStr(ided)} items over 75: {cats}");
             }
 
+            if (!know60Cat && ided)
+            {
+                var no75s = optimizerList.FirstOrDefault(x => x.HasNoIded75sS());
+                if (no75s != null)
+                {
+                    mustBe60 = no75s.Category;
+                    know60Cat = true;
+                    if (no75s.CanMake60Ided - no75s.CanMake60 < 2)
+                        numSets = 1;
+                    Notify($"mustBe60 is {mustBe60} because it has ided 60s but not ided 75s");
+                }
+            }
+
             if (!know60Cat && (CanMakeSingleSet() || MustMakeSingleSet()))
             {
-                // special case for weapons and rings where one is 60 and one is 75
-                if (optimizerList.First(x => x.Category == Cat.OneHandWeapons) is ChaosSlotOptimizerWeapons weapons && weapons.OneSetMixes60AndA75(ided, chaosParanoiaLevel))
+                // special case for rings and weapons where one is 60 and one is 75 - try rings first, since they are more special
+                var mixes60and75 = Enumerable.Reverse(optimizerList).FirstOrDefault(x => x.OneSetMixes60AndA75(ided, chaosParanoiaLevel));
+                if (mixes60and75 != null)
                 {
                     numSets = 1;
-                    mustBe60 = Cat.OneHandWeapons;
+                    mustBe60 = mixes60and75.Category;
                     know60Cat = true;
+                    Notify($"mustBe60 is {mustBe60} (and numSets = 1) because it can mix a 60 and a 75");
+
                 }
-                else
-                {
-                    if (optimizerList.First(x => x.Category == Cat.Rings) is ChaosSlotOptimizerRings rings && rings.OneSetMixes60AndA75(ided, chaosParanoiaLevel))
-                    {
-                        numSets = 1;
-                        mustBe60 = Cat.Rings;
-                        know60Cat = true;
-                    }
-                }
-                if (know60Cat)
-                    Notify($"mustBe60 is {mustBe60} because it can mix a 60 and a 75");
             }
 
             if (!know60Cat)
@@ -775,6 +780,11 @@ namespace ChaosHelper
             CalculateInternal(Category);
         }
 
+        public virtual bool OneSetMixes60AndA75(bool ided, ParanoiaLevel chaosParanoiaLevel)
+        {
+            return false;
+        }
+
         public virtual void GetItems(ItemSet destination, int numSets, bool mustBe60, bool ided, ParanoiaLevel chaosParanoiaLevel)
         {
             var sourceList = source.GetCategory(Category);
@@ -837,6 +847,11 @@ namespace ChaosHelper
             return ided ? CanMake75Ided : CanMake75;
         }
 
+        public bool HasNoIded75sS()
+        {
+            return CanMake60Ided > CanMake60 && CanMake75Ided == CanMake75;
+        }
+
         public static bool HoardIded60to74(ParanoiaLevel chaosParanoiaLevel)
         {
             return chaosParanoiaLevel.HasFlag(ParanoiaLevel.HoardIded60s);
@@ -869,7 +884,7 @@ namespace ChaosHelper
             CanMake75Ided /= 2;
         }
 
-        public bool OneSetMixes60AndA75(bool ided, ParanoiaLevel chaosParanoiaLevel)
+        public override bool OneSetMixes60AndA75(bool ided, ParanoiaLevel chaosParanoiaLevel)
         {
             if (ided && CanMake60Ided == 0) return false;
             if (!ided && CanMake60 == 0) return false;
@@ -960,7 +975,7 @@ namespace ChaosHelper
             if (w2H4_75 + w2H4_75Id > 0) ++CanMake75Ided;
         }
 
-        public bool OneSetMixes60AndA75(bool ided, ParanoiaLevel chaosParanoiaLevel)
+        public override bool OneSetMixes60AndA75(bool ided, ParanoiaLevel chaosParanoiaLevel)
         {
             if (ided && CanMake60Ided == 0) return false;
             if (!ided && CanMake60 == 0) return false;
