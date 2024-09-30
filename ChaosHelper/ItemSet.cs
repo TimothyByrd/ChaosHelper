@@ -882,6 +882,8 @@ namespace ChaosHelper
 
     public class ChaosSlotOptimizerRings(ItemSet source, int priority) : ChaosSlotOptimizer(source, Cat.Rings, priority)
     {
+        private int num60s;
+        private int num60sIded;
         private int num75s;
         private int num75sIded;
 
@@ -894,6 +896,8 @@ namespace ChaosHelper
             CanMake60Ided -= CanMake60;
             CanMake75Ided -= CanMake75;
 
+            num60s = CanMake60;
+            num60sIded = CanMake60Ided;
             num75s = CanMake75;
             num75sIded = CanMake75Ided;
 
@@ -916,18 +920,18 @@ namespace ChaosHelper
         {
             if (ided)
             {
-                return CanMake60Ided > 0 && num75sIded > 0 && num75sIded < 5;
+                return num60sIded > 0 && num75sIded > 0 && num60sIded >= num75sIded - 4;
             }
-            return CanMake60 > 0 && num75s > 0 && num75s < 5;
+            return num60s > 0 && num75s > 0 && num60s >= num75s - 4;
         }
 
         public override bool PreferSingleSet(bool ided)
         {
             if (ided)
             {
-                return CanMake60Ided > 0 && num75sIded > 0;
+                return num60sIded > 0 && num75sIded > 0;
             }
-            return CanMake60 > 0 && num75s > 0;
+            return num60s > 0 && num75s > 0;
         }
 
         public override void GetItems(ItemSet destination, int numSets, bool mustBe60, bool ided, ParanoiaLevel _chaosParanoiaLevel)
@@ -965,6 +969,8 @@ namespace ChaosHelper
         private int w2H4_60Id;
         private int w2H4_75Id;
 
+        private int num1H3_60s;
+        private int num1H3_60sIded;
         private int num1H3_75s;
         private int num1H3_75sIded;
 
@@ -972,6 +978,8 @@ namespace ChaosHelper
         {
             CalculateInternal(Cat.OneHandWeapons);
 
+            num1H3_60s = CanMake60;
+            num1H3_60sIded = CanMake60Ided;
             num1H3_75s = CanMake75;
             num1H3_75sIded = CanMake75Ided;
 
@@ -1021,18 +1029,18 @@ namespace ChaosHelper
         {
             if (ided)
             {
-                return CanMake60Ided > 0 && num1H3_75sIded > 0 && num1H3_75sIded < 5;
+                return num1H3_60sIded > 0 && num1H3_75sIded > 0 && num1H3_60sIded >= num1H3_75sIded - 4;
             }
-            return CanMake60 > 0 && num1H3_75s > 0 && num1H3_75s < 5;
+            return num1H3_60s > 0 && num1H3_75s > 0 && num1H3_60s >= num1H3_75s - 4;
         }
 
         public override bool PreferSingleSet(bool ided)
         {
             if (ided)
             {
-                return CanMake60Ided > 0 && num1H3_75sIded > 0;
+                return num1H3_60sIded > 0 && num1H3_75sIded > 0;
             }
-            return CanMake60 > 0 && num1H3_75s > 0;
+            return num1H3_60s > 0 && num1H3_75s > 0;
         }
 
         public override void GetItems(ItemSet destination, int numSets, bool mustBe60, bool ided, ParanoiaLevel chaosParanoiaLevel)
