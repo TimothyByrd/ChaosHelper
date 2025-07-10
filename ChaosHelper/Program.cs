@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -12,6 +13,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using static ChaosHelper.Currency;
 
 namespace ChaosHelper
 {
@@ -23,7 +25,7 @@ namespace ChaosHelper
         static bool checkCharacter = false;
         static bool highlightSetsToSell = false;
         static bool highlightQualityToSell = false;
-        static bool logMatchingNames = false;
+        static bool checkDumpTabs = false;
         static bool reloadConfig = false;
         static bool itemStatsFromClipboard = false;
         static bool isPaused = false;
@@ -32,13 +34,14 @@ namespace ChaosHelper
         static string lastFilterLoaded = string.Empty;
         static bool haveMuted = false;
         static DateTime canUpdateAfter = DateTime.MinValue;
-        static readonly TimeSpan minUpdateInterval = TimeSpan.FromSeconds(5);
+        static readonly TimeSpan minUpdateInterval = TimeSpan.FromSeconds(10);
 
         static ChaosOverlay overlay;
 
         static ItemSet itemsPrevious = null;
         static ItemSet itemsCurrent = null;
         static ItemSet qualityItems = null;
+        static readonly ItemSet emptySet = new();
         static string currentArea = string.Empty;
 
         private class Settings
@@ -48,6 +51,7 @@ namespace ChaosHelper
             public bool StartPaused { get; set; } = false;
             public bool FindIlvl100 { get; set; } = false;
             public string FileToCheck { get; set; }
+            public bool ForceExitWhenPoeExits { get; set; } = false;
         }
 
         static void Main(string[] args)
@@ -62,6 +66,7 @@ namespace ChaosHelper
 
                 bool nextArgIsPoeDir = false;
                 bool nextArgIsFileToCheck = false;
+                bool nextArgIsConfigMerge = false;
                 foreach (var arg in args)
                 {
                     if (string.Equals(arg, "-steam", StringComparison.Ordinal))
@@ -73,11 +78,13 @@ namespace ChaosHelper
                     else if (string.Equals(arg, "-pause", StringComparison.Ordinal) || string.Equals(arg, "-p", StringComparison.Ordinal))
                         settings.StartPaused = true;
                     else if (string.Equals(arg, "-autoexit", StringComparison.Ordinal) || string.Equals(arg, "-x", StringComparison.Ordinal))
-                        Config.ForceExitWhenPoeExits = true;
+                        settings.ForceExitWhenPoeExits = true;
                     else if (string.Equals(arg, "-poe", StringComparison.Ordinal))
                         nextArgIsPoeDir = true;
                     else if (string.Equals(arg, "-check", StringComparison.Ordinal))
                         nextArgIsFileToCheck = true;
+                    else if (string.Equals(arg, "-merge", StringComparison.Ordinal))
+                        nextArgIsConfigMerge = true;
                     else if (string.Equals(arg, "-100", StringComparison.Ordinal))
                         settings.FindIlvl100 = true;
                     else if (nextArgIsPoeDir)
@@ -97,10 +104,15 @@ namespace ChaosHelper
                         else
                             logger.Warn($"file not found to check for chaos sets '{arg}'");
                     }
+                    else if (nextArgIsConfigMerge)
+                    {
+                        nextArgIsConfigMerge = false;
+                        Config.ConfigMergeFile = arg;
+                    }
                     else if (Directory.Exists(arg))
                         Config.ConfigDir = arg;
                     else
-                        logger.Warn($"unrecogniozed argument '{arg}'");
+                        logger.Warn($"unrecognized argument '{arg}'");
                 }
 
                 Console.Title = "ChaosHelper.exe";
@@ -123,6 +135,9 @@ namespace ChaosHelper
 
             if (!await Config.ReadConfigFile())
                 return;
+
+            if (settings.ForceExitWhenPoeExits)
+                Config.ExitWhenPoeExits = true;
 
             if (settings.FindIlvl100)
             {
@@ -189,95 +204,41 @@ namespace ChaosHelper
                             source.Cancel();
                             break;
                         }
-                        else if (keyInfo.Key == ConsoleKey.P)
-                        {
-                            isPaused = !isPaused;
-                            logger.Info($"Setting isPaused to {isPaused}");
-                        }
-                        else if (keyInfo.Key == ConsoleKey.H)
-                        {
-                            logger.Info("Highlighting sets to sell");
-                            highlightSetsToSell = true;
-                        }
-                        else if (keyInfo.Key == ConsoleKey.F)
-                        {
-                            logger.Info("Forcing a filter update");
-                            forceFilterUpdate = true;
-                        }
-                        else if (keyInfo.Key == ConsoleKey.A)
-                        {
-                            Config.FilterAutoReload = !Config.FilterAutoReload;
-                            logger.Info($"FilterAutoReload is now {Config.FilterAutoReload}");
-                        }
-                        else if (keyInfo.Key == ConsoleKey.Q)
-                        {
-                            if (Config.QualityTabIndex >= 0)
-                            {
-                                logger.Info("Highlighting quality gems/flasks to sell");
-                                highlightQualityToSell = true;
-                            }
-                        }
-                        else if (keyInfo.Key == ConsoleKey.J)
-                        {
-                            logger.Info("Highlighting junk items");
-                            overlay?.SendKey(keyInfo.Key);
-                        }
-                        else if (keyInfo.Key == ConsoleKey.C)
-                        {
-                            logger.Info("Rechecking character and league");
-                            checkCharacter = true;
-                        }
-                        else if (keyInfo.Key == ConsoleKey.R)
-                        {
-                            logger.Info("Reloading config");
-                            reloadConfig = true;
-                        }
-                        else if (keyInfo.Key == ConsoleKey.T)
-                        {
-                            logger.Info("Toggling test pattern");
-                            overlay?.SendKey(keyInfo.Key);
-                        }
-                        else if (keyInfo.Key == ConsoleKey.Z)
-                        {
-                            logger.Info("Getting currency prices from poe ninja");
-                            await GetPricesFromPoeNinja();
-                            logger.Info("Getting currency tab contents");
-                            await GetCurrencyTabContents(true);
-                        }
-                        else if (keyInfo.Key == ConsoleKey.D)
-                        {
-                            if (Config.DumpTabDictionary.Count != 0)
-                            {
-                                logger.Info("Checking items in dump tabs");
-                                logMatchingNames = true;
-                            }
-                        }
-                        else if (keyInfo.Key == ConsoleKey.S)
-                        {
-                            itemStatsFromClipboard = true;
-                            logger.Info($"Check item stats from clipboard");
-                        }
                         else if (keyInfo.KeyChar == '?')
                         {
                             logger.Info("\t'?' for this help");
-                            logger.Info("\t'p' to toggle pausing hitting the PoE site for stash data");
-                            logger.Info("\t'h' to highlight a set of items to sell");
-                            logger.Info("\t'f' to force a filter update");
                             logger.Info("\t'a' to toggle automatic filter reload on update");
-                            if (Config.QualityTabIndex >= 0)
-                                logger.Info("\t'q' to highlight quality gems/flasks to sell");
-                            logger.Info("\t'j' to highlight junk items in the stash tab");
                             logger.Info("\t'c' to switch/recheck characters");
-                            logger.Info("\t'r' to reload configuration");
-                            logger.Info("\t't' to toggle stash test mode (to make sure the rectangle is good)");
-                            logger.Info("\t'z' to list contents of currency stash tab (with prices from poe ninja)");
                             if (Config.DumpTabDictionary.Count != 0)
                                 logger.Info("\t'd' to check dump tabs for interesting items");
+                            logger.Info("\t'f' to force a filter update");
+                            logger.Info("\t'h' to highlight a set of items to sell");
+                            logger.Info("\t'j' to highlight junk items in the stash tab");
+                            logger.Info("\t'm' to toggle automatic muting on entering towns");
+                            logger.Info("\t'p' to toggle pausing hitting the PoE site for stash data");
+                            if (Config.QualityTabIndex >= 0)
+                                logger.Info("\t'q' to highlight quality gems/flasks to sell");
+                            logger.Info("\t'r' to reload configuration");
                             logger.Info("\t's' to check an item copied on the clipboard");
+                            logger.Info("\t't' to toggle stash test mode (to make sure the rectangle is good)");
+                            logger.Info("\t'x' to toggle auto-exit when PoE exits");
+                            logger.Info("\t'z' to list contents of currency stash tab (with prices from poe ninja)");
                         }
                         else
-                            overlay?.SendKey(keyInfo.Key);
+                        {
+                            await ProcessKeystroke(keyInfo);
+                        }
                         logger.Info("Press 'Escape' to exit, '?' for help");
+                        while (Console.KeyAvailable) { Console.ReadKey(); } // clear the input buffer
+                    }
+                    else if (_hotkeysPending.Count > 0)
+                    {
+                        lock(_hotkeysPending)
+                        {
+                            if (PoeIsActiveWindow())
+                                ProcessHotkey(_hotkeysPending[0]);
+                            _hotkeysPending.RemoveAt(0);
+                        }
                     }
                     else
                         await Task.Delay(100);
@@ -302,7 +263,8 @@ namespace ChaosHelper
             }
             itemsCurrent.RefreshCounts();
             itemsCurrent.CalculateClassesToShow();
-            overlay?.SetCurrentItems(itemsCurrent);
+            if (Config.MaxSets > 0)
+                overlay?.SetCurrentItems(itemsCurrent);
 
             bool CheckOverlayTask()
             {
@@ -340,8 +302,95 @@ namespace ChaosHelper
             }
             logger.Info("Shutdown (4) - unregistering hotkeys");
             HotKeyManager.UnregisterAllHotKeys();
+            if (_keyboardHook != null)
+            {
+                logger.Info("Shutdown (4.5) - unhooking keyboard");
+                SetKeyboardHook(false);
+                _keyboardHook.Dispose();
+                _keyboardHook = null;
+            }
             logger.Info("Shutdown (5) - unmuting poe process");
             Config.MutePoeProcess(mute: false);
+        }
+
+        private static async Task ProcessKeystroke(ConsoleKeyInfo keyInfo, bool setTemporaryMessage = false)
+        {
+            void Log(string message)
+            {
+                logger.Info(message);
+                if (setTemporaryMessage)
+                    overlay?.SetTemporaryMessage(message);
+            }
+            switch (keyInfo.Key)
+            {
+                case ConsoleKey.A:
+                    Config.FilterAutoReload = !Config.FilterAutoReload;
+                    Log($"FilterAutoReload is now {Config.FilterAutoReload}");
+                    break;
+                case ConsoleKey.C:
+                    Log("Rechecking character and league");
+                    checkCharacter = true;
+                    break;
+                case ConsoleKey.D:
+                    if (Config.DumpTabDictionary.Count != 0)
+                    {
+                        Log("Checking items in dump tabs");
+                        checkDumpTabs = true;
+                    }
+                    break;
+                case ConsoleKey.F:
+                    Log("Forcing a filter update");
+                    forceFilterUpdate = true;
+                    break;
+                case ConsoleKey.H:
+                    Log("Highlighting sets to sell");
+                    highlightSetsToSell = true;
+                    break;
+                case ConsoleKey.J:
+                    Log("Highlighting junk items");
+                    overlay?.SendKey(keyInfo.Key);
+                    break;
+                case ConsoleKey.M:
+                    Config.DoAutoMute = !Config.DoAutoMute;
+                    Log($"Toggling automute to {Config.DoAutoMute}");
+                    break;
+                case ConsoleKey.P:
+                    isPaused = !isPaused;
+                    Log($"Setting isPaused to {isPaused}");
+                    break;
+                case ConsoleKey.Q:
+                    if (Config.QualityTabIndex >= 0)
+                    {
+                        Log("Highlighting quality gems/flasks to sell");
+                        highlightQualityToSell = true;
+                    }
+                    break;
+                case ConsoleKey.R:
+                    Log("Reloading config");
+                    reloadConfig = true;
+                    break;
+                case ConsoleKey.S:
+                    itemStatsFromClipboard = true;
+                    Log($"Check item stats from clipboard");
+                    break;
+                case ConsoleKey.T:
+                    Log("Toggling test pattern");
+                    overlay?.SendKey(keyInfo.Key);
+                    break;
+                case ConsoleKey.X:
+                    Config.ExitWhenPoeExits = !Config.ExitWhenPoeExits;
+                    Log($"Setting {nameof(Config.ExitWhenPoeExits)} to {Config.ExitWhenPoeExits}");
+                    break;
+                case ConsoleKey.Z:
+                    Log("Getting currency prices from poe ninja");
+                    await GetPricesFromPoeNinja();
+                    Log("Getting currency tab contents");
+                    await GetCurrencyTabContents(true);
+                    break;
+                default:
+                    overlay?.SendKey(keyInfo.Key);
+                    break;
+            }
         }
 
         private static async Task FindIlvl100Items(Settings settings)
@@ -496,8 +545,63 @@ namespace ChaosHelper
             logger.Info("Exiting after checking json file");
         }
 
+        private static bool _haveHookedKeyboard = false;
+        private static GlobalKeyboardHook _keyboardHook = null;
+        private static readonly List<HotkeyEntry> _hotkeysPending = [];
+
+        private static void OnKeyDown(object sender, GlobalKeyboardHookEventArgs e)
+        {
+            var hotkey = Config.Hotkeys.FirstOrDefault(x => x.Enabled && x.Binding.Key == e.KeyData && x.Binding.Modifiers == e.Modifiers);
+            if (hotkey != null)
+            {
+                if (Config.ClosePortsHotkey == hotkey) // process this immediately
+                    Config.CloseTcpPorts();
+                lock (_hotkeysPending)
+                    _hotkeysPending.Add(hotkey);
+                //logger.Info($"Hotkey pressed: {hotkey.Command ?? hotkey.Text}");
+                e.Handled = true;
+                return;
+            }
+        }
+
+        private static void SetKeyboardHook(bool enable)
+        {
+            if (enable && !_haveHookedKeyboard)
+            {
+                _keyboardHook ??= new GlobalKeyboardHook();
+
+                GlobalKeyboardHook.KeyDown += OnKeyDown;
+                _haveHookedKeyboard = true;
+                //Console.WriteLine("hooked keyboard");
+            }
+            else if (!enable && _haveHookedKeyboard)
+            {
+                GlobalKeyboardHook.KeyDown -= OnKeyDown;
+                _haveHookedKeyboard = false;
+                //Console.WriteLine("unhooked keyboard");
+            }
+        }
+
         private static void CheckHotkeyRegistration()
         {
+            if (Config.ShouldHookKeyboardEvents)
+            {
+                if (Config.HaveAHotKey())
+                {
+                    List<System.Windows.Forms.Keys> keys = [];
+                    foreach (HotkeyEntry hotkey in Config.Hotkeys)
+                    {
+                        if (!hotkey.Enabled)
+                            continue;
+                        if (hotkey.CommandIs(Constants.ShowQualityItems) && Config.QualityTabIndex == 0)
+                            continue;
+                        keys.Add(hotkey.Binding.Key);
+                    }
+                    GlobalKeyboardHook.SetKeysToMonitor(keys.Order().Distinct());
+                    ChaosOverlay.SetKeyboardHookCallback(SetKeyboardHook);
+                }
+                return;
+            }
             HotKeyManager.UnregisterAllHotKeys();
             if (Config.HaveAHotKey())
             {
@@ -530,17 +634,19 @@ namespace ChaosHelper
             var hotkey = Config.GetHotKey(e);
             if (hotkey == null || !hotkey.Enabled) return;
 
+            ProcessHotkey(hotkey);
+        }
+
+        private static void ProcessHotkey(HotkeyEntry hotkey)
+        {
             if (!string.IsNullOrEmpty(hotkey.Command))
             {
                 ProcessHotkeyCommand(hotkey);
-                return;
             }
-
-            if (!string.IsNullOrEmpty(hotkey.Text))
+            else if (!string.IsNullOrEmpty(hotkey.Text))
             {
                 var text = hotkey.Text;
                 SendTextToChat(text, hotkey);
-                return;
             }
         }
 
@@ -617,7 +723,7 @@ namespace ChaosHelper
                     if (Config.DumpTabDictionary.Count != 0)
                     {
                         LogAndDisplay("Checking items in dump tabs");
-                        logMatchingNames = true;
+                        checkDumpTabs = true;
                     }
                     break;
                 case Constants.LoadNextFilter:
@@ -646,6 +752,17 @@ namespace ChaosHelper
                     haveMuted = !haveMuted;
                     Config.MutePoeProcess(mute: haveMuted);
                     LogAndDisplay($"PoE muted = {haveMuted}");
+                    break;
+                case Constants.SendConsoleKey:
+                    if (Enum.TryParse(hotkey.Text, true, out ConsoleKey consoleKey))
+                    {
+                        ConsoleKeyInfo keyInfo = new(hotkey.Text[0], consoleKey, false, false, false);
+                        ProcessKeystroke(keyInfo, setTemporaryMessage: true).Wait();
+                    }
+                    else
+                    {
+                        logger.Warn($"{Constants.SendConsoleKey} command text is not valid");
+                    }
                     break;
                 default:
                     logger.Warn($"Unknown command {hotkey.Command}");
@@ -778,6 +895,12 @@ namespace ChaosHelper
 
         private static void SetOverlayStatusMessage()
         {
+            if (Config.MaxSets <= 0 || overlay == null)
+            {
+                overlay?.SetStatus(".", false);
+                overlay?.SetCurrentItems(emptySet);
+                return;
+            }
             string msg;
             var numSets = itemsCurrent.CountPossible(false);
             if (numSets > 0)
@@ -961,9 +1084,6 @@ namespace ChaosHelper
                 if (Config.CurrencyTabIndex < 0 || Currency.CurrencyList.Count == 0)
                     return;
 
-                if (listCurrencyToConsole)
-                    Console.WriteLine("currency;count;ratio;value");
-
                 var currencyDict = Currency.GetWebDictionary();
                 JsonElement json = await GetJsonByTabIndex(Config.CurrencyTabIndex);
                 foreach (var item in json.GetProperty("items").EnumerateArray())
@@ -984,21 +1104,11 @@ namespace ChaosHelper
 
                 if (listCurrencyToConsole)
                 {
-                    var lineList = new List<string>();
-                    foreach (var kvp in currencyDict)
-                    {
-                        var c = kvp.Value;
-                        if (c.CurrentCount > 0)
-                        {
-                            var line = c.ValueRatio > 0.0
-                                ? $"{c.Name}; {c.CurrentCount}; {c.ValueRatio}; {c.Value}"
-                                : $"{c.Name}; {c.CurrentCount}";
-                            lineList.Add(line);
-                        }
-                    }
-                    lineList.Sort();
-                    foreach (var line in lineList)
-                        Console.WriteLine(line);
+                    Currency.Sort(Config.CurrencyOrder);
+                    var l = Currency.CurrencyList.Where(x => x.CurrentCount > 0).ToList();
+                    Console.WriteLine("currency;count;ratio;value");
+                    foreach (var item in l)
+                        Console.WriteLine(item.DisplayString);
                     Console.WriteLine($"total value = {Currency.GetTotalValue():F2}");
                 }
             }
@@ -1258,7 +1368,6 @@ namespace ChaosHelper
             }
         }
 
-
         static async Task TailClientTxt(CancellationToken token)
         {
             var savedClientFileName = Config.ClientFileName;
@@ -1335,20 +1444,23 @@ namespace ChaosHelper
                         qualityItems = null;
                         highlightQualityToSell = false;
                         currentArea = newArea;
-                        if (Config.IsMuteZone(newArea))
+                        if (Config.DoAutoMute)
                         {
-                            if (!haveMuted)
+                            if (Config.IsMuteZone(newArea))
                             {
-                                haveMuted = true;
-                                Config.MutePoeProcess(mute: true);
+                                if (!haveMuted)
+                                {
+                                    haveMuted = true;
+                                    Config.MutePoeProcess(mute: true);
+                                    overlay?.SetTemporaryMessage($"PoE muted = {haveMuted}");
+                                }
+                            }
+                            else if (haveMuted)
+                            {
+                                haveMuted = false;
+                                Config.MutePoeProcess(mute: false);
                                 overlay?.SetTemporaryMessage($"PoE muted = {haveMuted}");
                             }
-                        }
-                        else if (haveMuted)
-                        {
-                            haveMuted = false;
-                            Config.MutePoeProcess(mute: false);
-                            overlay?.SetTemporaryMessage($"PoE muted = {haveMuted}");
                         }
                     }
                     else if (forceFilterUpdate)
@@ -1387,10 +1499,10 @@ namespace ChaosHelper
                             overlay?.SetStatus("No quality sets", false);
                         highlightQualityToSell = false;
                     }
-                    else if (logMatchingNames)
+                    else if (checkDumpTabs)
                     {
                         await CheckDumpTabs();
-                        logMatchingNames = false;
+                        checkDumpTabs = false;
                     }
                     else if (itemStatsFromClipboard)
                     {

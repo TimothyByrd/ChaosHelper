@@ -76,6 +76,7 @@ namespace ChaosHelper
         public static List<HotkeyEntry> Hotkeys { get; private set; }
         public static HotkeyEntry ClosePortsHotkey { get; private set; }
         public static bool ShouldHookMouseEvents { get; private set; }
+        public static bool ShouldHookKeyboardEvents { get; private set; }
         public static string RequiredProcessName { get; private set; }
         public static System.Drawing.Rectangle StashPageXYWH { get; private set; }
         public static int StashPageVerticalOffset { get; private set; }
@@ -83,20 +84,21 @@ namespace ChaosHelper
         public static bool StashCanDoManualRead { get; private set; }
         public static bool ForceSteam { get; set; }
         public static int CurrencyTabIndex { get; set; } = -1;
+        public static bool ShowMinimumCurrency { get; private set; }
+        public static Currency.CurrencyOrdering CurrencyOrder { get; private set; } = Currency.CurrencyOrdering.Name;
 
         public static double DefenseVariance { get; private set; }
-        public static bool ShowMinimumCurrency { get; private set; }
         public static string ClosePortsForPidPath { get; private set; }
         public static bool RunningAsAdmin { get; private set; }
 
-        private static bool _exitWhenPoeExits;
-        public static bool ExitWhenPoeExits { get { return _exitWhenPoeExits || ForceExitWhenPoeExits; } }
-        public static bool ForceExitWhenPoeExits { get; set; }
+        public static bool ExitWhenPoeExits { get; set; }
 
         public static bool StartPaused { get; private set; }
         public static string ConfigDir { get; set; }
+        public static string ConfigMergeFile { get; set; }
         public static string LastWhisper {  get; set; }
         public static string SelfWhisperCharacter {  get; private set; }
+        public static bool DoAutoMute { get; set; }
         public static List<string> ZonesToMuteSound { get; private set; }
 
         public static bool IsTown(string newArea)
@@ -144,11 +146,24 @@ namespace ChaosHelper
                 logger.Error("ERROR: config file 'settings.jsonc' not found");
                 return false;
             }
-            logger.Info($"reading config file {configFile}");
+            string mergeFile = string.Empty;
+            if (!string.IsNullOrWhiteSpace(ConfigMergeFile))
+            {
+                mergeFile = GetConfigFilePath(ConfigMergeFile);
+                if (!File.Exists(mergeFile))
+                {
+                    logger.Warn($"WARN: merge file '{mergeFile}' not found");
+                    mergeFile = string.Empty;
+                }
+            }
+            if (string.IsNullOrEmpty(mergeFile))
+                logger.Info($"reading config file {configFile}");
+            else
+                logger.Info($"reading config file {configFile} with merge {ConfigMergeFile}");
 
             try
             {
-                rawConfig = new RawJsonConfiguration(configFile);
+                rawConfig = new RawJsonConfiguration(configFile, mergeFile);
             }
             catch (Exception ex)
             {
@@ -229,7 +244,7 @@ namespace ChaosHelper
             FilterAutoReload = rawConfig.GetBoolean("filterAutoReload", false);
             logger.Info($"FilterAutoReload is {FilterAutoReload}");
 
-            _exitWhenPoeExits = rawConfig.GetBoolean("exitWhenPoeExits", false);
+            ExitWhenPoeExits = rawConfig.GetBoolean("exitWhenPoeExits", false);
             StartPaused = rawConfig.GetBoolean("startPaused", false);
 
             MaxSets = rawConfig.GetInt("maxSets", 12);
@@ -261,6 +276,13 @@ namespace ChaosHelper
             ShowMinimumCurrency = rawConfig.GetBoolean("showMinimumCurrency", false);
             Currency.SetArray(rawConfig.GetArray("currency"));
 
+            var currencyOrderStr = rawConfig["currencyOrder"];
+            if (Enum.TryParse<Currency.CurrencyOrdering>(currencyOrderStr, true, out var currencyOrdering)
+                && Enum.IsDefined(currencyOrdering))
+                CurrencyOrder = currencyOrdering;
+            else
+                CurrencyOrder = Currency.CurrencyOrdering.Name;
+
             Hotkeys = rawConfig.GetHotkeys();
 
             ClosePortsHotkey = Hotkeys.FirstOrDefault(x => x.CommandIs(Constants.ClosePorts));
@@ -283,10 +305,11 @@ namespace ChaosHelper
                     }
                 }
                 if (ClosePortsHotkey == null)
-                    Hotkeys = Hotkeys.Where(x => !x.CommandIs(Constants.ClosePorts)).ToList();
+                    Hotkeys = [.. Hotkeys.Where(x => !x.CommandIs(Constants.ClosePorts))];
             }
 
             ShouldHookMouseEvents = rawConfig.GetBoolean("hookMouseEvents", false);
+            ShouldHookKeyboardEvents = rawConfig.GetBoolean("hookKeyboardEvents", false);
             RequiredProcessName = rawConfig["processName"];
             StashPageXYWH = rawConfig.GetRectangle("stashPageXYWH");
             StashPageVerticalOffset = rawConfig.GetInt("stashPageVerticalOffset", 0);
@@ -307,6 +330,7 @@ namespace ChaosHelper
                 SelfWhisperCharacter = null;
 
             ZonesToMuteSound = rawConfig.GetStringList("zonesToMuteSound");
+            DoAutoMute = rawConfig.GetBoolean("doAutoMute", true);
 
             FilterDisplay = null;
             if (rawConfig.TryGetProperty("filterDisplay", out var filterDisplayElement))
@@ -381,7 +405,7 @@ namespace ChaosHelper
                 if (forceWebCheck || string.IsNullOrEmpty(League) || League == "auto")
                 {
                     const string characterPrefixPattern = "{var c = new C(";
-                    const string checkUrl = "https://www.pathofexile.com/shop/redeem-key"; // because it's a relatively simple page.
+                    const string checkUrl = "https://www.pathofexile.com/shop"; // because it's a relatively simple page.
                     var responseString = await HttpClient.GetStringAsync(checkUrl);
                     if (string.IsNullOrWhiteSpace(responseString))
                     {
@@ -445,6 +469,7 @@ namespace ChaosHelper
 
             var tabNameFromConfig = rawConfig["tabName"];
             var qualityTabNameFromConfig = rawConfig["qualityTab"];
+            var currencyTabNameFromConfig = rawConfig["currencyTab"];
             var checkTabNames = !string.IsNullOrWhiteSpace(tabNameFromConfig);
 
             var dumpTabNames = rawConfig.GetStringList("dumpTabs");
@@ -457,7 +482,8 @@ namespace ChaosHelper
             {
                 JsonElement tabList = await GetTabList();
 
-                var lookForCurrencyTab = Currency.CurrencyList.Count != 0;
+                var lookForCurrencyTab = Currency.CurrencyList.Count != 0
+                    || !string.IsNullOrWhiteSpace(currencyTabNameFromConfig);
                 var lookForQualityTab = !string.IsNullOrWhiteSpace(qualityTabNameFromConfig);
 
                 const string removeOnlyTabPattern = "remove-only";
@@ -478,7 +504,7 @@ namespace ChaosHelper
                     var i = tab.GetIntOrDefault("i", -1);
                     bool found = false;
 
-                    if (RecipeTabIndex == -1)
+                    if (!isRemoveOnly && RecipeTabIndex == -1)
                     {
                         if (checkTabNames)
                             found = string.Equals(name, tabNameFromConfig, StringComparison.OrdinalIgnoreCase);
@@ -488,19 +514,22 @@ namespace ChaosHelper
                         if (found)
                         {
                             RecipeTabIndex = i;
-                            logger.Info($"found chaos recipe tab '{name}', index = {RecipeTabIndex}, type = {tabType}");
+                            logger.Info($"found chaos recipe tab '{name}', index = {RecipeTabIndex}, type = {tabType}, ilvl={MinIlvl}");
                             IsQuadTab = string.Equals(tabType, "QuadStash", StringComparison.OrdinalIgnoreCase);
                         }
                     }
 
-                    if (lookForCurrencyTab && CurrencyTabIndex == -1 && !isRemoveOnly
-                        && string.Equals(tabType, "CurrencyStash", StringComparison.OrdinalIgnoreCase))
+                    if (!isRemoveOnly && lookForCurrencyTab && CurrencyTabIndex == -1)
                     {
-                        CurrencyTabIndex = i;
-                        logger.Info($"found currency tab '{name}', index = {CurrencyTabIndex}");
+                        if (string.Equals(tabType, "CurrencyStash", StringComparison.OrdinalIgnoreCase)
+                            || string.Equals(name, currencyTabNameFromConfig, StringComparison.OrdinalIgnoreCase))
+                        {
+                            CurrencyTabIndex = i;
+                            logger.Info($"found currency tab '{name}', index = {CurrencyTabIndex}");
+                        }
                     }
 
-                    if (lookForQualityTab && QualityTabIndex == -1
+                    if (!isRemoveOnly && lookForQualityTab && QualityTabIndex == -1
                         && string.Equals(name, qualityTabNameFromConfig, StringComparison.OrdinalIgnoreCase))
                     {
                         QualityTabIndex = i;
@@ -786,5 +815,6 @@ namespace ChaosHelper
         public const string CheckDumpTabs = "checkDumpTabs";
         public const string LoadNextFilter = "loadNextFilter";
         public const string ToggleMute = "toggleMute";
+        public const string SendConsoleKey = "sendConsoleKey";
     }
 }

@@ -12,11 +12,11 @@ namespace ChaosHelper
         private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         private static readonly char[] modTagSplits = "\t;".ToCharArray();
 
-        public static readonly List<ItemMod> PossibleMods = new();
+        public static readonly List<ItemMod> PossibleMods = [];
 
         public Regex Regex { get; private set; }
         public int NumVars { get; private set; }
-        public List<TagEntry> Tags { get; private set; } = new();
+        public List<TagEntry> Tags { get; private set; } = [];
 
         public (bool, double) TryMatch(string s)
         {
@@ -108,21 +108,21 @@ namespace ChaosHelper
             {
                 NumVars = 1,
                 Regex = new Regex("^Energy Shield: (?<v1>\\d+)", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-                Tags = new List<TagEntry> { new TagEntry { Multiplier = 1, Tag = "PropES" } },
+                Tags = [new TagEntry { Multiplier = 1, Tag = "PropES" }],
             });
 
             PossibleMods.Add(new ItemMod
             {
                 NumVars = 1,
                 Regex = new Regex("^Armour: (?<v1>\\d+)", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-                Tags = new List<TagEntry> { new TagEntry { Multiplier = 1, Tag = "PropArm" } },
+                Tags = [new TagEntry { Multiplier = 1, Tag = "PropArm" }],
             });
 
             PossibleMods.Add(new ItemMod
             {
                 NumVars = 1,
                 Regex = new Regex("^Evasion Rating: (?<v1>\\d+)", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-                Tags = new List<TagEntry> { new TagEntry { Multiplier = 1, Tag = "PropEva" } },
+                Tags = [new TagEntry { Multiplier = 1, Tag = "PropEva" }],
             });
         }
     }

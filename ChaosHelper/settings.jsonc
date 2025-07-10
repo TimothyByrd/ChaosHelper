@@ -29,7 +29,9 @@
   //"stashPageXYWH": [ 16, 127, 634, 634 ], // for 1920x1080 16:9
   //"stashPageXYWH": [ 12, 90, 450, 450 ], // for 1366x768 16:9
   //"stashPageXYWH": [ 12, 90, 450, 450 ], // for 1024x768 4:3
-  "stashPageVerticalOffset": 10, // see README.md
+  "stashPageVerticalOffset": 10, // see README.md - to tune the highlight rectangles
+
+  "recipeTabVerticalOffset": 0, // Generally set this to 44 if your chaos recipe tab is in a folder, otherwise leave as 0.
 
   "filter": "ChaosHelper", // the name of the .filter file that will be written - defaults to "ChaosHelper"
 
@@ -57,7 +59,7 @@
   "minIlvl": 60, // yes, I set this to 1 while leveling to do chance recipes in SSF
   "maxIlvl": -1, // set to 74 to not show regal recipe items in the loot filter, -1 or 100 for everything
   "allowIDedSets": true, // see README.md
-  "chaosParanoiaLevel": 0, // see README.md
+  "chaosParanoiaLevel": 1, // see README.md - flags: 1: allow single set, 2: hoard ided 60s, 4: ignore ilvl for ided, 8: force single set
   "itemSortOrder": "ILvl",
 
   // Items classes that can ignore the maxSets and maxIlvl settings.
@@ -82,32 +84,41 @@
   //
   "hotkeys": [
     { "key": "!H", "command": "highlightItems" }, // hotkey to highlight sets of items to sell
+    { "key": "+!H", "command": "highlightItems", "text": "1" }, // hotkey to highlight a single set of items to sell
     { "key": "!K", "command": "showQualityItems" }, // hotkey to highlight sets of quality gems/flasks to sell
     { "key": "!J", "command": "showJunkItems" }, // hotkey to toggle highlight of non chaos items in your stash tab
     { "key": "!F", "command": "forceUpdate" }, // hotkey to force the filter to be updated - generally not needed unless you have ChaosHelper paused
     { "key": "!Q", "command": "closePorts" }, // hotkey to close the TCP posts PoE is using to do an auto-logout, requires running ChaosHelper as admin
+    { "key": "!P", "command": "togglePause" }, // hotkey to toggle pausing ChaosHelper
     { "enabled": false, "key": "!C", "command": "characterCheck" }, // hotkey to recheck your character and league
     { "enabled": false, "key": "!T", "command": "testPattern" }, // hotkey to toggle a test pattern to verify the stash window size
-    { "enabled": false, "key": "F6", "text": "{Enter}/hideout{Enter}" }, // hotkey to send /hideout command
+
+    { "enabled": false, "key": "F5", "text": "{Enter}/hideout{Enter}" }, // hotkey to send /hideout command
     { "enabled": false, "key": "!M", "command": "toggleMute" }, // hotkey to toggle muting the PoE client in Settings > System > Sound > Volume Mixer.
+    { "enabled": false, "key": "+!M", "command": "sendConsoleKey", "text": "M" }, // hotkey to toggle auto-muting of the PoE client on entering town.
+
+    { "enabled": false, "key": "+!X", "command": "sendConsoleKey", "text": "X" }, // hotkey to toggle exitWhenPoeExits.
+
     { "enabled": false, "key": "F9", "text": "{Enter}/remaining{Enter}" }, // hotkey to send /remaining command
-    { "enabled": false, "key": "+F9", "command": "loadNextFilter",  "text": "ChaosHelper|a_simple|q" }, // hotkey to toggle between filters
+    { "enabled": false, "key": "+F9", "command": "loadNextFilter",  "text": "ChaosHelper|a_simple" }, // hotkey to toggle between filters
     { "enabled": false, "key": "^F9", "text": "{Enter}/whois {Whisper}{Enter}" }, // hotkey to /whois the last person who whispered
 
-    { "enabled": false, "key": "^F11", "text": "{Enter}/destroy{Enter}" }, // destroy item on cursor
+      { "enabled": false, "key": "^F12", "text": "{Enter}/destroy{Enter}" }, // destroy item on cursor
 
     // search string hotkeys for stash tabs and vendors
     { "enabled": false, "key": "F10", "text": "{^F}\"(.)-(?:.-)?((?!\\1).)-((?!\\1|\\2))|gems\\b\"{Enter}" },
     { "enabled": false, "key": "+F10", "text": "{^F}quality{Enter}" },
-    { "enabled": false, "key": "^F10", "text": "{^F}\"-\\w-.-|g-g-r|g-r-g|r-g-g|b-b|nne|rint|minion\"{Enter}" },
+    { "enabled": false, "key": "^F10", "text": "{^F}\"-\\w-.-|b-b-|-b-b|b-.-b|nne|rint|minion|o in\"{Enter}" },
     { "enabled": false, "key": "F11", "text": "{^F}unidentified{Enter}" },
   ],
 
   "hookMouseEvents": true, // see README.md
+  "hookKeyboardEvents": true, // see README.md
 
   // These settings are to automate the 40% quality recipes for gems, maps, flasks and scraps - see README.md
   //
   "qualityTab": "",
+  "qualityTabVerticalOffset": 0, // Generally set this to 44 if your quality recipe tab is in a folder, otherwise leave as 0.
   "qualityScrapRecipeSlop": 3,
   "qualityFlaskRecipeSlop": 1,
   "qualityGemMapRecipeSlop": 0,
@@ -144,20 +155,21 @@
 
   // These are zones to mute the PoE application in Settings > System > Sound > Volume Mixer.
   // It's a defense against the annoying goblin band MTX
-  // Uncomment the entries to enable muting
+  "doAutoMute": false,
   "zonesToMuteSound": [
-//     "The Rogue Harbour",
-//     "Lioneye's Watch",
-//     "The Forest Encampment",
-//     "The Sarn Encampment",
-//     "Highgate",
-//     "Overseer's Tower",
-//     "The Bridge Encampment",
-//     "Oriath Docks",
-//     "Karui Shores",
+    "The Rogue Harbour",
+    "Lioneye's Watch",
+    "The Forest Encampment",
+    "The Sarn Encampment",
+    "Highgate",
+    "Overseer's Tower",
+    "The Bridge Encampment",
+    "Oriath Docks",
+    "Karui Shores",
   ],
 
   // Use this to force currencies to be visible in the filter is there is less than a minimum amount in the currency tab - see README.md
+  "currencyTab": "",
   "showMinimumCurrency": false,
   "currency": [
     { "c": "Jeweller's Orb", "desired": 1000, "fontSize": 45, "text": "0 0 0 255", "back": "61 156 136 255", "border": "0 0 0 200" },
@@ -189,6 +201,7 @@
 
   // if you want to configure dump tab scanning, set your dump tabs here
   //
+  "dumpTabVerticalOffset": 44, // Generally set this to 44 if your dump tab is in a folder, otherwise leave as 0.
   // "dumpTabs": [ "dump", "dump2", ],
 
   // For the experimental dynamic rules

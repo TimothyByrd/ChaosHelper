@@ -11,7 +11,7 @@ namespace ChaosHelper
     {
         private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
-        public static List<ItemRule> Rules { get; private set; } = new List<ItemRule>();
+        public static List<ItemRule> Rules { get; private set; } = [];
         public static bool HaveDynamic { get; private set; }
 
         public string Name { get; private set; }
@@ -19,7 +19,7 @@ namespace ChaosHelper
         public bool IsDynamic { get; private set; }
         public List<string> DynamicDefenseTypes { get; private set; }
 
-        private readonly List<RuleEntry> entries = new();
+        private readonly List<RuleEntry> entries = [];
 
         private static readonly char[] ruleLineSplits = "\t;,".ToCharArray();
 
@@ -119,7 +119,7 @@ namespace ChaosHelper
             public bool isDynamic;
             public double dynamicFactor;
 
-            private readonly List<TagEntry> sumItems = new();
+            private readonly List<TagEntry> sumItems = [];
 
             public static RuleEntry FromString(string s)
             {

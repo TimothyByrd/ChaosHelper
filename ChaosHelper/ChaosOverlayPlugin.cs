@@ -18,6 +18,7 @@ namespace ChaosHelper
         private int _font;
         private int _redBrush;
         private int _redOpacityBrush;
+        private readonly int _noFillBrush = -1;
         //private Stopwatch _watch;
         private readonly TimeSpan _updateRate;
 
@@ -44,13 +45,16 @@ namespace ChaosHelper
         private string _countsMsg;
 
         private volatile ItemSet _highlightSet = null;
-        private bool _showHightlightSet = false;
+        private bool _showRecipeSet = false;
         private bool _showQualitySet = false;
         private int _extraVerticalOffset = 0;
 
         private readonly bool _shouldHookMouseEvents = false;
         private bool _haveHookedMouse = false;
         private GlobalMouseHook _mouseHook = null;
+
+        private static Action<bool> _setKeyboardHookCallback = null;
+        private readonly bool _hookKeyboardEvents = false;
 
         private bool _showStashTest = false;
         private bool _showJunkItems = false;
@@ -67,6 +71,7 @@ namespace ChaosHelper
             _autoDetermineStashRect = Config.StashPageXYWH.IsEmpty;
             _numSquares = Config.IsQuadTab ? 24 : 12;
             _shouldHookMouseEvents = Config.ShouldHookMouseEvents;
+            _hookKeyboardEvents = Config.ShouldHookKeyboardEvents;
         }
 
         ~ChaosOverlayPlugin()
@@ -192,7 +197,7 @@ namespace ChaosHelper
             _inATown = isTown;
             _showStashTest = false;
             _showJunkItems = false;
-            _showHightlightSet = false;
+            _showRecipeSet = false;
             _showQualitySet = false;
             _textToDraw = [];
             _temporaryMessage = null;
@@ -217,7 +222,7 @@ namespace ChaosHelper
             case ConsoleKey.Spacebar:
                 _showStashTest = false;
                 _showJunkItems = false;
-                _showHightlightSet = false;
+                _showRecipeSet = false;
                 _showQualitySet = false;
                 _textToDraw = [];
                 break;
@@ -225,7 +230,7 @@ namespace ChaosHelper
                 MaybeUpdateStashRect();
                 _showStashTest = !_showStashTest;
                 _showJunkItems = false;
-                _showHightlightSet = false;
+                _showRecipeSet = false;
                 _showQualitySet = false;
                 _textToDraw = [];
                 logger.Info($"showStashTest is now {_showStashTest}");
@@ -237,7 +242,7 @@ namespace ChaosHelper
                 var numJunk = junk?.Count ?? 0;
                 _showStashTest = false;
                 _showJunkItems = !_showJunkItems && numJunk > 0;
-                _showHightlightSet = false;
+                _showRecipeSet = false;
                 _showQualitySet = false;
                 _textToDraw = [];
                 if (_showJunkItems)
@@ -249,24 +254,24 @@ namespace ChaosHelper
                 MaybeUpdateStashRect();
                 _showStashTest = false;
                 _showJunkItems = false;
-                _showHightlightSet = _highlightSet != null;
+                _showRecipeSet = _highlightSet != null;
                 _showQualitySet = false;
                 _textToDraw = [];
-                if (_showHightlightSet)
-                    FillItemsToDraw(_highlightSet);
-                logger.Info($"showHightlightSet is now {_showHightlightSet}");
+                if (_showRecipeSet)
+                    FillRecipeItemsToDraw(_highlightSet);
+                logger.Info($"showRecipeSet is now {_showRecipeSet}");
                 break;
             case ConsoleKey.Q:
                 MaybeUpdateStashRect();
                 _showStashTest = false;
                 _showJunkItems = false;
-                _showHightlightSet = false;
+                _showRecipeSet = false;
                 _textToDraw = [];
                 var qualitySet = _highlightSet?.GetCategory(Cat.Junk);
 
                 _showQualitySet = qualitySet?.Count > 0;
                 if (_showQualitySet)
-                    FillQualityItemsToDraw(qualitySet);
+                    FillQualityItemsToDraw(qualitySet, false);
                 logger.Info($"showQualitySet is now {_showQualitySet}");
                 break;
             }
@@ -292,9 +297,10 @@ namespace ChaosHelper
             }
             else if (targetWindowIsActivated && !OverlayWindow.IsVisible)
             {
+                MaybeUpdateStashRect();
                 OverlayWindow.Show();
             }
-            CheckMouseHooks(targetWindowIsActivated);
+            CheckHooks(targetWindowIsActivated);
             CheckItemsClicked();
         }
 
@@ -318,7 +324,7 @@ namespace ChaosHelper
             OverlayWindow.Graphics.BeginScene();
             OverlayWindow.Graphics.ClearScene();
 
-            if (_showHightlightSet)
+            if (_showRecipeSet)
                 ShowItemSet();
             else if (_showQualitySet)
                 ShowQualityItems();
@@ -332,9 +338,9 @@ namespace ChaosHelper
             OverlayWindow.Graphics.EndScene();
         }
 
-        private void CheckMouseHooks(bool targetWindowActivated)
+        private void CheckHooks(bool targetWindowActivated)
         {
-            var wantMouseHook = targetWindowActivated && _shouldHookMouseEvents && (_showHightlightSet || _showQualitySet || _showJunkItems);
+            var wantMouseHook = targetWindowActivated && _shouldHookMouseEvents && (_showRecipeSet || _showQualitySet || _showJunkItems);
 
             if (wantMouseHook && !_haveHookedMouse)
             {
@@ -350,13 +356,21 @@ namespace ChaosHelper
                 _haveHookedMouse = false;
                 //Console.WriteLine("unhooked mouse");
             }
+
+            if (_hookKeyboardEvents)
+                _setKeyboardHookCallback?.Invoke(targetWindowActivated);
+        }
+
+        public static void SetKeyboardHookCallback(Action<bool> callback)
+        {
+            _setKeyboardHookCallback = callback;
         }
 
         private void MouseLeftButtonDown(object sender, GlobalMouseHookEventArgs e)
         {
             lock (_clickList)
             {
-                if (_showHightlightSet || _showQualitySet || _showJunkItems)
+                if (_showRecipeSet || _showQualitySet || _showJunkItems)
                     _clickList.Add(e.MouseData.Point);
             }
         }
@@ -374,7 +388,7 @@ namespace ChaosHelper
         {
             if (!_inATown || _itemsToDraw.Count == 0)
             {
-                _showHightlightSet = false;
+                _showRecipeSet = false;
                 return;
             }
 
@@ -510,16 +524,16 @@ namespace ChaosHelper
                 _itemsToDraw.Add(GetHighlightRectangle(item, brushH, brushS, _extraVerticalOffset));
         }
 
-        private void FillQualityItemsToDraw(List<ItemPosition> items)
+        private void FillQualityItemsToDraw(List<ItemPosition> items, bool fillRectangles = true)
         {
             _itemsToDraw.Clear();
-            var brushH = _highlightBrushDict[Cat.BodyArmours];
+            var brushH = fillRectangles ? _highlightBrushDict[Cat.BodyArmours] : _noFillBrush;
             var brushS = _solidBrushDict[Cat.BodyArmours];
             foreach (var item in items)
                 _itemsToDraw.Add(GetQualityRectangle(item, brushH, brushS, _extraVerticalOffset));
         }
 
-        private void FillItemsToDraw(ItemSet itemSet)
+        private void FillRecipeItemsToDraw(ItemSet itemSet)
         {
             _itemsToDraw.Clear();
             foreach (var c in ItemClassForFilter.Iterator())
@@ -541,7 +555,8 @@ namespace ChaosHelper
             var y = (int)(_stashRect.Top + _squareHeight * row);
             var y2 = (int)(_stashRect.Top + _squareHeight * (row + height));
             var stroke = 3;
-            OverlayWindow.Graphics.FillRectangle(x, y, x2 - x, y2 - y, brushH);
+            if (brushH >= 0)
+                OverlayWindow.Graphics.FillRectangle(x, y, x2 - x, y2 - y, brushH);
             OverlayWindow.Graphics.DrawRectangle(x, y, x2 - x, y2 - y, stroke, brushS);
         }
 
@@ -591,7 +606,8 @@ namespace ChaosHelper
 
         private void HightlightItem(ItemRectStruct s)
         {
-            OverlayWindow.Graphics.FillRectangle(s.Rect, s.BrushH);
+            if (s.BrushH >= 0)
+                OverlayWindow.Graphics.FillRectangle(s.Rect, s.BrushH);
             OverlayWindow.Graphics.DrawRectangle(s.Rect, s.Stroke, s.BrushS);
         }
 

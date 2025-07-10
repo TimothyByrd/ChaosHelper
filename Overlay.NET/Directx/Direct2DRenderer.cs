@@ -108,7 +108,7 @@ namespace Overlay.NET.Directx {
 
             _fontFactory = new Factory();
 
-            Native.GetWindowRect(hwnd, out Native.Rect bounds);
+            _ = Native.GetWindowRect(hwnd, out Native.Rect bounds);
 
             var targetProperties = new HwndRenderTargetProperties {
                 Hwnd = hwnd,

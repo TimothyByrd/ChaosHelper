@@ -1,15 +1,74 @@
 using Process.NET.Native.Types;
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 
 namespace ChaosHelper
 {
-    public class RawJsonConfiguration(string fileName)
+    public class RawJsonConfiguration(string baseFileName, string mergeFileName)
     {
-        readonly JsonElement rawConfig = JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(fileName), SerializerOptions);
+        readonly JsonElement rawConfig = GetRawConfig(baseFileName, mergeFileName);
+
+        private static JsonElement GetRawConfig(string baseFileName, string mergeFileName)
+        {
+            var baseConfig = JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(baseFileName), SerializerOptions);
+            if (string.IsNullOrEmpty(mergeFileName))
+                return baseConfig;
+            var mergeValues = JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(mergeFileName), SerializerOptions);
+            var mergedConfig = SimpleObjectMerge(baseConfig, mergeValues);
+
+            //var outPath = Path.Combine(Path.GetDirectoryName(overrideFileName), "merged.jsonc");
+            //if (File.Exists(outPath))
+            //    File.Delete(outPath);
+            //var outputBuffer = new ArrayBufferWriter<byte>();
+            //using (var jsonWriter = new Utf8JsonWriter(outputBuffer, new JsonWriterOptions { Indented = true }))
+            //{
+            //    mergedConfig.WriteTo(jsonWriter);
+            //}
+            //File.WriteAllText(outPath, System.Text.Encoding.UTF8.GetString(outputBuffer.WrittenSpan));
+
+            return mergedConfig;
+        }
+
+        public static JsonElement SimpleObjectMerge(JsonElement originalJson, JsonElement newContent)
+        {
+            var outputBuffer = new ArrayBufferWriter<byte>();
+
+            using (var jsonWriter = new Utf8JsonWriter(outputBuffer, new JsonWriterOptions { Indented = true }))
+            {
+                JsonElement root1 = originalJson;
+                JsonElement root2 = newContent;
+
+                // Assuming both JSON strings are single JSON objects (i.e. {...})
+                Debug.Assert(root1.ValueKind == JsonValueKind.Object);
+                Debug.Assert(root2.ValueKind == JsonValueKind.Object);
+
+                jsonWriter.WriteStartObject();
+
+                // Write all the properties of the first document that don't conflict with the second
+                foreach (JsonProperty property in root1.EnumerateObject())
+                {
+                    if (!root2.TryGetProperty(property.Name, out _))
+                    {
+                        property.WriteTo(jsonWriter);
+                    }
+                }
+
+                // Write all the properties of the second document (including those that are duplicates which were skipped earlier)
+                // The property values of the second document completely override the values of the first
+                foreach (JsonProperty property in root2.EnumerateObject())
+                {
+                    property.WriteTo(jsonWriter); 
+                }
+
+                jsonWriter.WriteEndObject();
+            }
+            return JsonSerializer.Deserialize<JsonElement>(System.Text.Encoding.UTF8.GetString(outputBuffer.WrittenSpan), SerializerOptions);
+        }
 
         static public JsonSerializerOptions SerializerOptions { get; private set; } = new JsonSerializerOptions
         {
@@ -187,7 +246,7 @@ namespace ChaosHelper
             }
 
             if (Enum.TryParse(valueStr, true, out System.Windows.Forms.Keys key)
-                && Enum.IsDefined(typeof(System.Windows.Forms.Keys), key))
+                && Enum.IsDefined(key))
             {
 
                 return new HotKeyBinding

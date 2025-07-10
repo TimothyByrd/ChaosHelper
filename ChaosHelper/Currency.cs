@@ -7,6 +7,16 @@ namespace ChaosHelper
     {
         private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
+        public enum CurrencyOrdering
+        {
+            /// <summary>Sort by name.</summary>
+            Name,
+            /// <summary>Sort by value.</summary>
+            Value,
+            /// <summary>Sort by count.</summary>
+            Count,
+        }
+
         public string Name { get; private set; }
         public int Desired { get; private set; }
         public ItemDisplay ItemDisplay { get; private set; }
@@ -15,7 +25,17 @@ namespace ChaosHelper
         public bool CanFilterOn { get; private set; }
         public bool ShowBlock { get { return CanFilterOn && CurrentCount < Desired; } }
         public int CurrentCount { get; set; }
-        public static List<Currency> CurrencyList { get; private set; } = new List<Currency>();
+        
+        public string DisplayString
+        { get
+            {
+                return ValueRatio > 0.0
+                                    ? $"{Name}; {CurrentCount}; {ValueRatio}; {Value}"
+                                    : $"{Name}; {CurrentCount}";
+            }
+        }
+
+        public static List<Currency> CurrencyList { get; private set; } = [];
 
         public static void ResetCounts()
         {
@@ -88,6 +108,34 @@ namespace ChaosHelper
                 CanFilterOn = canFilterOn,
                 CurrentCount = int.MaxValue,
             });
+        }
+
+        public static void Sort(CurrencyOrdering ordering)
+        {
+            switch (ordering)
+            {
+                case CurrencyOrdering.Name:
+                    CurrencyList.Sort((x, y) => x.Name.CompareTo(y.Name));
+                    break;
+                case CurrencyOrdering.Value:
+                    CurrencyList.Sort((x, y) => CompareByValue(x, y));
+                    break;
+                case CurrencyOrdering.Count:
+                    CurrencyList.Sort((x, y) => CompareByCount(x, y));
+                    break;
+            }
+        }
+
+        private static int CompareByCount(Currency x, Currency y)
+        {
+            if (x.CurrentCount == y.CurrentCount) return x.Name.CompareTo(y.Name);
+            return x.CurrentCount.CompareTo(y.CurrentCount);
+        }
+
+        private static int CompareByValue(Currency x, Currency y)
+        {
+            if (x.Value == y.Value) return x.Name.CompareTo(y.Name);
+            return x.Value.CompareTo(y.Value);
         }
     }
 }

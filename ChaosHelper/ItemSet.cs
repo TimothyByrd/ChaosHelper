@@ -231,7 +231,7 @@ namespace ChaosHelper
             {
                 foreach (var c in ItemClassForFilter.Iterator())
                 {
-                    itemsDict[c.Category] = itemsDict[c.Category].Where(z => z.TabIndex >= 0).ToList();
+                    itemsDict[c.Category] = [.. itemsDict[c.Category].Where(z => z.TabIndex >= 0)];
                 }
                 RefreshCounts();
             }
@@ -289,7 +289,7 @@ namespace ChaosHelper
         {
             foreach (var c in ItemClassForFilter.Iterator())
             {
-                itemsDict[c.Category] = itemsDict[c.Category].Except(itemsToRemove.itemsDict[c.Category]).ToList();
+                itemsDict[c.Category] = [.. itemsDict[c.Category].Except(itemsToRemove.itemsDict[c.Category])];
             }
         }
 
@@ -367,8 +367,28 @@ namespace ChaosHelper
                 Notify($"Using {CatStr(mustBe60)} for ilvl 60s because IlvlDoesNotMatter()");
             else if (know60Cat)
             {
-                var cats = string.Join(", ", optimizerList.Where(x => x.Num75(ided) == 0).Select(x => x.Category.ToString()).ToList());
-                Notify($"Using {CatStr(mustBe60)} for ilvl 60s because these cats have no {IdedStr(ided)} items over 75: {cats}");
+                //List<string> no75s = optimizerList.Where(x => x.Num75(ided) == 0).Select(x => x.Category.ToString()).ToList();
+                var no75s = optimizerList.Where(x => x.Num75(ided) == 0);
+                if (no75s.Count() == optimizerList.Count)
+                {
+                    Notify($"Using {CatStr(mustBe60)} for ilvl 60s because no categories can make 75s");
+                }
+                else if (no75s.Count() > (optimizerList.Count / 2))
+                {
+                    var have75s = optimizerList.Where(x => x.Num75(ided) > 0);
+                    var cats = string.Join(", ", have75s.Select(x => x.Category.ToString()).ToList());
+                    Notify($"Using {CatStr(mustBe60)} for ilvl 60s because only these cats have {IdedStr(ided)} items over 75: {cats}");
+
+                }
+                else if (no75s.Count() == 1)
+                {
+                    Notify($"Using {CatStr(mustBe60)} for ilvl 60s because {no75s.First().Category} has no {IdedStr(ided)} items over 75");
+                }
+                else
+                {
+                    var cats = string.Join(", ", no75s.Select(x => x.Category.ToString()).ToList());
+                    Notify($"Using {CatStr(mustBe60)} for ilvl 60s because these cats have no {IdedStr(ided)} items over 75: {cats}");
+                }
             }
 
             if (!know60Cat && ided)
@@ -454,8 +474,8 @@ namespace ChaosHelper
             // since they divide into 40 evenly want to use them last.
             public int Compare(ItemPosition x, ItemPosition y)
             {
-                var xDivs40 = x.Quality == 10 || x.Quality == 8 || x.Quality == 5;
-                var yDivs40 = y.Quality == 10 || y.Quality == 8 || y.Quality == 5;
+                var xDivs40 = x.Quality > 0 && 40 % x.Quality == 0;
+                var yDivs40 = y.Quality > 0 && 40 % y.Quality == 0;
                 if (xDivs40 && !yDivs40)
                     return 1;
                 if (yDivs40 && !xDivs40)
@@ -664,7 +684,7 @@ namespace ChaosHelper
                     var message = itemStats.GetValueMessage();
                     if (message == null) continue;
                     var tab = DumpTabName(item.TabIndex);
-                    interestingItemMessages.Add($"{item.TabIndex:D4}interesting item: tab '{tab}' at {item.X},{item.Y} - {item.Name} - {message}", itemStats);
+                    interestingItemMessages.Add($"{item.TabIndex:D4}interesting item: tab '{tab}' at {item.X,2},{item.Y,2} - {item.Name} - {message}", itemStats);
                     interestingItemList?.Add(item);
                 }
 
@@ -678,7 +698,7 @@ namespace ChaosHelper
                 logger.Info(RemoveTabIndex(kv.Key));
                 kv.Value.DumpValues();
             }
-            return interestingItemMessages.Select(x => RemoveTabIndex(x.Key)).ToList();
+            return [.. interestingItemMessages.Select(x => RemoveTabIndex(x.Key))];
         }
 
         private static readonly Dictionary<BaseClass, string> equippedSlotDict = new()

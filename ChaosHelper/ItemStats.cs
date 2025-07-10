@@ -46,7 +46,7 @@ namespace ChaosHelper
             public bool Fractured;
         }
 
-        readonly SortedDictionary<string, TagValue> tagValues = new();
+        readonly SortedDictionary<string, TagValue> tagValues = [];
 
         public (double, bool) GetTag(string tag)
         {

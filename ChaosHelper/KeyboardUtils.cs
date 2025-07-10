@@ -11,18 +11,11 @@ namespace ChaosHelper
 {
     internal static class KeyboardUtils
     {
-        public class Key
+        public class Key(VK vk, string str, bool shifted = false)
         {
-            public Key(VK vk, string str, bool shifted = false)
-            {
-                VK = vk;
-                String = str;
-                Shifted = shifted;
-            }
-
-            public VK VK { get; }
-            public string String { get; }
-            public bool Shifted { get; }
+            public VK VK { get; } = vk;
+            public string String { get; } = str;
+            public bool Shifted { get; } = shifted;
 
             public bool Matches(string str)
             {
@@ -32,8 +25,8 @@ namespace ChaosHelper
 
         private static readonly Key EnterKey = new(VK.RETURN, "Enter");
 
-        private static readonly List<Key> ValidKeys = new()
-        {
+        private static readonly List<Key> ValidKeys =
+        [
             EnterKey,
             new Key(VK.F1, "F1"),
             new Key(VK.F2, "F2"),
@@ -163,7 +156,7 @@ namespace ChaosHelper
             //new Key(VKC.NUMPAD7, "Num7"),
             //new Key(VKC.NUMPAD8, "Num8"),
             //new Key(VKC.NUMPAD9, "Num9"),
-        };
+        ];
 
         //private static readonly List<VKC> shiftModifiers = new() { VKC.SHIFT };
 
@@ -235,13 +228,13 @@ namespace ChaosHelper
                 int k = s.IndexOfAny(specialChars, i);
                 if (k == -1)
                 {
-                    AddText(s.Substring(i));
+                    AddText(s[i..]);
                     i = len;
                     break;
                 }
                 else if (k > 0)
                 {
-                    AddText(s.Substring(i, k - i));
+                    AddText(s[i..k]);
                     i = k;
                 }
 
@@ -271,7 +264,7 @@ namespace ChaosHelper
                     if (j != -1)
                     {
                         (int i2, var modifiers) = ParseKeyModifiers(s, i + 1);
-                        var subStr = s.Substring(i2, j - i2);
+                        var subStr = s[i2..j];
                         if (string.Equals(subStr, "Character", StringComparison.OrdinalIgnoreCase))
                         {
                             AddText(Config.Character);
@@ -307,7 +300,7 @@ namespace ChaosHelper
 
             static (int pos, List<VK> modifiers) ParseKeyModifiers(string s, int pos)
             {
-                List<VK> modifiers = new();
+                List<VK> modifiers = [];
                 var len = s.Length;
                 while (pos < len && "^+!#".Contains(s[pos]))
                 {
@@ -375,7 +368,7 @@ namespace ChaosHelper
                 var matches = currentEntry != null && currentEntry.Text == null && currentEntry.ModifiersAreTheSame(modifiers);
                 if (!matches)
                     CommitCurrentEntry();
-                currentEntry.Keys ??= new();
+                currentEntry.Keys ??= [];
                 currentEntry.Modifiers ??= modifiers;
             }
         }

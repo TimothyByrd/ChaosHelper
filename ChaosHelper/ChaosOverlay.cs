@@ -207,5 +207,10 @@ namespace ChaosHelper
         {
             return _processSharp?.WindowFactory?.MainWindow?.IsActivated ?? false;
         }
+
+        public static void SetKeyboardHookCallback(Action<bool> callback)
+        {
+            ChaosOverlayPlugin.SetKeyboardHookCallback(callback);
+        }
     }
 }
