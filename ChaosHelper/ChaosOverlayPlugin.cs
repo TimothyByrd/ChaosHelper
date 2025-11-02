@@ -1,17 +1,42 @@
-﻿using System;
+﻿using Overlay.NET.Common;
+using Overlay.NET.Directx;
+using Process.NET.Windows;
+using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Overlay.NET.Common;
-using Overlay.NET.Directx;
-
-using Process.NET.Windows;
+using System.Windows.Media.Media3D;
 
 namespace ChaosHelper
 {
     class ChaosOverlayPlugin : DirectXOverlayPlugin
     {
+        enum TabType
+        {
+            None,
+            ChaosRecipeTab,
+            QualityRecipeTab,
+            DumpTab,
+        }
+
+        private static readonly Dictionary<TabType, string> TabTypeNames = new()
+        {
+            { TabType.None, "None" },
+            { TabType.ChaosRecipeTab, "Chaos Recipe Tab" },
+            { TabType.QualityRecipeTab, "Quality Recipe Tab" },
+            { TabType.DumpTab, "Dump Tab" },
+        };
+
+        private static readonly Dictionary<TabType, TabType> _nextTestMode = new()
+        {
+            { TabType.None, TabType.ChaosRecipeTab },
+            { TabType.ChaosRecipeTab, TabType.QualityRecipeTab },
+            { TabType.QualityRecipeTab, TabType.DumpTab },
+            { TabType.DumpTab, TabType.None },
+        };
+
         private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
         private readonly TickEngine _tickEngine = new();
@@ -32,11 +57,12 @@ namespace ChaosHelper
         private readonly bool _autoDetermineStashRect;
         private Dictionary<Cat, int> _highlightBrushDict;
         private Dictionary<Cat, int> _solidBrushDict;
-        private readonly int _numSquares;
-        private double _squareWidth;
-        private double _squareHeight;
-        private double _qualitySquareWidth;
-        private double _qualitySquareHeight;
+
+        private readonly Dictionary<TabType, int> _numSquares = [];
+        private readonly Dictionary<TabType, int> _verticalOffset = [];
+        private readonly Dictionary<TabType, double> _squareWidth = [];
+        private readonly Dictionary<TabType, double> _squareHeight = [];
+        
         private int _targetWindowHeight;
         private string _areaName;
         private bool _inATown = true; // assume we start in a town
@@ -47,7 +73,6 @@ namespace ChaosHelper
         private volatile ItemSet _highlightSet = null;
         private bool _showRecipeSet = false;
         private bool _showQualitySet = false;
-        private int _extraVerticalOffset = 0;
 
         private readonly bool _shouldHookMouseEvents = false;
         private bool _haveHookedMouse = false;
@@ -56,7 +81,7 @@ namespace ChaosHelper
         private static Action<bool> _setKeyboardHookCallback = null;
         private readonly bool _hookKeyboardEvents = false;
 
-        private bool _showStashTest = false;
+        private TabType _testMode = TabType.None;
         private bool _showJunkItems = false;
 
         private readonly List<Point> _clickList = [];
@@ -69,7 +94,6 @@ namespace ChaosHelper
             _updateRate = TimeSpan.FromMilliseconds(1000 / fps);
             _stashRect = ToRaw(Config.StashPageXYWH);
             _autoDetermineStashRect = Config.StashPageXYWH.IsEmpty;
-            _numSquares = Config.IsQuadTab ? 24 : 12;
             _shouldHookMouseEvents = Config.ShouldHookMouseEvents;
             _hookKeyboardEvents = Config.ShouldHookKeyboardEvents;
         }
@@ -86,11 +110,10 @@ namespace ChaosHelper
             _countsMsg = _currentItems?.GetCountsMsg() ?? "null";
         }
 
-        internal void SetItemSetToDisplay(ItemSet itemSet, int extraVerticalOffset)
+        internal void SetItemSetToDisplay(ItemSet itemSet)
         {
             MaybeUpdateStashRect();
             _highlightSet = itemSet;
-            _extraVerticalOffset = extraVerticalOffset;
             _countsMsg = _currentItems?.GetCountsMsg() ?? "null"; // refresh the counts message from the current item set.
         }
 
@@ -133,21 +156,33 @@ namespace ChaosHelper
                 _stashRect = new SharpDX.Mathematics.Interop.RawRectangleF(x, y, x + size, y + size);
             }
 
-            _squareWidth = (_stashRect.Right - _stashRect.Left) / _numSquares;
-            _squareHeight = (_stashRect.Bottom - _stashRect.Top) / _numSquares;
 
-            var numQualitySquares = Config.QualityIsQuadTab ? 24 : 12;
-            _qualitySquareWidth = (_stashRect.Right - _stashRect.Left) / numQualitySquares;
-            _qualitySquareHeight = (_stashRect.Bottom - _stashRect.Top) / numQualitySquares;
+            _numSquares[TabType.ChaosRecipeTab] = Config.IsQuadTab ? 24 : 12;
+            _squareWidth[TabType.ChaosRecipeTab] = (_stashRect.Right - _stashRect.Left) / _numSquares[TabType.ChaosRecipeTab];
+            _squareHeight[TabType.ChaosRecipeTab] = (_stashRect.Bottom - _stashRect.Top) / _numSquares[TabType.ChaosRecipeTab];
+            _verticalOffset[TabType.ChaosRecipeTab] = Config.RecipeTabVerticalOffset;
+            
+            _numSquares[TabType.QualityRecipeTab] = Config.QualityIsQuadTab ? 24 : 12;
+            _squareWidth[TabType.QualityRecipeTab] = (_stashRect.Right - _stashRect.Left) / _numSquares[TabType.QualityRecipeTab];
+            _squareHeight[TabType.QualityRecipeTab] = (_stashRect.Bottom - _stashRect.Top) / _numSquares[TabType.QualityRecipeTab];
+            _verticalOffset[TabType.QualityRecipeTab] = Config.QualityTabVerticalOffset;
+
+            // todo - support quad tabs for dump
+            _numSquares[TabType.DumpTab] = 12;
+            _squareWidth[TabType.DumpTab] = (_stashRect.Right - _stashRect.Left) / _numSquares[TabType.DumpTab];
+            _squareHeight[TabType.DumpTab] = (_stashRect.Bottom - _stashRect.Top) / _numSquares[TabType.DumpTab];
+            _verticalOffset[TabType.DumpTab] = Config.DumpTabVerticalOffset;
 
             logger.Info($"stashrect targetWindowHeight {_targetWindowHeight}");
             logger.Info($"stashrect left {_stashRect.Left} top {_stashRect.Top}  right {_stashRect.Right} bottom {_stashRect.Bottom}");
-            logger.Info($"stashrect squareWidth {_squareWidth}  squareHeight {_squareHeight}  height {_stashRect.Bottom - _stashRect.Top}");
+            logger.Info($"stashrect squareWidth {_squareWidth[TabType.ChaosRecipeTab]}  squareHeight {_squareHeight[TabType.ChaosRecipeTab]}  height {_stashRect.Bottom - _stashRect.Top}");
+            logger.Info($"quality squareWidth {_squareWidth[TabType.QualityRecipeTab]}  squareHeight {_squareHeight[TabType.QualityRecipeTab]}");
+            logger.Info($"dump squareWidth {_squareWidth[TabType.DumpTab]}  squareHeight {_squareHeight[TabType.DumpTab]}");
         }
 
         private void MaybeUpdateStashRect()
         {
-            if (_autoDetermineStashRect && _targetWindowHeight != TargetWindow.Height)
+            if (_autoDetermineStashRect && _targetWindowHeight < TargetWindow.Height)
                 DetermineStashRect();
         }
 
@@ -195,7 +230,7 @@ namespace ChaosHelper
         {
             _areaName = areaName;
             _inATown = isTown;
-            _showStashTest = false;
+            _testMode = TabType.None;
             _showJunkItems = false;
             _showRecipeSet = false;
             _showQualitySet = false;
@@ -215,12 +250,17 @@ namespace ChaosHelper
             _temporaryMessageExpires = DateTime.UtcNow.AddSeconds(seconds);
         }
 
+        private static TabType Next(TabType mode)
+        {
+            return _nextTestMode.TryGetValue(mode, out TabType value) ? value : TabType.None;
+        }
+
         public void SendKey(ConsoleKey key)
         {
             switch (key)
             {
             case ConsoleKey.Spacebar:
-                _showStashTest = false;
+                _testMode = TabType.None;
                 _showJunkItems = false;
                 _showRecipeSet = false;
                 _showQualitySet = false;
@@ -228,19 +268,21 @@ namespace ChaosHelper
                 break;
             case ConsoleKey.T:
                 MaybeUpdateStashRect();
-                _showStashTest = !_showStashTest;
+                _testMode = Next(_testMode);
                 _showJunkItems = false;
                 _showRecipeSet = false;
                 _showQualitySet = false;
                 _textToDraw = [];
-                logger.Info($"showStashTest is now {_showStashTest}");
+                var msg = $"Test mode is now {TabTypeNames[_testMode]}";
+                logger.Info(msg);
+                SetTemporaryMessage(msg, 20);
                 break;
             case ConsoleKey.J:
             {
                 MaybeUpdateStashRect();
                 var junk = _currentItems?.GetCategory(Cat.Junk);
                 var numJunk = junk?.Count ?? 0;
-                _showStashTest = false;
+                _testMode = TabType.None;
                 _showJunkItems = !_showJunkItems && numJunk > 0;
                 _showRecipeSet = false;
                 _showQualitySet = false;
@@ -252,7 +294,7 @@ namespace ChaosHelper
                 break;
             case ConsoleKey.H:
                 MaybeUpdateStashRect();
-                _showStashTest = false;
+                _testMode = TabType.None;
                 _showJunkItems = false;
                 _showRecipeSet = _highlightSet != null;
                 _showQualitySet = false;
@@ -262,16 +304,18 @@ namespace ChaosHelper
                 logger.Info($"showRecipeSet is now {_showRecipeSet}");
                 break;
             case ConsoleKey.Q:
+            case ConsoleKey.D:
                 MaybeUpdateStashRect();
-                _showStashTest = false;
+                _testMode = TabType.None;
                 _showJunkItems = false;
                 _showRecipeSet = false;
                 _textToDraw = [];
-                var qualitySet = _highlightSet?.GetCategory(Cat.Junk);
+                var itemsToHighlight = _highlightSet?.GetCategory(Cat.Junk);
 
-                _showQualitySet = qualitySet?.Count > 0;
+                _showQualitySet = itemsToHighlight?.Count > 0;
+                var tabType = key == ConsoleKey.Q ? TabType.QualityRecipeTab : TabType.DumpTab;
                 if (_showQualitySet)
-                    FillQualityItemsToDraw(qualitySet, false);
+                    FillQualityItemsToDraw(itemsToHighlight, tabType, false);
                 logger.Info($"showQualitySet is now {_showQualitySet}");
                 break;
             }
@@ -330,8 +374,8 @@ namespace ChaosHelper
                 ShowQualityItems();
             else if (_showJunkItems)
                 ShowJunkItems();
-            else if (_showStashTest)
-                ShowStashTest();
+            else if (_testMode != TabType.None)
+                ShowTestMode();
 
             ShowTextLines();
 
@@ -392,9 +436,10 @@ namespace ChaosHelper
                 return;
             }
 
-            var y = (int)(_stashRect.Bottom + _squareHeight * _numSquares / 16);
-            var width = (int)_squareWidth;
-            var height = (int)_squareHeight;
+            var squareHeight = _squareHeight[TabType.ChaosRecipeTab];
+            var y = (int)(_stashRect.Bottom + squareHeight * _numSquares[TabType.ChaosRecipeTab] / 16);
+            var width = (int)_squareWidth[TabType.ChaosRecipeTab];
+            var height = (int)squareHeight;
 
             bool drawArrow = false;
             int offset = 1;
@@ -482,24 +527,27 @@ namespace ChaosHelper
                 OverlayWindow.Graphics.DrawText(t.Text, _font, t.BrushS, t.X, t.Y);
         }
 
-        protected void ShowStashTest()
+        protected void ShowTestMode()
         {
             if (!_inATown) return;
+            if (_testMode == TabType.None) return;
 
-            bool drawThis = true;
             var width = 1;
             var height = 1;
             var brush = _redBrush;
 
-            for (var row = 0; row < _numSquares; ++row)
+            var numSquares = _numSquares[_testMode];
+
+            for (var row = 0; row < numSquares; ++row)
             {
-                drawThis = !drawThis;
-                for (var col = 0; col < _numSquares; ++col)
+                bool drawThis = row % 2 == 1;
+                for (var col = 0; col < numSquares; ++col)
                 {
                     drawThis = !drawThis;
                     if (!drawThis) continue;
 
-                    ItemHighlightRectangle(col, row, width, height, brush, brush);
+                    var rect = GetHighlightRectangle(col, row, width, height, brush, brush, _testMode);
+                    HightlightItem(rect);
                 }
             }
         }
@@ -521,16 +569,21 @@ namespace ChaosHelper
             var brushH = _redOpacityBrush;
             var brushS = _redBrush;
             foreach (var item in items)
-                _itemsToDraw.Add(GetHighlightRectangle(item, brushH, brushS, _extraVerticalOffset));
+                _itemsToDraw.Add(GetHighlightRectangle(item, brushH, brushS, TabType.ChaosRecipeTab));
         }
 
-        private void FillQualityItemsToDraw(List<ItemPosition> items, bool fillRectangles = true)
+        private void FillQualityItemsToDraw(List<ItemPosition> items, TabType tabType, bool fillRectangles = true)
         {
             _itemsToDraw.Clear();
             var brushH = fillRectangles ? _highlightBrushDict[Cat.BodyArmours] : _noFillBrush;
             var brushS = _solidBrushDict[Cat.BodyArmours];
             foreach (var item in items)
-                _itemsToDraw.Add(GetQualityRectangle(item, brushH, brushS, _extraVerticalOffset));
+                _itemsToDraw.Add(GetHighlightRectangle(item, brushH, brushS, tabType));
+
+            //_itemsToDraw.Add(GetHighlightRectangle(0, 0, 1, 1, _noFillBrush, _redBrush, tabType));
+            //var r = GetHighlightRectangle(11, 11, 1, 1, _noFillBrush, _redBrush, tabType);
+            //_itemsToDraw.Add(r);
+            //logger.Info($"tabType: {tabType}, rect {r.Rect.Left}, {r.Rect.Top}, {r.Rect.Right}, {r.Rect.Bottom}");
         }
 
         private void FillRecipeItemsToDraw(ItemSet itemSet)
@@ -544,59 +597,25 @@ namespace ChaosHelper
                 var brushS = _solidBrushDict[c.Category];
                 var items = itemSet.GetCategory(c.Category);
                 foreach (var item in items)
-                    _itemsToDraw.Add(GetHighlightRectangle(item, brushH, brushS, _extraVerticalOffset));
+                    _itemsToDraw.Add(GetHighlightRectangle(item, brushH, brushS, TabType.ChaosRecipeTab));
             }
         }
 
-        private void ItemHighlightRectangle(int col, int row, int width, int height, int brushH, int brushS)
+        private ItemRectStruct GetHighlightRectangle(ItemPosition item, int brushH, int brushS, TabType tabType)
         {
-            var x = (int)(_stashRect.Left + _squareWidth * col);
-            var x2 = (int)(_stashRect.Left + _squareWidth * (col + width));
-            var y = (int)(_stashRect.Top + _squareHeight * row);
-            var y2 = (int)(_stashRect.Top + _squareHeight * (row + height));
-            var stroke = 3;
-            if (brushH >= 0)
-                OverlayWindow.Graphics.FillRectangle(x, y, x2 - x, y2 - y, brushH);
-            OverlayWindow.Graphics.DrawRectangle(x, y, x2 - x, y2 - y, stroke, brushS);
+            return GetHighlightRectangle(item.X, item.Y, item.W, item.H, brushH, brushS, tabType);
         }
 
-        private ItemRectStruct GetHighlightRectangle(ItemPosition item, int brushH, int brushS, int extraVerticalOffset)
-        {
-            return GetHighlightRectangle(item.X, item.Y, item.W, item.H, brushH, brushS, extraVerticalOffset);
-        }
-
-        private ItemRectStruct GetHighlightRectangle(int col, int row, int width, int height, int brushH, int brushS, int extraVerticalOffset)
+        private ItemRectStruct GetHighlightRectangle(int col, int row, int width, int height, int brushH, int brushS, TabType tabType)
         {
             return new ItemRectStruct
             {
                 Rect = new SharpDX.Mathematics.Interop.RawRectangleF
                 {
-                    Left = (float)(_stashRect.Left + _squareWidth * col) + 1.0f,
-                    Right = (float)(_stashRect.Left + _squareWidth * (col + width)) - 1.0f,
-                    Top = (float)(_stashRect.Top + extraVerticalOffset + _squareHeight * row) + 1.0f,
-                    Bottom = (float)(_stashRect.Top + extraVerticalOffset + _squareHeight * (row + height)) - 1.0f,
-                },
-                Stroke = 3,
-                BrushH = brushH,
-                BrushS = brushS,
-            };
-        }
-
-        private ItemRectStruct GetQualityRectangle(ItemPosition item, int brushH, int brushS, int extraVerticalOffset)
-        {
-            return GetQualityRectangle(item.X, item.Y, item.W, item.H, brushH, brushS, extraVerticalOffset);
-        }
-
-        private ItemRectStruct GetQualityRectangle(int col, int row, int width, int height, int brushH, int brushS, int extraVerticalOffset)
-        {
-            return new ItemRectStruct
-            {
-                Rect = new SharpDX.Mathematics.Interop.RawRectangleF
-                {
-                    Left = (float)(_stashRect.Left + _qualitySquareWidth * col) + 1.0f,
-                    Right = (float)(_stashRect.Left + _qualitySquareWidth * (col + width)) - 1.0f,
-                    Top = (float)(_stashRect.Top + extraVerticalOffset + _qualitySquareHeight * row) + 1.0f,
-                    Bottom = (float)(_stashRect.Top + extraVerticalOffset + _qualitySquareHeight * (row + height)) - 1.0f,
+                    Left = (float)(_stashRect.Left + _squareWidth[tabType] * col) + 1.0f,
+                    Right = (float)(_stashRect.Left + _squareWidth[tabType] * (col + width)) - 1.0f,
+                    Top = (float)(_stashRect.Top + _verticalOffset[tabType] + _squareHeight[tabType] * row) + 1.0f,
+                    Bottom = (float)(_stashRect.Top + _verticalOffset[tabType] + _squareHeight[tabType] * (row + height)) - 1.0f,
                 },
                 Stroke = 3,
                 BrushH = brushH,
@@ -647,7 +666,7 @@ namespace ChaosHelper
 
             var yStart = (h - lines.Count() * yIncrement) / 2;
 
-            var x = (int) (_stashRect.Right + _squareWidth * _numSquares / 4);
+            var x = (int) (_stashRect.Right + _squareWidth[TabType.ChaosRecipeTab] * _numSquares[TabType.ChaosRecipeTab] / 4);
 
             foreach ( var line in lines ) 
             {

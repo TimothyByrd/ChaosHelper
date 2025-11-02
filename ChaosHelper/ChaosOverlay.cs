@@ -182,9 +182,9 @@ namespace ChaosHelper
             _plugin?.SetCurrentItems(currentItems);
         }
 
-        public void SetItemSetToDisplay(ItemSet itemSet, int extraVerticalOffset)
+        public void SetItemSetToDisplay(ItemSet itemSet)
         {
-            _plugin?.SetItemSetToDisplay(itemSet, extraVerticalOffset);
+            _plugin?.SetItemSetToDisplay(itemSet);
         }
 
         public void SendKey(ConsoleKey key)

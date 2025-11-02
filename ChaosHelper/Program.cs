@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Media;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Runtime.InteropServices;
@@ -34,7 +35,7 @@ namespace ChaosHelper
         static string lastFilterLoaded = string.Empty;
         static bool haveMuted = false;
         static DateTime canUpdateAfter = DateTime.MinValue;
-        static readonly TimeSpan minUpdateInterval = TimeSpan.FromSeconds(10);
+        static readonly TimeSpan minUpdateInterval = TimeSpan.FromSeconds(12);
 
         static ChaosOverlay overlay;
 
@@ -135,6 +136,13 @@ namespace ChaosHelper
 
             if (!await Config.ReadConfigFile())
                 return;
+
+
+            ////SharpDxSoundPlayer.PlaySoundFile(Config.FilterUpdateSound, Config.FilterUpdateVolume);
+            //var soundPlayer = new SoundPlayer(Config.FilterUpdateSound);
+            //soundPlayer.Play();
+            ////SharpDxSoundPlayer.PlaySoundFile(Config.FilterUpdateSound, Config.FilterUpdateVolume);
+            //return;
 
             if (settings.ForceExitWhenPoeExits)
                 Config.ExitWhenPoeExits = true;
@@ -877,8 +885,8 @@ namespace ChaosHelper
                 var notedItemSet = new ItemSet();
                 foreach (var item in notedItems)
                     notedItemSet.Add(item);
-                overlay?.SetItemSetToDisplay(notedItemSet, Config.DumpTabVerticalOffset);
-                overlay?.SendKey(ConsoleKey.Q);
+                overlay?.SetItemSetToDisplay(notedItemSet);
+                overlay?.SendKey(ConsoleKey.D);
             }
 
             overlay?.DrawTextMessages(interestingItemMessages.Concat(matches));
@@ -1480,7 +1488,7 @@ namespace ChaosHelper
                         var maxSets = forceSingleSet ? 1 : 2;
                         forceSingleSet = false;
                         var setToSell = itemsCurrent.GetSetToSell(Config.AllowIDedSets, Config.ChaosParanoiaLevel, SetOverlayTempMessage, maxSets);
-                        overlay?.SetItemSetToDisplay(setToSell, Config.RecipeTabVerticalOffset);
+                        overlay?.SetItemSetToDisplay(setToSell);
                         overlay?.SendKey(ConsoleKey.H);
                         highlightSetsToSell = false;
                         SetOverlayStatusMessage();
@@ -1493,7 +1501,7 @@ namespace ChaosHelper
                             await GetQualityTabContents(Config.QualityTabIndex, qualityItems);
                         }
                         var qualitySet = qualityItems.MakeQualitySet();
-                        overlay?.SetItemSetToDisplay(qualitySet, Config.QualityTabVerticalOffset);
+                        overlay?.SetItemSetToDisplay(qualitySet);
                         overlay?.SendKey(ConsoleKey.Q);
                         if (qualitySet == null || !qualitySet.HasAnyItems())
                             overlay?.SetStatus("No quality sets", false);
