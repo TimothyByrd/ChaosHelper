@@ -1,7 +1,43 @@
 {
+   "Cryonic Ring": {
+       "name": "Cryonic Ring",
+       "item_class": "Ring"
+   },
+   "Enthalpic Ring": {
+       "name": "Enthalpic Ring",
+       "item_class": "Ring"
+   },
+   "Synaptic Ring": {
+       "name": "Synaptic Ring",
+       "item_class": "Ring"
+   },
+   "Organic Ring": {
+       "name": "Organic Ring",
+       "item_class": "Ring"
+   },
+   "Fugitive Ring": {
+       "name": "Fugitive Ring",
+       "item_class": "Ring"
+   },
+   "Formless Ring": {
+       "name": "Formless Ring",
+       "item_class": "Ring"
+   },
+  "Somatic Wand": {
+    "name": "Somatic Wand",
+    "item_class": "Wand"
+  },
+  "Blasting Wand": {
+      "name": "Blasting Wand",
+      "item_class": "Wand"
+  },
+  "Kinetic Wand": {
+      "name": "Kinetic Wand",
+      "item_class": "Wand"
+  },
   "Nameless Ring": {
-    "name": "Nameless Ring",
-    "item_class": "Ring"
+      "name": "Nameless Ring",
+      "item_class": "Ring"
   },
   "General's Helmet": {
     "name": "General's Helmet",
