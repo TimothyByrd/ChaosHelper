@@ -514,7 +514,7 @@ namespace ChaosHelper
                         if (found)
                         {
                             RecipeTabIndex = i;
-                            logger.Info($"found chaos recipe tab '{name}', index = {RecipeTabIndex}, type = {tabType}, ilvl={MinIlvl}");
+                            logger.Info($"found chaos recipe tab '{name}', index = {RecipeTabIndex}, type = {tabType}, ilvl={MinIlvl} max sets={MaxSets}");
                             IsQuadTab = string.Equals(tabType, "QuadStash", StringComparison.OrdinalIgnoreCase);
                         }
                     }

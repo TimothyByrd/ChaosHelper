@@ -195,7 +195,7 @@ namespace ChaosHelper
             // Define the cancellation token.
             var source = new CancellationTokenSource();
             CancellationToken cancellationToken = source.Token;
-            isPaused = Config.StartPaused || settings.StartPaused;
+            isPaused = Config.StartPaused || Config.MaxSets <= 0 || settings.StartPaused;
 
             var keyboardTask = Task.Run(async () =>
             {
@@ -969,7 +969,7 @@ namespace ChaosHelper
             if (json.ValueKind == JsonValueKind.Undefined)
             {
                 logger.Error("ERROR: empty stash returned");
-                return 0;
+                return -1;
             }
 
             var count = 0;
