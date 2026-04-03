@@ -13,6 +13,18 @@ namespace ChaosHelper
     // This file contains some small data structures that don't merit their own files.
     //
 
+    // frameType:
+    // 0 normal
+    // 1 magic
+    // 2 rare
+    // 3 unique
+    // 4 gem
+    // 5 currency
+    // 6 divination card
+    // 7 quest item
+    // 8 prophecy
+    // 9 relic
+
     public class ItemPosition(int x, int y, int h, int w, int ilvl, bool identified, string name, string baseType, int frameType, int tabIndex, int quality, object jsonElement, Cat category)
     {
         public int X = x;

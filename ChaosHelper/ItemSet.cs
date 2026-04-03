@@ -568,6 +568,12 @@ namespace ChaosHelper
 
         private static IEnumerable<ItemPosition> MakeAQualitySet(IEnumerable<ItemPosition> items, int allowedSlop)
         {
+            // Check for a single item (of normal rarity) with 20+% quality.
+            //
+            var singleItem = items.FirstOrDefault(x => x.Quality >= 20 && (x.FrameType == 0 || x.FrameType == 4));
+            if (singleItem != null)
+                return [singleItem];
+
             for (int i = 0; i <= allowedSlop; ++i)
             {
                 var result = MakeAQualitySetRecurse(items, 40, i);
