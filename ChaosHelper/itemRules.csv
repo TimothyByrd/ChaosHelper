@@ -62,10 +62,19 @@ Gem Level, Any, GemLvl >= 3
 
 Life Jewel, Jewel, PctLife >= 7
 ES Jewel, Jewel, ESRecoverStart + ESRecoverRate + PctES >= 10
-Crit Jewel, Jewel, NumCrit >= 2
+Crit Jewel, Jewel, NumCrit >= 3
+Crit Jewel, Jewel, NumCritMul >= 2
 DoT Jewel, Jewel, NumDot >= 2
 Res Jewel, Jewel, TotRes >= 40
 Max Res Jewel, Jewel, MaxRes >= 2
+Max Res/Life Jewel, Jewel, MaxRes >= 1, PctLife >= 5
+Dex Jewel, Jewel, AddDex >= 20
+Str Jewel, Jewel, AddStr >= 20
+Int Jewel, Jewel, AddInt >= 20
+Dex/Life Jewel, Jewel, AddDex >= 18, PctLife >= 5
+Str/Life Jewel, Jewel, AddStr >= 18, PctLife >= 5
+Int/Life Jewel, Jewel, AddInt >= 18, PctLife >= 5
+
 # Stat Amulet, Amulet, TotRes >= 40, MaxLife >= 50, AddDex >= 24, AddStr >= 11
 
 Dot Cold, OneHandWeapon, DotMulCold >= 40

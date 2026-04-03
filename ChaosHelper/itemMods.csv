@@ -103,25 +103,25 @@ Modifiers to Spell Damage apply to this Skill's Damage Over Time effect; NumDot*
 
 1% increased Critical Strike Chance for Spells; CritChanceSpell; NumCrit*0
 1% increased Global Critical Strike Chance; CritChanceSpell; NumCrit*0
-+1% to Global Critical Strike Multiplier; CritMult; NumCrit*0
++1% to Global Critical Strike Multiplier; CritMult; NumCrit*0; NumCritMul*0
 
-+1% Critical Strike Multiplier while a Rare or Unique Enemy is Nearby; NumCrit*0
-+1% to Critical Strike Multiplier for Spell Damage; NumCrit*0
-+1% to Critical Strike Multiplier for Spells; NumCrit*0
-+1% to Critical Strike Multiplier if Dexterity is higher than Intelligence; NumCrit*0
-+1% to Critical Strike Multiplier if you've Killed Recently; NumCrit*0
-+1% to Critical Strike Multiplier per Power Charge; NumCrit*0
-+1% to Critical Strike Multiplier while Dual Wielding; NumCrit*0
-+1% to Critical Strike Multiplier with Bows; NumCrit*0
-+1% to Critical Strike Multiplier with Cold Skills; NumCrit*0
-+1% to Critical Strike Multiplier with Elemental Skills; NumCrit*0
-+1% to Critical Strike Multiplier with Fire Skills; NumCrit*0
-+1% to Critical Strike Multiplier with Lightning Skills; NumCrit*0
-+1% to Critical Strike Multiplier with One Handed Melee Weapons; NumCrit*0
-+1% to Critical Strike Multiplier with Two Handed Melee Weapons; NumCrit*0
-+1% to Global Critical Strike Multiplier per Green Socket; NumCrit*0
-+1% to Melee Critical Strike Multiplier; NumCrit*0
-+1% to Monster Critical Strike Multiplier; NumCrit*0
++1% Critical Strike Multiplier while a Rare or Unique Enemy is Nearby; NumCrit*0; NumCritMul*0
++1% to Critical Strike Multiplier for Spell Damage; NumCrit*0; NumCritMul*0
++1% to Critical Strike Multiplier for Spells; NumCrit*0; NumCritMul*0
++1% to Critical Strike Multiplier if Dexterity is higher than Intelligence; NumCrit*0; NumCritMul*0
++1% to Critical Strike Multiplier if you've Killed Recently; NumCrit*0; NumCritMul*0
++1% to Critical Strike Multiplier per Power Charge; NumCrit*0; NumCritMul*0
++1% to Critical Strike Multiplier while Dual Wielding; NumCrit*0; NumCritMul*0
++1% to Critical Strike Multiplier with Bows; NumCrit*0; NumCritMul*0
++1% to Critical Strike Multiplier with Cold Skills; NumCrit*0; NumCritMul*0
++1% to Critical Strike Multiplier with Elemental Skills; NumCrit*0; NumCritMul*0
++1% to Critical Strike Multiplier with Fire Skills; NumCrit*0; NumCritMul*0
++1% to Critical Strike Multiplier with Lightning Skills; NumCrit*0; NumCritMul*0
++1% to Critical Strike Multiplier with One Handed Melee Weapons; NumCrit*0; NumCritMul*0
++1% to Critical Strike Multiplier with Two Handed Melee Weapons; NumCrit*0; NumCritMul*0
++1% to Global Critical Strike Multiplier per Green Socket; NumCrit*0; NumCritMul*0
++1% to Melee Critical Strike Multiplier; NumCrit*0; NumCritMul*0
++1% to Monster Critical Strike Multiplier; NumCrit*0; NumCritMul*0
 1% chance to Blind Enemies on Critical Strike; NumCrit*0
 1% chance to Cause Bleeding on Critical Strike; NumCrit*0
 1% chance to Cause Poison on Critical Strike; NumCrit*0
@@ -152,6 +152,7 @@ Modifiers to Spell Damage apply to this Skill's Damage Over Time effect; NumDot*
 1% increased Global Critical Strike Chance when in Main Hand; NumCrit*0
 1% increased Melee Critical Strike Chance; NumCrit*0
 1% increased Rarity of Items Dropped by Enemies killed with a Critical Strike; NumCrit*0
+1% increased Spell Critical Strike Chance; NumCrit*0
 1% of Attack Damage Leeched as Life on Critical Strike; NumCrit*0
 1% reduced Critical Strike Chance per Power Charge; NumCrit*0
 Added Small Passive Skills grant: 1% increased Critical Strike Chance; NumCrit*0
@@ -262,7 +263,7 @@ Regenerate 1% of Life per second; LifeRegenPct
 
 +1 seconds to Lockdown Timer
 +1 to Character Level
-+1% to Critical Strike Multiplier while area is not in Lockdown\nPlayers have +1% to Critical Strike Multiplier while area is not in Lockdown; NumCrit*0
++1% to Critical Strike Multiplier while area is not in Lockdown\nPlayers have +1% to Critical Strike Multiplier while area is not in Lockdown; NumCrit*0; NumCritMul*0
 1 to 1 added Cold Damage\nPlayers and their Minions have 1 to 1 added Cold Damage
 1 to 1 added Fire Damage\nPlayers and their Minions have 1 to 1 added Fire Damage
 1 to 1 added Lightning Damage\nPlayers and their Minions have 1 to 1 added Lightning Damage
@@ -1282,7 +1283,7 @@ Minions have +1 to Armour
 Minions have +1% Chance to Block Attack Damage
 Minions have +1% chance to Suppress Spell Damage
 Minions have +1% to Chaos Resistance
-Minions have +1% to Critical Strike Multiplier
+Minions have +1% to Critical Strike Multiplier; NumCritMul*0
 Minions have 1% chance to deal Double Damage
 Minions have 1% chance to Hinder Enemies on Hit with Spells
 Minions have 1% chance to Hinder Enemies on Hit with Spells, with 1% reduced Movement Speed
