@@ -1,5 +1,5 @@
 ﻿using ConsoleHotKey;
-
+using SharpDX.Direct2D1;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -8,12 +8,15 @@ using System.Linq;
 using System.Media;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+using static ChaosHelper.Config;
 using static ChaosHelper.Currency;
 
 namespace ChaosHelper
@@ -137,6 +140,14 @@ namespace ChaosHelper
             if (!await Config.ReadConfigFile())
                 return;
 
+            //Type type = typeof(Config);
+            //FieldInfo field = type.GetField("<Character>k__BackingField", BindingFlags.NonPublic | BindingFlags.Static);
+            //field.SetValue(null, "celticfusillade");
+            //field = type.GetField("<StashReadMode>k__BackingField", BindingFlags.NonPublic | BindingFlags.Static); 
+            //field.SetValue(null, StashReading.Playback);
+            //var gemMessage = await CheckForMaxLevelGems();
+            //logger.Info($"gem message is {gemMessage}");
+            //return;
 
             ////SharpDxSoundPlayer.PlaySoundFile(Config.FilterUpdateSound, Config.FilterUpdateVolume);
             //var soundPlayer = new SoundPlayer(Config.FilterUpdateSound);
@@ -1065,6 +1076,8 @@ namespace ChaosHelper
                         var qualityString = m.Groups[1].Captures[0].Value;
                         if (!int.TryParse(qualityString, out quality))
                             quality = 0;
+                        else
+                            break;
                     }
                 }
                 return quality;
@@ -1197,12 +1210,126 @@ namespace ChaosHelper
             }
             catch (Exception ex)
             {
-                logger.Error(ex, $"HTTP error getting inventory contents: {ex.Message}");
+                logger.Error(ex, $"HTTP error getting character inventory contents: {ex.Message}");
+            }
+        }
+
+        private static async Task<string> CheckForMaxLevelGems()
+        {
+
+            if (DateTime.UtcNow < canUpdateAfter)
+            {
+                logger.Info($"not checking for max level gems - too soon");
+                return string.Empty;
+            }
+
+            if (string.IsNullOrWhiteSpace(Config.Character))
+            {
+                logger.Error($"Error: No character name, cannot get inventory");
+                return string.Empty;
+            }
+            
+            try
+            {
+                var account = Config.Account;
+                var realm = "pc";
+                var characterName = Config.Character;
+
+                JsonElement json = await GetJsonForCharacter(account, realm, characterName);
+
+                canUpdateAfter = DateTime.UtcNow + minUpdateInterval;
+
+                var offhandMaxLevelCount = 0;
+                var nonQualityMaxLevelCount = 0;
+
+                foreach (var item in json.GetProperty("items").EnumerateArray())
+                {
+                    var inventoryId = item.GetProperty("inventoryId").GetString();
+                    if (inventoryId == "MainInventory") continue; // only want equipped items
+                    if (inventoryId == "Flask") continue; // only want equipped items
+
+                    bool isOffHandSet = inventoryId == "Weapon2" || inventoryId == "Offhand2";
+
+                    if (!isOffHandSet && !Config.FlagMaxLevelNonQualityGems) continue;
+
+                    if (!item.TryGetProperty("socketedItems", out var socketedItems)) continue;
+
+                    foreach (var socketedItem in socketedItems.EnumerateArray())
+                    {
+                        if (!socketedItem.TryGetProperty("properties", out var properties))
+                            continue;
+
+                        bool gotLevel = false;
+                        bool isMaxLevel = false;
+                        bool gotQuality = false;
+                        var quality = 0;
+
+                        foreach (var prop in properties.EnumerateArray())
+                        {
+                            var propType = prop.GetIntOrDefault("type", -1);
+
+                            if (propType != 5 && propType != 6) continue;
+
+                            var valueString = prop.GetProperty("values").ToString();
+
+                            if (propType == 5)
+                            {
+                                isMaxLevel = valueString.Contains(Config.MaxLevelGemPattern);
+                                gotLevel = true;
+                            }
+                            else
+                            {
+                                var m = RegexPlusDigitsPercent().Match(valueString);
+                                if (m.Success)
+                                {
+                                    var qualityString = m.Groups[1].Captures[0].Value;
+                                    if (!int.TryParse(qualityString, out quality))
+                                        quality = 0;
+                                }
+                                gotQuality = true;
+                            }
+                            if (gotLevel && gotQuality) break;
+                        }
+
+                        if (isMaxLevel)
+                        {
+                            if (Config.FlagMaxLevelGemsInOffHand && isOffHandSet)
+                                ++offhandMaxLevelCount;
+                            else if (Config.FlagMaxLevelNonQualityGems && quality < 20)
+                                ++nonQualityMaxLevelCount;
+                        }
+                    }
+                }
+
+                var statusList = new List<string>();
+                if (offhandMaxLevelCount > 0) statusList.Add($"{offhandMaxLevelCount} max-level gems in offhand");
+                if (nonQualityMaxLevelCount > Config.MaxLevelNonQualityGemsExpectedCount) statusList.Add($"{nonQualityMaxLevelCount} non-quality max-level gems");
+
+                var result = (statusList.Count > 0) ? string.Join(", ", statusList) : string.Empty;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"HTTP error getting character inventory contents: {ex.Message}");
+                return string.Empty;
             }
         }
 
         private static async Task<JsonElement> GetJsonForCharacter(string account, string realm, string characterName)
-        {
+        { 
+            var tabName = $"inventory_{characterName}";
+            var fileName = TabFileName(tabName);
+            if (StashReadMode == StashReading.Playback && File.Exists(fileName))
+            {
+                try
+                {
+                    return JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(fileName), RawJsonConfiguration.SerializerOptions);
+                }
+                catch (Exception ex)
+                {
+                    logger.Error(ex, $"Reading save tab data for '{tabName}'");
+                }
+            }
             // for some reason, this is a form POST, not a GET
             //
             var formContent = new FormUrlEncodedContent(
@@ -1217,7 +1344,7 @@ namespace ChaosHelper
             response.EnsureSuccessStatusCode();
 
             var json = await response.Content.ReadFromJsonAsync<JsonElement>();
-            Config.MaybeSavePageJson(json, $"inventory_{characterName}");
+            Config.MaybeSavePageJson(json, tabName);
             return json;
         }
 
@@ -1384,6 +1511,7 @@ namespace ChaosHelper
                 const string loginPattern = "login.pathofexile.com";
                 const string maybeWhisperPattern = "] @";
                 var sawLoginLine = false;
+                var maxGemLevelMessage = string.Empty;
                 while (!token.IsCancellationRequested && string.Equals(savedClientFileName, Config.ClientFileName))
                 {
                     string newArea = null;
@@ -1415,6 +1543,7 @@ namespace ChaosHelper
                         CheckHotkeyRegistration();
                         overlay?.SendKey(ConsoleKey.R);
                         reloadConfig = false;
+                        maxGemLevelMessage = string.Empty;
                     }
 
                     if (checkCharacter || sawLoginLine && newArea != null && !isPaused)
@@ -1423,6 +1552,7 @@ namespace ChaosHelper
                         await Config.DetermineTabIndices(forceWebCheck: true);
                         checkCharacter = false;
                         sawLoginLine = false;
+                        maxGemLevelMessage = string.Empty;
                     }
 
                     bool wasTown = Config.IsTown(currentArea);
@@ -1430,9 +1560,15 @@ namespace ChaosHelper
                     if (newArea != null)
                     {
                         bool isTown = Config.IsTown(newArea);
+
                         var statusList = new List<string>();
                         if (isTown) statusList.Add(wasTown ? "town" : "to town");
                         if (isPaused) statusList.Add("paused");
+                        if (isTown && !wasTown && (Config.FlagMaxLevelGemsInOffHand || Config.FlagMaxLevelNonQualityGems))
+                            maxGemLevelMessage = await CheckForMaxLevelGems();
+                        if (isTown && !string.IsNullOrWhiteSpace(maxGemLevelMessage))
+                            statusList.Add(maxGemLevelMessage);
+
                         var status = (statusList.Count > 0) ? $" ({string.Join(" - ", statusList)})" : string.Empty;
                         overlay?.SetArea($"{newArea}{status}", isTown);
                         logger.Info($"new area - {newArea}{status}");
@@ -1542,7 +1678,7 @@ namespace ChaosHelper
             return null;
         }
 
-        [GeneratedRegex("\\+(\\d+)%")]
+        [GeneratedRegex("(?:\\+|u002B)(\\d+)%")]
         private static partial Regex RegexPlusDigitsPercent();
 
         [GeneratedRegex("\\[INFO Client \\d+] @[^ ]+ ([^:]+):")]

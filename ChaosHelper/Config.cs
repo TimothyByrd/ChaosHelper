@@ -73,6 +73,12 @@ namespace ChaosHelper
         public static List<int> HighlightColors { get; private set; }
         public static ItemDisplay FilterDisplay { get; private set; }
         public static string AreaEnteredPattern { get; private set; }
+
+        public static string MaxLevelGemPattern { get; private set; }
+        public static bool FlagMaxLevelGemsInOffHand { get; private set; }
+        public static bool FlagMaxLevelNonQualityGems { get; private set; }
+        public static int MaxLevelNonQualityGemsExpectedCount { get; private set; }
+
         public static List<HotkeyEntry> Hotkeys { get; private set; }
         public static HotkeyEntry ClosePortsHotkey { get; private set; }
         public static bool ShouldHookMouseEvents { get; private set; }
@@ -272,6 +278,17 @@ namespace ChaosHelper
             AreaEnteredPattern = rawConfig["areaEnteredPattern"];
             if (string.IsNullOrWhiteSpace(AreaEnteredPattern))
                 AreaEnteredPattern = "] : You have entered ";
+
+            MaxLevelGemPattern = rawConfig["maxLevelGemPattern"];
+            if (string.IsNullOrWhiteSpace(MaxLevelGemPattern))
+                MaxLevelGemPattern = "(Max)";
+            FlagMaxLevelGemsInOffHand = rawConfig.GetBoolean("flagMaxLevelGemsInOffHand", false);
+            FlagMaxLevelNonQualityGems = rawConfig.GetBoolean("flagMaxLevelNonQualityGems", false);
+            MaxLevelNonQualityGemsExpectedCount = rawConfig.GetInt("maxLevelNonQualityGemsExpectedCount", 0);
+            if (FlagMaxLevelGemsInOffHand)
+                logger.Info($"will flag max level gems in off-hand slots using pattern '{MaxLevelGemPattern}'");
+            if (FlagMaxLevelNonQualityGems)
+                logger.Info($"will flag max level, non-quality gems in equipped slots when there are more than {MaxLevelNonQualityGemsExpectedCount} using pattern '{MaxLevelGemPattern}'");
 
             ShowMinimumCurrency = rawConfig.GetBoolean("showMinimumCurrency", false);
             Currency.SetArray(rawConfig.GetArray("currency"));
