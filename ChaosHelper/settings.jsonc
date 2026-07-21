@@ -100,16 +100,22 @@
     { "enabled": false, "key": "+!X", "command": "sendConsoleKey", "text": "X" }, // hotkey to toggle exitWhenPoeExits.
 
     { "enabled": false, "key": "F9", "text": "{Enter}/remaining{Enter}" }, // hotkey to send /remaining command
-    { "enabled": false, "key": "+F9", "command": "loadNextFilter",  "text": "ChaosHelper|a_simple" }, // hotkey to toggle between filters
+    { "enabled": false, "key": "+F9", "command": "loadNextFilter",  "text": "ChaosHelper|sized" }, // hotkey to toggle between filters
     { "enabled": false, "key": "^F9", "text": "{Enter}/whois {Whisper}{Enter}" }, // hotkey to /whois the last person who whispered
 
-      { "enabled": false, "key": "^F12", "text": "{Enter}/destroy{Enter}" }, // destroy item on cursor
-
     // search string hotkeys for stash tabs and vendors
-    { "enabled": false, "key": "F10", "text": "{^F}\"(.)-(?:.-)?((?!\\1).)-((?!\\1|\\2))|gems\\b\"{Enter}" },
+    { "enabled": false, "key": "F10", "text": "{^F}\"(.)-(?:.-)?((?!\\1).)-((?!\\1|\\2))|nne|gems\\b\"{Enter}" },
     { "enabled": false, "key": "+F10", "text": "{^F}quality{Enter}" },
-    { "enabled": false, "key": "^F10", "text": "{^F}\"-\\w-.-|b-b-|-b-b|b-.-b|nne|rint|minion|o in\"{Enter}" },
+
     { "enabled": false, "key": "F11", "text": "{^F}unidentified{Enter}" },
+//    { "enabled": false, "key": "+F11", "text": "{^F}\"-\\w-.-|g-g-r|g-r-g|r-g-g|b-b|nne|rint|minion\"{Enter}" },
+    { "enabled": false, "key": "+F11", "text": "{^F}\"-\\w-.-|b-b-|-b-b|b-.-b|nne|rint|minion|o in\"{Enter}" },
+
+    { "enabled": false, "key": "^+F12", "text": "{Enter}/destroy{Enter}" }, // destroy item on cursor
+
+    { "enabled": false, "key": "^F12", "text": "{Enter}/hideout{Enter}" }, // hotkey to send /hideout command
+    { "enabled": false, "key": "^F11", "text": "{Enter}/kingsmarch{Enter}" }, // hotkey to send /kingsmarch command
+    { "enabled": false, "key": "^F10", "text": "{Enter}/heist{Enter}" }, // hotkey to send /heist command
   ],
 
   "hookMouseEvents": true, // see README.md
@@ -129,6 +135,13 @@
   // translate this if you use the PoE client in a language other than English
   //
   "areaEnteredPattern": "] : You have entered ",
+
+  // I use this to remind me that backup gems have leveled to 20
+  //
+  "maxLevelGemPattern": "(Max)", // may need to translate?
+  "flagMaxLevelGemsInOffHand": true,
+  "flagMaxLevelNonQualityGems": false, // to remind me about gems in my active slots.
+  "maxLevelNonQualityGemsExpectedCount": 0, // to allow for intentional max level gems without quality
 
   // Regex to determine when a hideout has been entered
   // Hideouts count as town zones
@@ -150,8 +163,25 @@
     "Karui Shores",
     "The Rogue Harbour",
     "Azurite Mine",
+    "Monastery of the Keepers",
     // "The Menagerie",
   ],
+
+  // Don't highlight the following areas as having discoverable
+  // hideouts.
+  //
+  "zonesToIgnoreForHideouts": [
+      "The Dread Thicket",
+      "The Sewers",
+      "The Crystal Veins",
+      "Oriath Square",
+      "The Ruined Square",
+      "The Cavern of Anger",
+      "The Chamber of Sins Level 2",
+      "The Bath House",
+      "The Oasis",
+      "The Ossuary",
+      ],
 
   // These are zones to mute the PoE application in Settings > System > Sound > Volume Mixer.
   // It's a defense against the annoying goblin band MTX

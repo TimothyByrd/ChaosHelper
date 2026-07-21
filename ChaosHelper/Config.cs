@@ -69,6 +69,7 @@ namespace ChaosHelper
         public static string IgnoreMaxSetsUnder75 { get; private set; }
         public static string IgnoreMaxIlvl { get; private set; }
         public static List<string> TownZones { get; private set; }
+        public static List<string> ZonesToIgnoreForHideouts { get; private set; }
         public static System.Text.RegularExpressions.Regex HideoutRegex { get; private set; }
         public static List<int> HighlightColors { get; private set; }
         public static ItemDisplay FilterDisplay { get; private set; }
@@ -113,6 +114,13 @@ namespace ChaosHelper
                 || TownZones.Any(x => string.Equals(x, newArea, StringComparison.OrdinalIgnoreCase))
                 || (HideoutRegex != null && HideoutRegex.IsMatch(newArea));
             return isTown;
+        }
+
+        public static bool IgnoreZoneForDiscoverableHideouts(string newArea)
+        {
+            bool ignore = ZonesToIgnoreForHideouts != null && ZonesToIgnoreForHideouts.Count > 0
+                && ZonesToIgnoreForHideouts.Any(x => string.Equals(x, newArea, StringComparison.OrdinalIgnoreCase));
+            return ignore;
         }
 
         public static bool IsMuteZone(string newArea)
@@ -269,6 +277,7 @@ namespace ChaosHelper
                 ItemPosition.SortOrder = MinIlvl < 60 ? ItemPosition.SortBy.IlvlBottomFirst : ItemPosition.SortBy.Default;
 
             TownZones = rawConfig.GetStringList("townZones");
+            ZonesToIgnoreForHideouts = rawConfig.GetStringList("zonesToIgnoreForHideouts");
 
             var hideoutRegexStr = rawConfig["hideoutRegex"];
             if (string.IsNullOrWhiteSpace(hideoutRegexStr))
@@ -433,6 +442,7 @@ namespace ChaosHelper
                     if (startPos < 0)
                     {
                         logger.Warn("Determine character failed to find structure start");
+                        logger.Warn($"Check your poesesid - you have it set to {Poesessid} for ChaosHelper");
                         return false;
                     }
                     startPos += characterPrefixPattern.Length;

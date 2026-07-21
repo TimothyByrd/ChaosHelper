@@ -17,7 +17,7 @@
     <PackageReference Include="System.ServiceModel.Duplex" Version="6.0.0" />
     <PackageReference Include="System.ServiceModel.NetTcp" Version="10.0.652802" />
     <PackageReference Include="System.ServiceModel.Federation" Version="10.0.652802" />
-    <PackageReference Include="Microsoft.Windows.Compatibility" Version="10.0.8" />
+    <PackageReference Include="Microsoft.Windows.Compatibility" Version="10.0.10" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" />

@@ -53,6 +53,7 @@ namespace ChaosHelper
         private string _temporaryMessage;
         private DateTime _temporaryMessageExpires;
         private bool _emphasizeStatus = false;
+        private bool _emphasizeArea = false;
         private SharpDX.Mathematics.Interop.RawRectangleF _stashRect;
         private readonly bool _autoDetermineStashRect;
         private Dictionary<Cat, int> _highlightBrushDict;
@@ -226,7 +227,7 @@ namespace ChaosHelper
             };
         }
 
-        public void SetArea(string areaName, bool isTown)
+        public void SetArea(string areaName, bool isTown, bool emphasizeArea)
         {
             _areaName = areaName;
             _inATown = isTown;
@@ -236,6 +237,7 @@ namespace ChaosHelper
             _showQualitySet = false;
             _textToDraw = [];
             _temporaryMessage = null;
+            _emphasizeArea = emphasizeArea;
         }
 
         public void SetStatus(string msg, bool emphasizeStatus)
@@ -516,7 +518,7 @@ namespace ChaosHelper
                 OverlayWindow.Graphics.DrawText("Change zones or force an update to initialize", _font, _goldBrush, xForText, YForRow(1));
 
             if (!string.IsNullOrWhiteSpace(_areaName))
-                OverlayWindow.Graphics.DrawText(_areaName, _font, _whiteBrush, xForText, YForRow(2));
+                OverlayWindow.Graphics.DrawText(_areaName, _font, _emphasizeArea ? _goldBrush : _whiteBrush, xForText, YForRow(2));
 
             if (!string.IsNullOrWhiteSpace(_temporaryMessage) && DateTime.UtcNow >= _temporaryMessageExpires)
                 _temporaryMessage = null;

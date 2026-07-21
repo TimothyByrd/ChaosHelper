@@ -1,23 +1,17 @@
 ﻿using ConsoleHotKey;
-using SharpDX.Direct2D1;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Media;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using static ChaosHelper.Config;
-using static ChaosHelper.Currency;
 
 namespace ChaosHelper
 {
@@ -121,11 +115,14 @@ namespace ChaosHelper
 
                 Console.Title = "ChaosHelper.exe";
 
-                MainAsync(settings).Wait();
+                bool ranOkay = MainAsync(settings).GetAwaiter().GetResult();
 
-                //Console.WriteLine();
-                //Console.WriteLine("Press 'Enter' to end program");
-                //Console.Read();
+                if (!ranOkay)
+                {
+                    Console.WriteLine();
+                    Console.WriteLine("Press 'Enter' to end program");
+                    Console.Read();
+                }
             }
             finally
             {
@@ -133,12 +130,12 @@ namespace ChaosHelper
             }
         }
 
-        static async Task MainAsync(Settings settings)
+        static async Task<bool> MainAsync(Settings settings)
         {
             logger.Info("******************************************** Startup");
 
             if (!await Config.ReadConfigFile())
-                return;
+                return false;
 
             //Type type = typeof(Config);
             //FieldInfo field = type.GetField("<Character>k__BackingField", BindingFlags.NonPublic | BindingFlags.Static);
@@ -161,13 +158,13 @@ namespace ChaosHelper
             if (settings.FindIlvl100)
             {
                 await FindIlvl100Items(settings);
-                return;
+                return true;
             }
 
             if (!string.IsNullOrWhiteSpace(settings.FileToCheck))
             {
                 CheckSingleFileForSets(settings);
-                return;
+                return true;
             }
 
             if (settings.ForceSingleUpdate)
@@ -176,7 +173,7 @@ namespace ChaosHelper
                 forceFilterUpdate = true;
                 await CheckForUpdate();
                 logger.Info("Exiting after single filter update");
-                return;
+                return true;
             }
 
 #if DEBUG
@@ -330,6 +327,7 @@ namespace ChaosHelper
             }
             logger.Info("Shutdown (5) - unmuting poe process");
             Config.MutePoeProcess(mute: false);
+            return true;
         }
 
         private static async Task ProcessKeystroke(ConsoleKeyInfo keyInfo, bool setTemporaryMessage = false)
@@ -1220,7 +1218,7 @@ namespace ChaosHelper
             if (DateTime.UtcNow < canUpdateAfter)
             {
                 logger.Info($"not checking for max level gems - too soon");
-                return string.Empty;
+                return null;
             }
 
             if (string.IsNullOrWhiteSpace(Config.Character))
@@ -1510,8 +1508,10 @@ namespace ChaosHelper
             {
                 const string loginPattern = "login.pathofexile.com";
                 const string maybeWhisperPattern = "] @";
+                const string discoverableHideoutPattern = "Spawning discoverable Hideout";
                 var sawLoginLine = false;
-                var maxGemLevelMessage = string.Empty;
+                var sawDiscoverableHideoutLine = false;
+                string maxGemLevelMessage = null;
                 while (!token.IsCancellationRequested && string.Equals(savedClientFileName, Config.ClientFileName))
                 {
                     string newArea = null;
@@ -1521,6 +1521,8 @@ namespace ChaosHelper
                         var i = line.IndexOf(Config.AreaEnteredPattern);
                         if (i >= 0)
                             newArea = line[(i + Config.AreaEnteredPattern.Length)..].Trim().TrimEnd('.');
+                        else if (line.Contains(discoverableHideoutPattern, StringComparison.OrdinalIgnoreCase))
+                            sawDiscoverableHideoutLine = true;
                         else if (line.Contains(loginPattern, StringComparison.OrdinalIgnoreCase))
                             sawLoginLine = true;
                         else if (line.Contains(maybeWhisperPattern))
@@ -1543,7 +1545,7 @@ namespace ChaosHelper
                         CheckHotkeyRegistration();
                         overlay?.SendKey(ConsoleKey.R);
                         reloadConfig = false;
-                        maxGemLevelMessage = string.Empty;
+                        maxGemLevelMessage = null;
                     }
 
                     if (checkCharacter || sawLoginLine && newArea != null && !isPaused)
@@ -1552,7 +1554,7 @@ namespace ChaosHelper
                         await Config.DetermineTabIndices(forceWebCheck: true);
                         checkCharacter = false;
                         sawLoginLine = false;
-                        maxGemLevelMessage = string.Empty;
+                        maxGemLevelMessage = null;
                     }
 
                     bool wasTown = Config.IsTown(currentArea);
@@ -1564,13 +1566,17 @@ namespace ChaosHelper
                         var statusList = new List<string>();
                         if (isTown) statusList.Add(wasTown ? "town" : "to town");
                         if (isPaused) statusList.Add("paused");
-                        if (isTown && !wasTown && (Config.FlagMaxLevelGemsInOffHand || Config.FlagMaxLevelNonQualityGems))
+                        if (((isTown && !wasTown) || maxGemLevelMessage == null) && (Config.FlagMaxLevelGemsInOffHand || Config.FlagMaxLevelNonQualityGems))
                             maxGemLevelMessage = await CheckForMaxLevelGems();
                         if (isTown && !string.IsNullOrWhiteSpace(maxGemLevelMessage))
                             statusList.Add(maxGemLevelMessage);
 
+                        var hasHideout = sawDiscoverableHideoutLine && !isTown && !Config.IgnoreZoneForDiscoverableHideouts(newArea);
+                        if (hasHideout) statusList.Add("hideout here");
+                        sawDiscoverableHideoutLine = false;
+
                         var status = (statusList.Count > 0) ? $" ({string.Join(" - ", statusList)})" : string.Empty;
-                        overlay?.SetArea($"{newArea}{status}", isTown);
+                        overlay?.SetArea($"{newArea}{status}", isTown, emphasizeArea: hasHideout);
                         logger.Info($"new area - {newArea}{status}");
 
                         qualityItems = null;

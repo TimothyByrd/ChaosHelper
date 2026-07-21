@@ -160,9 +160,9 @@ namespace ChaosHelper
             return process;
         }
 
-        public void SetArea(string areaName, bool isTown)
+        public void SetArea(string areaName, bool isTown, bool emphasizeArea)
         {
-            _plugin?.SetArea(areaName, isTown);
+            _plugin?.SetArea(areaName, isTown, emphasizeArea);
         }
 
         public void SetStatus(string msg, bool emphasizeStatus)
