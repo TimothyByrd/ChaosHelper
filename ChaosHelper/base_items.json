@@ -1,4 +1,172 @@
 {
+   "Pearlescent Amulet": {
+       "name": "Pearlescent Amulet",
+       "item_class": "Amulet"
+   },
+   "Chieftain Talisman": {
+       "name": "Chieftain Talisman",
+       "item_class": "Amulet"
+   },
+   "Gargantuan Talisman": {
+       "name": "Gargantuan Talisman",
+       "item_class": "Amulet"
+   },
+   "Goliath Talisman": {
+       "name": "Goliath Talisman",
+       "item_class": "Amulet"
+   },
+   "Rhoa Talisman": {
+       "name": "Rhoa Talisman",
+       "item_class": "Amulet"
+   },
+   "Blood Viper Talisman": {
+       "name": "Blood Viper Talisman",
+       "item_class": "Amulet"
+   },
+   "Chimeral Talisman": {
+       "name": "Chimeral Talisman",
+       "item_class": "Amulet"
+   },
+   "Squid Talisman": {
+       "name": "Squid Talisman",
+       "item_class": "Amulet"
+   },
+   "Sand Spitter Talisman": {
+       "name": "Sand Spitter Talisman",
+       "item_class": "Amulet"
+   },
+   "Shield Crab Talisman": {
+       "name": "Shield Crab Talisman",
+       "item_class": "Amulet"
+   },
+   "Goatman Talisman": {
+       "name": "Goatman Talisman",
+       "item_class": "Amulet"
+   },
+   "Devourer Talisman": {
+       "name": "Devourer Talisman",
+       "item_class": "Amulet"
+   },
+   "Plagued Arachnid Talisman": {
+       "name": "Plagued Arachnid Talisman",
+       "item_class": "Amulet"
+   },
+   "Watcher Talisman": {
+       "name": "Watcher Talisman",
+       "item_class": "Amulet"
+   },
+   "Savage Crab Talisman": {
+       "name": "Savage Crab Talisman",
+       "item_class": "Amulet"
+   },
+   "Flame Hellion Talisman": {
+       "name": "Flame Hellion Talisman",
+       "item_class": "Amulet"
+   },
+   "Frost Hellion Talisman": {
+       "name": "Frost Hellion Talisman",
+       "item_class": "Amulet"
+   },
+   "Lynx Talisman": {
+       "name": "Lynx Talisman",
+       "item_class": "Amulet"
+   },
+   "Ape Talisman": {
+       "name": "Ape Talisman",
+       "item_class": "Amulet"
+   },
+   "Wolf Alpha Talisman": {
+       "name": "Wolf Alpha Talisman",
+       "item_class": "Amulet"
+   },
+   "Magma Hound Talisman": {
+       "name": "Magma Hound Talisman",
+       "item_class": "Amulet"
+   },
+   "Pitbull Talisman": {
+       "name": "Pitbull Talisman",
+       "item_class": "Amulet"
+   },
+   "Ursa Talisman": {
+       "name": "Ursa Talisman",
+       "item_class": "Amulet"
+   },
+   "Taurus Talisman": {
+       "name": "Taurus Talisman",
+       "item_class": "Amulet"
+   },
+   "Retch Talisman": {
+       "name": "Retch Talisman",
+       "item_class": "Amulet"
+   },
+   "Cobra Talisman": {
+       "name": "Cobra Talisman",
+       "item_class": "Amulet"
+   },
+   "Carrion Queen Talisman": {
+       "name": "Carrion Queen Talisman",
+       "item_class": "Amulet"
+   },
+   "Scrabbler Talisman": {
+       "name": "Scrabbler Talisman",
+       "item_class": "Amulet"
+   },
+   "Black Widow Talisman": {
+       "name": "Black Widow Talisman",
+       "item_class": "Amulet"
+   },
+   "Scorpion Talisman": {
+       "name": "Scorpion Talisman",
+       "item_class": "Amulet"
+   },
+   "Tiger Talisman": {
+       "name": "Tiger Talisman",
+       "item_class": "Amulet"
+   },
+   "Vulture Talisman": {
+       "name": "Vulture Talisman",
+       "item_class": "Amulet"
+   },
+   "Rhex Talisman": {
+       "name": "Rhex Talisman",
+       "item_class": "Amulet"
+   },
+   "Hybrid Arachnid Talisman": {
+       "name": "Hybrid Arachnid Talisman",
+       "item_class": "Amulet"
+   },
+   "Octopus Talisman": {
+       "name": "Octopus Talisman",
+       "item_class": "Amulet"
+   },
+   "Spider Crab Talisman": {
+       "name": "Spider Crab Talisman",
+       "item_class": "Amulet"
+   },
+   "Great Maw Talisman": {
+       "name": "Great Maw Talisman",
+       "item_class": "Amulet"
+   },
+   "Croaker Talisman": {
+       "name": "Croaker Talisman",
+       "item_class": "Amulet"
+   },
+   "Craicic Talisman": {
+       "name": "Craicic Talisman",
+       "item_class": "Amulet"
+   },
+   "Fenumal Talisman": {
+       "name": "Fenumal Talisman",
+       "item_class": "Amulet"
+   },
+   "Saqawine Talisman": {
+       "name": "Saqawine Talisman",
+       "item_class": "Amulet"
+   },
+   "Farric Talisman": {
+       "name": "Farric Talisman",
+       "item_class": "Amulet"
+   },
    "Cryonic Ring": {
        "name": "Cryonic Ring",
        "item_class": "Ring"
