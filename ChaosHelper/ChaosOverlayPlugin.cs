@@ -64,6 +64,7 @@ namespace ChaosHelper
         private readonly Dictionary<TabType, double> _squareWidth = [];
         private readonly Dictionary<TabType, double> _squareHeight = [];
         
+        private readonly int _screenHeight;
         private int _targetWindowHeight;
         private string _areaName;
         private bool _inATown = true; // assume we start in a town
@@ -97,6 +98,7 @@ namespace ChaosHelper
             _autoDetermineStashRect = Config.StashPageXYWH.IsEmpty;
             _shouldHookMouseEvents = Config.ShouldHookMouseEvents;
             _hookKeyboardEvents = Config.ShouldHookKeyboardEvents;
+            _screenHeight = Convert.ToInt32(System.Windows.SystemParameters.PrimaryScreenHeight);
         }
 
         ~ChaosOverlayPlugin()
@@ -174,7 +176,7 @@ namespace ChaosHelper
             _squareHeight[TabType.DumpTab] = (_stashRect.Bottom - _stashRect.Top) / _numSquares[TabType.DumpTab];
             _verticalOffset[TabType.DumpTab] = Config.DumpTabVerticalOffset;
 
-            logger.Info($"stashrect targetWindowHeight {_targetWindowHeight}");
+            logger.Info($"stashrect targetWindowHeight {_targetWindowHeight}, screenHeight {_screenHeight}");
             logger.Info($"stashrect left {_stashRect.Left} top {_stashRect.Top}  right {_stashRect.Right} bottom {_stashRect.Bottom}");
             logger.Info($"stashrect squareWidth {_squareWidth[TabType.ChaosRecipeTab]}  squareHeight {_squareHeight[TabType.ChaosRecipeTab]}  height {_stashRect.Bottom - _stashRect.Top}");
             logger.Info($"quality squareWidth {_squareWidth[TabType.QualityRecipeTab]}  squareHeight {_squareHeight[TabType.QualityRecipeTab]}");
@@ -183,7 +185,7 @@ namespace ChaosHelper
 
         private void MaybeUpdateStashRect()
         {
-            if (_autoDetermineStashRect && _targetWindowHeight < TargetWindow.Height)
+            if (_autoDetermineStashRect && (_targetWindowHeight < TargetWindow.Height || _targetWindowHeight > _screenHeight))
                 DetermineStashRect();
         }
 
