@@ -1362,13 +1362,21 @@ namespace ChaosHelper
                 else if (league.StartsWith("SSF"))
                     league = string.Concat("Hardcore ", league.AsSpan(3));
 
-                var poeNinjaUrl = $"https://poe.ninja/api/data/currencyoverview?league={Uri.EscapeDataString(league)}&type=Currency";
+                var poeNinjaUrl = $"https://poe.ninja/poe1/api/economy/exchange/current/overview?league={Uri.EscapeDataString(league)}&type=Currency";
                 var json = await Config.GetJsonForUrl(poeNinjaUrl, "poeNinja");
+                var currencyNamesById = new Dictionary<string, string>();
+                foreach (var item in json.GetProperty("items").EnumerateArray())
+                {
+                    var currencyId = item.GetProperty("id").GetString();
+                    var currencyName = item.GetProperty("name").GetString();
+                    currencyNamesById[currencyId] = currencyName;
+                }
                 foreach (var item in json.GetProperty("lines").EnumerateArray())
                 {
-                    var currencyTypeName = item.GetProperty("currencyTypeName").GetString();
-                    var chaosEquivalent = item.GetProperty("chaosEquivalent").GetDouble();
-                    Currency.SetValueRatio(currencyTypeName, chaosEquivalent);
+                    var currencyId = item.GetProperty("id").GetString();
+                    var currencyName = currencyNamesById[currencyId];
+                    var chaosEquivalent = item.GetProperty("primaryValue").GetDouble();
+                    Currency.SetValueRatio(currencyName, chaosEquivalent);
                 }
             }
             catch (Exception ex)

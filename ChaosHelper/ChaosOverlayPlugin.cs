@@ -141,6 +141,7 @@ namespace ChaosHelper
 
             _tickEngine.PreTick += OnPreTick;
             _tickEngine.Tick += OnTick;
+            OverlayWindow.Hide();
 
             SetHighlightColors();
         }
