@@ -64,6 +64,14 @@ namespace ChaosHelper
             return c;
         }
 
+        public static double GetValueRatio(string currency)
+        {
+            var c = CurrencyList.FirstOrDefault(x => x.Name == currency);
+            if (c == null)
+                return 0.0;
+            return c.ValueRatio;
+        }
+
         static public Dictionary<string, Currency> GetWebDictionary()
         {
             var result = new Dictionary<string, Currency>();

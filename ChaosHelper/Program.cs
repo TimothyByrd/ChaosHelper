@@ -446,9 +446,6 @@ namespace ChaosHelper
                     var realm = character.GetProperty("realm").GetString();
                     var league = character.GetProperty("league").GetString();
 
-                    //await Task.Delay(delaySeconds * 1000);
-                    await RateLimit.DelayForRateLimits(1000).ConfigureAwait(false);
-
                     var charJson = await GetJsonForCharacter(Config.Account, realm, characterName);
 
                     LogIlvl100Items(charJson, $"Character {characterName}");
@@ -811,6 +808,7 @@ namespace ChaosHelper
             {
                 logger.Warn("not updating filter - problem getting recipe items tab");
                 overlay?.SetStatus("problem updating filter", true);
+                forceFilterUpdate = false;
                 return;
             }
             itemsPrevious = itemsCurrent;
@@ -1117,6 +1115,29 @@ namespace ChaosHelper
                     foreach (var item in l)
                         Console.WriteLine(item.DisplayString);
                     Console.WriteLine($"total value = {Currency.GetTotalValue():F2}");
+
+                    // Check for currencies that would be worth more if upgraded at a vendor.
+                    //
+                    CheckIfBetterUpgraded("Scroll of Wisdom", "Portal Scroll", 3);
+                    CheckIfBetterUpgraded("Portal Scroll", "Orb of Transmutation", 7);
+                    CheckIfBetterUpgraded("Orb of Transmutation", "Orb of Augmentation", 4);
+                    CheckIfBetterUpgraded("Orb of Augmentation", "Orb of Alteration", 4);
+                    CheckIfBetterUpgraded("Orb of Alteration", "Jeweller's Orb", 2);
+                    CheckIfBetterUpgraded("Jeweller's Orb", "Orb of Fusing", 4);
+                    CheckIfBetterUpgraded("Orb of Fusing", "Orb of Chance", 1);
+                    CheckIfBetterUpgraded("Orb of Chance", "Orb of Scouring", 4);
+                    CheckIfBetterUpgraded("Orb of Scouring", "Orb of Regret", 2);
+                    CheckIfBetterUpgraded("Orb of Regret", "Orb of Alchemy", 1);
+                    CheckIfBetterUpgraded("Blacksmith's Whetstone", "Armourer's Scrap", 1);
+                    CheckIfBetterUpgraded("Armourer's Scrap", "Blacksmith's Whetstone", 3);
+
+                    static void CheckIfBetterUpgraded(string baseCurrency, string upgradeCurrency, double upgradeCost)
+                    {
+                        var baseRatio = Currency.GetValueRatio(baseCurrency);
+                        var upgradeRatio = Currency.GetValueRatio(upgradeCurrency);
+                        if (upgradeRatio > baseRatio * upgradeCost)
+                            Console.WriteLine($"upgrade '{baseCurrency}' => '{upgradeCurrency}' - {baseRatio} * {upgradeCost} < {upgradeRatio}");
+                    }
                 }
             }
             catch (Exception ex)
@@ -1300,8 +1321,10 @@ namespace ChaosHelper
                 }
 
                 var statusList = new List<string>();
-                if (offhandMaxLevelCount > 0) statusList.Add($"{offhandMaxLevelCount} max-level gems in offhand");
-                if (nonQualityMaxLevelCount > Config.MaxLevelNonQualityGemsExpectedCount) statusList.Add($"{nonQualityMaxLevelCount} non-quality max-level gems");
+                var extraOffhand = offhandMaxLevelCount - Config.MaxLevelOffhandGemsExpectedCount;
+                if (extraOffhand > 0) statusList.Add($"{extraOffhand} max-level gems in offhand");
+                var extraNonQualiity = nonQualityMaxLevelCount - Config.MaxLevelNonQualityGemsExpectedCount;
+                if (extraNonQualiity > 0) statusList.Add($"{extraNonQualiity} non-quality max-level gems");
 
                 var result = (statusList.Count > 0) ? string.Join(", ", statusList) : string.Empty;
                 return result;
@@ -1314,7 +1337,7 @@ namespace ChaosHelper
         }
 
         private static async Task<JsonElement> GetJsonForCharacter(string account, string realm, string characterName)
-        { 
+        {
             var tabName = $"inventory_{characterName}";
             var fileName = TabFileName(tabName);
             if (StashReadMode == StashReading.Playback && File.Exists(fileName))
@@ -1328,6 +1351,9 @@ namespace ChaosHelper
                     logger.Error(ex, $"Reading save tab data for '{tabName}'");
                 }
             }
+
+            await RateLimit.DelayForRateLimits(500).ConfigureAwait(false);
+
             // for some reason, this is a form POST, not a GET
             //
             var formContent = new FormUrlEncodedContent(

@@ -78,6 +78,7 @@ namespace ChaosHelper
         public static string MaxLevelGemPattern { get; private set; }
         public static bool FlagMaxLevelGemsInOffHand { get; private set; }
         public static bool FlagMaxLevelNonQualityGems { get; private set; }
+        public static int MaxLevelOffhandGemsExpectedCount { get; private set; }
         public static int MaxLevelNonQualityGemsExpectedCount { get; private set; }
 
         public static List<HotkeyEntry> Hotkeys { get; private set; }
@@ -293,8 +294,11 @@ namespace ChaosHelper
                 MaxLevelGemPattern = "(Max)";
             FlagMaxLevelGemsInOffHand = rawConfig.GetBoolean("flagMaxLevelGemsInOffHand", false);
             FlagMaxLevelNonQualityGems = rawConfig.GetBoolean("flagMaxLevelNonQualityGems", false);
-            MaxLevelNonQualityGemsExpectedCount = rawConfig.GetInt("maxLevelNonQualityGemsExpectedCount", 0);
-            if (FlagMaxLevelGemsInOffHand)
+            MaxLevelOffhandGemsExpectedCount = Math.Max(rawConfig.GetInt("maxLevelOffhandGemsExpectedCount", 0), 0);
+            MaxLevelNonQualityGemsExpectedCount = Math.Max(rawConfig.GetInt("maxLevelNonQualityGemsExpectedCount", 0), 0);
+            if (FlagMaxLevelGemsInOffHand && MaxLevelOffhandGemsExpectedCount > 0)
+                logger.Info($"will flag max level gems in off-hand slots when there are more than {MaxLevelOffhandGemsExpectedCount} using pattern '{MaxLevelGemPattern}'");
+            else if (FlagMaxLevelGemsInOffHand)
                 logger.Info($"will flag max level gems in off-hand slots using pattern '{MaxLevelGemPattern}'");
             if (FlagMaxLevelNonQualityGems)
                 logger.Info($"will flag max level, non-quality gems in equipped slots when there are more than {MaxLevelNonQualityGemsExpectedCount} using pattern '{MaxLevelGemPattern}'");
@@ -432,7 +436,10 @@ namespace ChaosHelper
                 {
                     const string characterPrefixPattern = "{var c = new C(";
                     const string checkUrl = "https://www.pathofexile.com/shop"; // because it's a relatively simple page.
-                    var responseString = await HttpClient.GetStringAsync(checkUrl);
+                    HttpResponseMessage response = await GetUrlRespectingRateLimits(checkUrl);
+                    var responseString = string.Empty;
+                    if (response != null && response.IsSuccessStatusCode) 
+                        responseString = await response.Content.ReadAsStringAsync();
                     if (string.IsNullOrWhiteSpace(responseString))
                     {
                         logger.Warn("Determine character failed to get page");
@@ -630,74 +637,86 @@ namespace ChaosHelper
 
             if (StashReadMode != StashReading.Manual)
             {
-                var baseDelaySeconds = 60 * 10;
-                var triesSoFar = 0;
-                while (triesSoFar < 4)
+                HttpResponseMessage response = await GetUrlRespectingRateLimits(theUrl);
+                if (response != null && response.IsSuccessStatusCode)
                 {
-                    ++triesSoFar;
-                    try
-                    {
-                        HttpResponseMessage response = await HttpClient.GetAsync(theUrl);
-                        RateLimit.UpdateLimits(response);
-                        if (response.StatusCode == HttpStatusCode.TooManyRequests)
-                        {
-                            foreach (var header in response.Headers)
-                            {
-                                if (header.Key.StartsWith("X-Rate", StringComparison.OrdinalIgnoreCase)
-                                    || header.Key.StartsWith("Retry", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    var value = string.Join(";", header.Value);
-                                    logger.Info($"Header {header.Key}: {value}");
-                                }
-                            }
-                            var delta = TimeSpan.Zero;
-                            if (response.Headers.RetryAfter.Date.HasValue)
-                                delta = response.Headers.RetryAfter.Date.Value - DateTimeOffset.Now;
-                            if (delta <= TimeSpan.Zero && response.Headers.RetryAfter.Delta.HasValue)
-                                delta = response.Headers.RetryAfter.Delta.Value;
-                            if (delta <= TimeSpan.Zero)
-                            {
-                                var delaySeconds = baseDelaySeconds * triesSoFar;
-                                delta = TimeSpan.FromSeconds(delaySeconds);
-                            }
-
-                            delta = delta.Add(TimeSpan.FromSeconds(30));
-                            logger.Warn($"Got response 429 too many requests(1) - delaying for {delta.TotalSeconds} seconds");
-                            await Task.Delay(delta);
-                            continue;
-                        }
-                        else if (!response.IsSuccessStatusCode)
-                        {
-                            logger.Error($"Got response {response.StatusCode}");
-                        }
-                        var result = await response.Content.ReadFromJsonAsync<JsonElement>();
-                        MaybeSavePageJson(result, tabName);
-                        return result;
-                    }
-                    catch (HttpRequestException httpException)
-                    {
-                        logger.Error(httpException, $"Getting URL '{theUrl}'");
-                        if (httpException.StatusCode == HttpStatusCode.TooManyRequests)
-                        {
-                            var delaySeconds = baseDelaySeconds * triesSoFar;
-                            logger.Warn($"Got response 429 too many requests(2) - delaying for {delaySeconds} seconds");
-                            await Task.Delay(delaySeconds * 1000);
-
-                        }
-                        else
-                            break;
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.Error(ex, $"Getting URL '{theUrl}'");
-                        break;
-                    }
+                    var result = await response.Content.ReadFromJsonAsync<JsonElement>();
+                    MaybeSavePageJson(result, tabName);
+                    return result;
                 }
             }
 
             if (StashCanDoManualRead)
                 return await ManualGetUrlJson(theUrl);
             return new JsonElement();
+        }
+
+        private static async Task<HttpResponseMessage> GetUrlRespectingRateLimits(string theUrl)
+        {
+            HttpResponseMessage response = null;
+            var baseDelaySeconds = 60 * 10;
+            var triesSoFar = 0;
+            while (triesSoFar < 4)
+            {
+                ++triesSoFar;
+                try
+                {
+                    response = await HttpClient.GetAsync(theUrl);
+                    RateLimit.UpdateLimits(response);
+                    if (response.StatusCode == HttpStatusCode.TooManyRequests)
+                    {
+                        foreach (var header in response.Headers)
+                        {
+                            if (header.Key.StartsWith("X-Rate", StringComparison.OrdinalIgnoreCase)
+                                || header.Key.StartsWith("Retry", StringComparison.OrdinalIgnoreCase))
+                            {
+                                var value = string.Join(";", header.Value);
+                                logger.Info($"Header {header.Key}: {value}");
+                            }
+                        }
+                        var delta = TimeSpan.Zero;
+                        if (response.Headers.RetryAfter != null && response.Headers.RetryAfter.Date.HasValue)
+                            delta = response.Headers.RetryAfter.Date.Value - DateTimeOffset.Now;
+                        if (delta <= TimeSpan.Zero && response.Headers.RetryAfter != null && response.Headers.RetryAfter.Delta.HasValue)
+                            delta = response.Headers.RetryAfter.Delta.Value;
+                        if (delta <= TimeSpan.Zero)
+                        {
+                            var delaySeconds = baseDelaySeconds * triesSoFar;
+                            delta = TimeSpan.FromSeconds(delaySeconds);
+                        }
+
+                        delta = delta.Add(TimeSpan.FromSeconds(30));
+                        logger.Warn($"Got response 429 too many requests(1) - delaying for {delta.TotalSeconds} seconds");
+                        await Task.Delay(delta);
+                        continue;
+                    }
+                    else if (!response.IsSuccessStatusCode)
+                    {
+                        logger.Error($"Got response {response.StatusCode}");
+                    }
+                    break;
+                }
+                catch (HttpRequestException httpException)
+                {
+                    logger.Error(httpException, $"Getting URL '{theUrl}'");
+                    if (httpException.StatusCode == HttpStatusCode.TooManyRequests)
+                    {
+                        var delaySeconds = baseDelaySeconds * triesSoFar;
+                        logger.Warn($"Got response 429 too many requests(2) - delaying for {delaySeconds} seconds");
+                        await Task.Delay(delaySeconds * 1000);
+
+                    }
+                    else
+                        break;
+                }
+                catch (Exception ex)
+                {
+                    logger.Error(ex, $"Getting URL '{theUrl}'");
+                    break;
+                }
+            }
+
+            return response;
         }
 
         public static string TabFileName(string tabName)
