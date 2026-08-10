@@ -25,7 +25,7 @@ namespace ChaosHelper
         private bool _haveLoggedWaitingForMainWindowMessage = false;
         private int _lastPidFound = 0;
 
-        public void RunOverLay(bool shouOverlay, CancellationToken cancellationToken)
+        public void RunOverLay(bool showOverlay, CancellationToken cancellationToken)
         {
             _requiredProcessName = Config.RequiredProcessName;
             if (Config.ForceSteam)
@@ -61,7 +61,7 @@ namespace ChaosHelper
 
                         _processExited = false;
 
-                        if (shouOverlay)
+                        if (showOverlay)
                         {
                             int fps = 10; // 30;
                             _plugin = new ChaosOverlayPlugin(fps);
@@ -139,6 +139,8 @@ namespace ChaosHelper
             if (!_processExited)
             {
                 logger.Info($"PoE process exiting");
+
+                _plugin?.ProcessExited();
                 _processExited = true;
                 _haveLoggedWaitingForProcessMessage = false;
                 _haveLoggedWaitingForMainWindowMessage = false;

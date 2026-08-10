@@ -39,6 +39,7 @@ namespace ChaosHelper
 
         private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
+        private volatile bool _processExited = false;
         private readonly TickEngine _tickEngine = new();
         private int _font;
         private int _redBrush;
@@ -63,7 +64,7 @@ namespace ChaosHelper
         private readonly Dictionary<TabType, int> _verticalOffset = [];
         private readonly Dictionary<TabType, double> _squareWidth = [];
         private readonly Dictionary<TabType, double> _squareHeight = [];
-        
+
         private readonly int _screenHeight;
         private int _targetWindowHeight;
         private string _areaName;
@@ -105,6 +106,11 @@ namespace ChaosHelper
         {
             _mouseHook?.Dispose();
             _mouseHook = null;
+        }
+
+        public void ProcessExited()
+        {
+            _processExited = true;
         }
 
         internal void SetCurrentItems(ItemSet currentItems)
@@ -165,7 +171,7 @@ namespace ChaosHelper
             _squareWidth[TabType.ChaosRecipeTab] = (_stashRect.Right - _stashRect.Left) / _numSquares[TabType.ChaosRecipeTab];
             _squareHeight[TabType.ChaosRecipeTab] = (_stashRect.Bottom - _stashRect.Top) / _numSquares[TabType.ChaosRecipeTab];
             _verticalOffset[TabType.ChaosRecipeTab] = Config.RecipeTabVerticalOffset;
-            
+
             _numSquares[TabType.QualityRecipeTab] = Config.QualityIsQuadTab ? 24 : 12;
             _squareWidth[TabType.QualityRecipeTab] = (_stashRect.Right - _stashRect.Left) / _numSquares[TabType.QualityRecipeTab];
             _squareHeight[TabType.QualityRecipeTab] = (_stashRect.Bottom - _stashRect.Top) / _numSquares[TabType.QualityRecipeTab];
@@ -335,20 +341,86 @@ namespace ChaosHelper
             InternalRender();
         }
 
+        enum OverlayState
+        {
+            Unknown,
+            Hidden,
+            Visible,
+            MakeHidden,
+            MakeVisible,
+            WaitingForMainWindowToResize,
+        }
+        private OverlayState _overlayState = OverlayState.Unknown;
+
         private void OnPreTick(object sender, EventArgs e)
         {
-            var targetWindowIsActivated = TargetWindow?.IsActivated ?? false;
+            var currentTargetWindowHeight = -1;
+            int GetCurrentTargetWindowHeight()
+            {
+                if (_processExited)
+                    currentTargetWindowHeight = -1;
+                else if (currentTargetWindowHeight == -1)
+                {
+                    try
+                    {
+                        currentTargetWindowHeight = TargetWindow?.Height ?? 0;
+                    }
+                    catch (Exception)
+                    {
+                        _processExited = true;
+                    }
+                }
+                return currentTargetWindowHeight;
+            }
+
+            static bool IsBetween(int x, int lower, int upper)
+            {
+                return (x >= lower && x <= upper);
+            }
+
+            var targetWindowIsActivated = false;
+            if (!_processExited)
+            {
+                try
+                {
+                    targetWindowIsActivated = TargetWindow?.IsActivated ?? false;
+                }
+                catch (Exception)
+                {
+                    _processExited = true;
+                }
+            }
+
+            OverlayState _newOverlayState = OverlayState.Unknown;
+
             if (!targetWindowIsActivated && OverlayWindow.IsVisible)
             {
                 //_watch.Stop();
                 ClearScreen();
                 OverlayWindow.Hide();
+                _newOverlayState = OverlayState.MakeHidden;
             }
-            else if (targetWindowIsActivated && !OverlayWindow.IsVisible)
+            else if (targetWindowIsActivated && !OverlayWindow.IsVisible && IsBetween(GetCurrentTargetWindowHeight(), 0, _screenHeight))
             {
                 MaybeUpdateStashRect();
                 OverlayWindow.Show();
+                _newOverlayState = OverlayState.MakeVisible;
             }
+            else if (targetWindowIsActivated && !OverlayWindow.IsVisible)
+                _newOverlayState = OverlayState.WaitingForMainWindowToResize;
+            else if (!targetWindowIsActivated && !OverlayWindow.IsVisible)
+                _newOverlayState = OverlayState.Hidden;
+            else if (targetWindowIsActivated && OverlayWindow.IsVisible)
+                _newOverlayState = OverlayState.Visible;
+            else
+                _newOverlayState = OverlayState.Unknown;
+
+            if (_newOverlayState != _overlayState)
+            {
+                logger.Info($"overlay state change {_overlayState} => {_newOverlayState}, targetWindowHeight {_targetWindowHeight}/{GetCurrentTargetWindowHeight()}, screenHeight {_screenHeight}");
+                _overlayState = _newOverlayState;
+            }
+
             CheckHooks(targetWindowIsActivated);
             CheckItemsClicked();
         }
@@ -673,7 +745,7 @@ namespace ChaosHelper
 
             var x = (int) (_stashRect.Right + _squareWidth[TabType.ChaosRecipeTab] * _numSquares[TabType.ChaosRecipeTab] / 4);
 
-            foreach ( var line in lines ) 
+            foreach ( var line in lines )
             {
                 if (!string.IsNullOrWhiteSpace(line))
                     _textToDraw.Add(new TextStruct(line, _whiteBrush, x, yStart));
