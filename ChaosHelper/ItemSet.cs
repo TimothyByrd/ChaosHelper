@@ -918,6 +918,8 @@ namespace ChaosHelper
             CalculateInternal(Category);
 
             // for rings, IDed cannot mix in un-IDed.
+            // and we need two per set.
+
             CanMakeIded -= CanMake;
             CanMake60Ided -= CanMake60;
             CanMake75Ided -= CanMake75;
@@ -927,19 +929,12 @@ namespace ChaosHelper
             num75s = CanMake75;
             num75sIded = CanMake75Ided;
 
-            // because we need two per set.
-            CanMake /= 2;
-            if (CanMake60 != 1 || CanMake75 <= 0)
-                CanMake60 /= 2;
-            if (CanMake60 > 1 && CanMake75 > 1)
-                CanMake60 = 1;
-            CanMake75 /= 2;
-            CanMakeIded /= 2;
-            if (CanMake60Ided != 1 || CanMake75Ided <= 0)
-                CanMake60Ided /= 2;
-            if (CanMake60Ided > 1 && CanMake75Ided > 1)
-                CanMake60Ided = 1;
-            CanMake75Ided /= 2;
+            CanMake60 = Math.Min(num60s, (num60s + num75s) / 2);
+            CanMake75 = num75s / 2;
+            CanMake = CanMake60 + CanMake75;
+            CanMake60Ided = Math.Min(num60sIded, (num60sIded + num75sIded) / 2);
+            CanMake75Ided = num75sIded / 2;
+            CanMakeIded = CanMake60Ided + CanMake75Ided;
         }
 
         public override bool OneSetMixes60AndA75(bool ided)
@@ -1004,24 +999,18 @@ namespace ChaosHelper
         {
             CalculateInternal(Cat.OneHandWeapons);
 
+            // because we need two per set.
             num1H3_60s = CanMake60;
             num1H3_60sIded = CanMake60Ided;
             num1H3_75s = CanMake75;
             num1H3_75sIded = CanMake75Ided;
 
-            // because we need two per set.
-            CanMake /= 2;
-            if (CanMake60 != 1 || CanMake75 <= 0) 
-                CanMake60 /= 2;
-            if (CanMake60 > 1 && CanMake75 > 1)
-                CanMake60 = 1;
-            CanMake75 /= 2;
-            CanMakeIded /= 2;
-            if (CanMake60Ided != 1 || CanMake75Ided <= 0)
-                CanMake60Ided /= 2;
-            if (CanMake60Ided > 1 && CanMake75Ided > 1)
-                CanMake60Ided = 1;
-            CanMake75Ided /= 2;
+            CanMake60 = Math.Min(num1H3_60s, (num1H3_60s + num1H3_75s) / 2);
+            CanMake75 = num1H3_75s / 2;
+            CanMake = CanMake60 + CanMake75;
+            CanMake60Ided = Math.Min(num1H3_60sIded, (num1H3_60sIded + num1H3_75sIded) / 2);
+            CanMake75Ided = num1H3_75sIded / 2;
+            CanMakeIded = CanMake60Ided + CanMake75Ided;
 
             foreach (var item in source.GetCategory(Cat.TwoHandWeapons))
             {

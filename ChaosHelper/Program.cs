@@ -1326,7 +1326,7 @@ namespace ChaosHelper
                 var extraNonQualiity = nonQualityMaxLevelCount - Config.MaxLevelNonQualityGemsExpectedCount;
                 if (extraNonQualiity > 0) statusList.Add($"{extraNonQualiity} non-quality max-level gems");
 
-                var result = (statusList.Count > 0) ? string.Join(", ", statusList) : string.Empty;
+                var result = string.Join(", ", statusList);
                 return result;
             }
             catch (Exception ex)
@@ -1495,6 +1495,8 @@ namespace ChaosHelper
                     result.Add($"   ItemLevel >= {minIlvl}");
                     if (counts.MaxItemLevelToShow > 0)
                         result.Add($"   ItemLevel <= {counts.MaxItemLevelToShow}");
+                    else if (minIlvl < 75)
+                        result.Add($"   ItemLevel <= 74");
                     if (!canBeIded)
                         result.Add("   Identified False");
 
@@ -1600,7 +1602,7 @@ namespace ChaosHelper
                         var statusList = new List<string>();
                         if (isTown) statusList.Add(wasTown ? "town" : "to town");
                         if (isPaused) statusList.Add("paused");
-                        if (((isTown && !wasTown) || maxGemLevelMessage == null) && (Config.FlagMaxLevelGemsInOffHand || Config.FlagMaxLevelNonQualityGems))
+                        if (!isPaused && ((isTown && !wasTown) || maxGemLevelMessage == null) && (Config.FlagMaxLevelGemsInOffHand || Config.FlagMaxLevelNonQualityGems))
                             maxGemLevelMessage = await CheckForMaxLevelGems();
                         if (isTown && !string.IsNullOrWhiteSpace(maxGemLevelMessage))
                             statusList.Add(maxGemLevelMessage);
