@@ -788,7 +788,7 @@ namespace ChaosHelper
         {
             Config.GetCloseTcpPortsArgument();
 
-            if (isPaused && !forceFilterUpdate)
+            if ((isPaused || Config.MaxSets <= 0) && !forceFilterUpdate)
                 return;
 
             if (!forceFilterUpdate && DateTime.UtcNow < canUpdateAfter)
@@ -1558,7 +1558,11 @@ namespace ChaosHelper
                         if (i >= 0)
                             newArea = line[(i + Config.AreaEnteredPattern.Length)..].Trim().TrimEnd('.');
                         else if (line.Contains(discoverableHideoutPattern, StringComparison.OrdinalIgnoreCase))
+                        {
                             sawDiscoverableHideoutLine = true;
+                            if (Config.CouldBeHideout(currentArea))
+                                overlay?.SetTemporaryMessage(discoverableHideoutPattern);
+                        }
                         else if (line.Contains(loginPattern, StringComparison.OrdinalIgnoreCase))
                             sawLoginLine = true;
                         else if (line.Contains(maybeWhisperPattern))

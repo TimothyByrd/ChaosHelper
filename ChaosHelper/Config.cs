@@ -109,12 +109,18 @@ namespace ChaosHelper
         public static bool DoAutoMute { get; set; }
         public static List<string> ZonesToMuteSound { get; private set; }
 
-        public static bool IsTown(string newArea)
+        public static bool IsTown(string areaName)
         {
             bool isTown = TownZones == null || TownZones.Count == 0
-                || TownZones.Any(x => string.Equals(x, newArea, StringComparison.OrdinalIgnoreCase))
-                || (HideoutRegex != null && HideoutRegex.IsMatch(newArea));
+                || TownZones.Any(x => string.Equals(x, areaName, StringComparison.OrdinalIgnoreCase))
+                || (HideoutRegex != null && HideoutRegex.IsMatch(areaName));
             return isTown;
+        }
+
+        public static bool CouldBeHideout(string areaName)
+        {
+            bool couldBeHideout = HideoutRegex != null && HideoutRegex.IsMatch(areaName);
+            return couldBeHideout;
         }
 
         public static bool IgnoreZoneForDiscoverableHideouts(string newArea)
